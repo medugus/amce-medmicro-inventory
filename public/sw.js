@@ -9,7 +9,7 @@
 //
 // This worker only registers on the published origin (see src/lib/registerSW.ts).
 
-const CACHE_VERSION = "amce-v2-durables";
+const CACHE_VERSION = "amce-v3-assets-registers";
 const APP_SHELL = ["/", "/manifest.webmanifest", "/icon-192.png", "/icon-512.png"];
 
 self.addEventListener("install", (event) => {
