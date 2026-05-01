@@ -69,7 +69,7 @@ export const db = new AMCEDatabase();
 // you want each lab PC to re-seed missing rows from the new baseline. We will
 // only INSERT rows that don't already exist on the lab PC, so user-entered
 // data is never overwritten.
-const SEED_VERSION = "2026-05-01.1";
+const SEED_VERSION = "2026-05-01.2";
 
 let seedPromise: Promise<void> | null = null;
 
