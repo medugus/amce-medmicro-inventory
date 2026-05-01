@@ -245,6 +245,16 @@ export function StockMovementsPage() {
           </div>
         )}
       </div>
+      <ReceiveBatchDialog
+        open={receiveOpen}
+        onOpenChange={setReceiveOpen}
+        defaultInventoryItemId={itemId}
+        onCreated={(_batchId, invId) => {
+          setItemId(invId);
+          // Don't auto-select the batch — it's pending acceptance and not issuable.
+          setBatchId("");
+        }}
+      />
     </div>
   );
 }
