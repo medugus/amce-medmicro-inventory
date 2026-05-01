@@ -22,6 +22,7 @@ import { Label } from "@/components/ui/label";
 
 export function EquipmentRegisterPage() {
   const equipment = useEquipment();
+  const equipmentRows = equipment.length ? equipment : AMCE_EQUIPMENT;
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<EquipmentAsset | null>(null);
   const [deleting, setDeleting] = useState<EquipmentAsset | null>(null);
@@ -52,7 +53,7 @@ export function EquipmentRegisterPage() {
         }
       />
       <div className="p-6">
-        {equipment.length === 0 ? (
+        {equipmentRows.length === 0 ? (
           <EmptyState
             icon={Cpu}
             title="Equipment register is empty."
@@ -70,7 +71,7 @@ export function EquipmentRegisterPage() {
                 </tr>
               </thead>
               <tbody>
-                {equipment.map((e) => (
+                {equipmentRows.map((e) => (
                   <tr key={e.id} className="border-t border-border hover:bg-muted/30">
                     <td className="p-2 font-medium">{e.equipmentName}</td>
                     <td className="p-2 text-xs">{e.equipmentCategory}</td>
@@ -113,6 +114,7 @@ export function EquipmentRegisterPage() {
 
 export function DurablesRegisterPage() {
   const durables = useDurables();
+  const durableRows = durables.length ? durables : AMCE_DURABLES;
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<DurableAsset | null>(null);
   const [deleting, setDeleting] = useState<DurableAsset | null>(null);
@@ -188,7 +190,7 @@ export function DurablesRegisterPage() {
                 </tr>
               </thead>
               <tbody>
-                {durables.map((d) => (
+                {durableRows.map((d) => (
                   <tr key={d.id} className="border-t border-border hover:bg-muted/30">
                     <td className="p-2 font-medium">{d.assetName}</td>
                     <td className="p-2 text-xs">{d.assetCategory}</td>
