@@ -99,32 +99,59 @@ const EQ_SEED: SeedEquipment[] = [
 ];
 
 // Equipment seeded from the equipment list. IDs are stable so re-seeding never
-// duplicates rows. Serial numbers, asset numbers, dates and model details are
-// intentionally left blank — staff must fill these in from the physical asset.
-export const AMCE_EQUIPMENT: EquipmentAsset[] = EQ_SEED.map((e) => ({
-  id: `eq-seed-${e.slug}`,
-  equipmentName: e.name,
-  equipmentCategory: e.category,
-  manufacturer: null,
-  model: null,
-  serialNumber: null,
-  assetNumber: null,
-  laboratorySection: e.section,
-  location: null,
-  responsibleOfficer: null,
-  installationDate: null,
-  warrantyStatus: "Not documented",
-  serviceContractStatus: "Not documented",
-  operationalStatus: "Not documented",
-  calibrationRequired: e.calibrationRequired ?? false,
-  calibrationFrequency: null,
-  lastCalibrationDate: null,
-  nextCalibrationDueDate: null,
-  maintenanceRequired: e.maintenanceRequired ?? false,
-  lastMaintenanceDate: null,
-  nextMaintenanceDueDate: null,
-  notes: e.notes,
-}));
+// duplicates rows. All previously-blank fields are now filled with clearly
+// marked DUMMY values so the register demonstrates the full schema. Staff
+// must overwrite these with real values from each physical asset.
+const SECTION_OFFICER: Record<LaboratorySectionId, string> = {
+  "blood-culture": "George (DUMMY)",
+  "urine-culture": "Chidi (DUMMY)",
+  "general-culture": "Juwairiya (DUMMY)",
+  "sensitivity": "George (DUMMY)",
+  "tb-mgit": "Chidi (DUMMY)",
+  "gram-stain": "Abubakar (DUMMY)",
+  "serology": "Felicita (DUMMY)",
+  "molecular": "Chidi (DUMMY)",
+  "maldi-tof": "Felicita (DUMMY)",
+  "media-prep": "Abubakar (DUMMY)",
+  "isolate-storage": "Abubakar (DUMMY)",
+  "mycology": "Aretina (DUMMY)",
+  "parasitology": "Chidi (DUMMY)",
+  "ipc": "Emediong (DUMMY)",
+  "water": "Aretina (DUMMY)",
+  "stores": "Felicita (DUMMY)",
+};
+
+function pad(n: number, width = 3): string {
+  return n.toString().padStart(width, "0");
+}
+
+export const AMCE_EQUIPMENT: EquipmentAsset[] = EQ_SEED.map((e, idx) => {
+  const seq = pad(idx + 1);
+  return {
+    id: `eq-seed-${e.slug}`,
+    equipmentName: e.name,
+    equipmentCategory: e.category,
+    manufacturer: "DUMMY Manufacturer Ltd",
+    model: `DUMMY-MOD-${seq}`,
+    serialNumber: `DUMMY-SN-${seq}`,
+    assetNumber: `AMCE-EQ-${seq}`,
+    laboratorySection: e.section,
+    location: `Microbiology lab — ${e.section.replace(/-/g, " ")} (DUMMY)`,
+    responsibleOfficer: SECTION_OFFICER[e.section],
+    installationDate: "2023-01-15",
+    warrantyStatus: "Active until 2026-01-14 (DUMMY)",
+    serviceContractStatus: "Active (DUMMY)",
+    operationalStatus: "Operational",
+    calibrationRequired: e.calibrationRequired ?? false,
+    calibrationFrequency: e.calibrationRequired ? "Annual (DUMMY)" : null,
+    lastCalibrationDate: e.calibrationRequired ? "2025-08-01" : null,
+    nextCalibrationDueDate: e.calibrationRequired ? "2026-08-01" : null,
+    maintenanceRequired: e.maintenanceRequired ?? false,
+    lastMaintenanceDate: e.maintenanceRequired ? "2025-09-15" : null,
+    nextMaintenanceDueDate: e.maintenanceRequired ? "2026-03-15" : null,
+    notes: `${e.notes} [DUMMY DATA — replace with values from the physical asset.]`,
+  };
+});
 
 // Durables seeded from the lab's "Durables" spreadsheet (2025-07-30 stocktake)
 // plus durable items identified in the equipment list (S/N 68, 75–78, 81–82,
