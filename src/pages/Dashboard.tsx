@@ -85,6 +85,13 @@ export function DashboardPage() {
         }
       />
       <div className="p-6 space-y-6">
+        <div className="rounded-lg border border-border bg-gradient-to-r from-pink-100 via-amber-100 to-emerald-100 dark:from-pink-500/15 dark:via-amber-500/15 dark:to-emerald-500/15 px-4 py-3 flex items-center gap-3 shadow-sm">
+          <span className="text-2xl" aria-hidden>🧫</span>
+          <div className="min-w-0">
+            <div className="text-sm font-bold text-foreground">For AMCE Medical Microbiology</div>
+            <div className="text-xs text-muted-foreground">Built by the AMCE Medical Microbiology team ✨</div>
+          </div>
+        </div>
         <section>
           <h2 className="text-sm font-semibold text-foreground mb-2">Critical actions</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
