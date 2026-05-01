@@ -31,7 +31,7 @@ export function ReadinessAuditPage() {
     {
       title: "AMCE section configuration",
       checks: [
-        { label: `All ${AMCE_SECTIONS.length} laboratory sections registered`, status: AMCE_SECTIONS.length === 14 ? "pass" : "warn" },
+        { label: `All ${AMCE_SECTIONS.length} laboratory sections registered`, status: AMCE_SECTIONS.length === 16 ? "pass" : "warn" },
         { label: "Section leads recorded", status: AMCE_SECTIONS.every((s) => s.leads.length > 0) ? "pass" : "warn" },
       ],
     },
