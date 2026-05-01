@@ -53,6 +53,7 @@ export function QuarantinedStockPage() {
   return (
     <div>
       <Header
+        helpTopic="quarantinedStock"
         title="Rejected and Quarantined Stock"
         description="Batches held back from issue pending investigation, supplier action, or final disposition."
         actions={<ExportButton />}

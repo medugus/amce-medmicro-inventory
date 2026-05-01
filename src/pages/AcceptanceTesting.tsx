@@ -131,6 +131,7 @@ export function AcceptanceTestingPage() {
   return (
     <div>
       <Header
+        helpTopic="acceptanceTesting"
         title="Acceptance Testing"
         description="Receipt checks and QC for critical reagents, kits, cartridges, media, stains, discs and QC materials. Items cannot be issued until accepted."
         actions={

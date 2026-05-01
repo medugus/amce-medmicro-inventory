@@ -56,6 +56,7 @@ export function InventoryMasterPage() {
   return (
     <div>
       <Header
+        helpTopic="inventoryMaster"
         title="Inventory Master"
         description="Confirmed catalogue items used by AMCE Microbiology. Catalogue presence does not imply usable stock."
         actions={

@@ -11,6 +11,7 @@ export function PurchaseRequestsPage() {
   return (
     <div>
       <Header
+        helpTopic="purchaseRequests"
         title="Purchase Requests"
         description="Section-initiated procurement requests with workflow status, approval and procurement tracking."
         actions={<ExportButton />}

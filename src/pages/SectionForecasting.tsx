@@ -10,6 +10,7 @@ export function SectionForecastingPage() {
   return (
     <div>
       <Header
+        helpTopic="sectionForecasting"
         title="Section Forecasting"
         description="Three-month forecasts submitted by bench heads. Used for procurement planning and budget projection."
         actions={<ExportButton />}

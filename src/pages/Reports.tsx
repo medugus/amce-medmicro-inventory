@@ -75,6 +75,7 @@ export function ReportsPage() {
   return (
     <div>
       <Header
+        helpTopic="reports"
         title="Reports"
         description="All values are calculated from current data. Export will be enabled after database integration."
         actions={<ExportButton />}

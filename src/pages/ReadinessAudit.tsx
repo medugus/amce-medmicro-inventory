@@ -78,6 +78,7 @@ export function ReadinessAuditPage() {
   return (
     <div>
       <Header
+        helpTopic="readinessAudit"
         title="Readiness Audit"
         description="Operational and quality readiness checks for the AMCE Microbiology inventory system."
       />

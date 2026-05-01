@@ -31,6 +31,7 @@ export function BatchRegisterPage() {
   return (
     <div>
       <Header
+        helpTopic="batchRegister"
         title="Batch / Lot Register"
         description="Tracks every received batch by lot, expiry, storage location, acceptance status, and issue eligibility."
         actions={<ExportButton />}

@@ -9,6 +9,7 @@ export function AuditTrailPage() {
   return (
     <div>
       <Header
+        helpTopic="auditTrail"
         title="Audit Trail"
         description="Record of every action recorded on this computer, with the named user, before/after values, and reason."
       />

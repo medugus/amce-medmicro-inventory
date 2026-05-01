@@ -96,6 +96,7 @@ export function StockMovementsPage() {
   return (
     <div>
       <Header
+        helpTopic="stockMovements"
         title="Stock Movements"
         description="Receipt, issue, transfer, adjustment, discard, quarantine, and release. FEFO is recommended on issue and negative balances are blocked."
         actions={
