@@ -9,8 +9,86 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SupplyStatusRouteImport } from './routes/supply-status'
+import { Route as StockMovementsRouteImport } from './routes/stock-movements'
+import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as SectionForecastingRouteImport } from './routes/section-forecasting'
+import { Route as ReportsRouteImport } from './routes/reports'
+import { Route as ReadinessAuditRouteImport } from './routes/readiness-audit'
+import { Route as PurchaseRequestsRouteImport } from './routes/purchase-requests'
+import { Route as MaintenanceCalibrationRouteImport } from './routes/maintenance-calibration'
+import { Route as InventoryMasterRouteImport } from './routes/inventory-master'
+import { Route as EquipmentRegisterRouteImport } from './routes/equipment-register'
+import { Route as DurablesRegisterRouteImport } from './routes/durables-register'
+import { Route as BatchRegisterRouteImport } from './routes/batch-register'
+import { Route as AcceptanceTestingRouteImport } from './routes/acceptance-testing'
 import { Route as IndexRouteImport } from './routes/index'
 
+const SupplyStatusRoute = SupplyStatusRouteImport.update({
+  id: '/supply-status',
+  path: '/supply-status',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StockMovementsRoute = StockMovementsRouteImport.update({
+  id: '/stock-movements',
+  path: '/stock-movements',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SectionForecastingRoute = SectionForecastingRouteImport.update({
+  id: '/section-forecasting',
+  path: '/section-forecasting',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReportsRoute = ReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReadinessAuditRoute = ReadinessAuditRouteImport.update({
+  id: '/readiness-audit',
+  path: '/readiness-audit',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PurchaseRequestsRoute = PurchaseRequestsRouteImport.update({
+  id: '/purchase-requests',
+  path: '/purchase-requests',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MaintenanceCalibrationRoute = MaintenanceCalibrationRouteImport.update({
+  id: '/maintenance-calibration',
+  path: '/maintenance-calibration',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InventoryMasterRoute = InventoryMasterRouteImport.update({
+  id: '/inventory-master',
+  path: '/inventory-master',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EquipmentRegisterRoute = EquipmentRegisterRouteImport.update({
+  id: '/equipment-register',
+  path: '/equipment-register',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DurablesRegisterRoute = DurablesRegisterRouteImport.update({
+  id: '/durables-register',
+  path: '/durables-register',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BatchRegisterRoute = BatchRegisterRouteImport.update({
+  id: '/batch-register',
+  path: '/batch-register',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AcceptanceTestingRoute = AcceptanceTestingRouteImport.update({
+  id: '/acceptance-testing',
+  path: '/acceptance-testing',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -19,28 +97,214 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/acceptance-testing': typeof AcceptanceTestingRoute
+  '/batch-register': typeof BatchRegisterRoute
+  '/durables-register': typeof DurablesRegisterRoute
+  '/equipment-register': typeof EquipmentRegisterRoute
+  '/inventory-master': typeof InventoryMasterRoute
+  '/maintenance-calibration': typeof MaintenanceCalibrationRoute
+  '/purchase-requests': typeof PurchaseRequestsRoute
+  '/readiness-audit': typeof ReadinessAuditRoute
+  '/reports': typeof ReportsRoute
+  '/section-forecasting': typeof SectionForecastingRoute
+  '/settings': typeof SettingsRoute
+  '/stock-movements': typeof StockMovementsRoute
+  '/supply-status': typeof SupplyStatusRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/acceptance-testing': typeof AcceptanceTestingRoute
+  '/batch-register': typeof BatchRegisterRoute
+  '/durables-register': typeof DurablesRegisterRoute
+  '/equipment-register': typeof EquipmentRegisterRoute
+  '/inventory-master': typeof InventoryMasterRoute
+  '/maintenance-calibration': typeof MaintenanceCalibrationRoute
+  '/purchase-requests': typeof PurchaseRequestsRoute
+  '/readiness-audit': typeof ReadinessAuditRoute
+  '/reports': typeof ReportsRoute
+  '/section-forecasting': typeof SectionForecastingRoute
+  '/settings': typeof SettingsRoute
+  '/stock-movements': typeof StockMovementsRoute
+  '/supply-status': typeof SupplyStatusRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/acceptance-testing': typeof AcceptanceTestingRoute
+  '/batch-register': typeof BatchRegisterRoute
+  '/durables-register': typeof DurablesRegisterRoute
+  '/equipment-register': typeof EquipmentRegisterRoute
+  '/inventory-master': typeof InventoryMasterRoute
+  '/maintenance-calibration': typeof MaintenanceCalibrationRoute
+  '/purchase-requests': typeof PurchaseRequestsRoute
+  '/readiness-audit': typeof ReadinessAuditRoute
+  '/reports': typeof ReportsRoute
+  '/section-forecasting': typeof SectionForecastingRoute
+  '/settings': typeof SettingsRoute
+  '/stock-movements': typeof StockMovementsRoute
+  '/supply-status': typeof SupplyStatusRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/acceptance-testing'
+    | '/batch-register'
+    | '/durables-register'
+    | '/equipment-register'
+    | '/inventory-master'
+    | '/maintenance-calibration'
+    | '/purchase-requests'
+    | '/readiness-audit'
+    | '/reports'
+    | '/section-forecasting'
+    | '/settings'
+    | '/stock-movements'
+    | '/supply-status'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/acceptance-testing'
+    | '/batch-register'
+    | '/durables-register'
+    | '/equipment-register'
+    | '/inventory-master'
+    | '/maintenance-calibration'
+    | '/purchase-requests'
+    | '/readiness-audit'
+    | '/reports'
+    | '/section-forecasting'
+    | '/settings'
+    | '/stock-movements'
+    | '/supply-status'
+  id:
+    | '__root__'
+    | '/'
+    | '/acceptance-testing'
+    | '/batch-register'
+    | '/durables-register'
+    | '/equipment-register'
+    | '/inventory-master'
+    | '/maintenance-calibration'
+    | '/purchase-requests'
+    | '/readiness-audit'
+    | '/reports'
+    | '/section-forecasting'
+    | '/settings'
+    | '/stock-movements'
+    | '/supply-status'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AcceptanceTestingRoute: typeof AcceptanceTestingRoute
+  BatchRegisterRoute: typeof BatchRegisterRoute
+  DurablesRegisterRoute: typeof DurablesRegisterRoute
+  EquipmentRegisterRoute: typeof EquipmentRegisterRoute
+  InventoryMasterRoute: typeof InventoryMasterRoute
+  MaintenanceCalibrationRoute: typeof MaintenanceCalibrationRoute
+  PurchaseRequestsRoute: typeof PurchaseRequestsRoute
+  ReadinessAuditRoute: typeof ReadinessAuditRoute
+  ReportsRoute: typeof ReportsRoute
+  SectionForecastingRoute: typeof SectionForecastingRoute
+  SettingsRoute: typeof SettingsRoute
+  StockMovementsRoute: typeof StockMovementsRoute
+  SupplyStatusRoute: typeof SupplyStatusRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/supply-status': {
+      id: '/supply-status'
+      path: '/supply-status'
+      fullPath: '/supply-status'
+      preLoaderRoute: typeof SupplyStatusRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/stock-movements': {
+      id: '/stock-movements'
+      path: '/stock-movements'
+      fullPath: '/stock-movements'
+      preLoaderRoute: typeof StockMovementsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/section-forecasting': {
+      id: '/section-forecasting'
+      path: '/section-forecasting'
+      fullPath: '/section-forecasting'
+      preLoaderRoute: typeof SectionForecastingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reports': {
+      id: '/reports'
+      path: '/reports'
+      fullPath: '/reports'
+      preLoaderRoute: typeof ReportsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/readiness-audit': {
+      id: '/readiness-audit'
+      path: '/readiness-audit'
+      fullPath: '/readiness-audit'
+      preLoaderRoute: typeof ReadinessAuditRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/purchase-requests': {
+      id: '/purchase-requests'
+      path: '/purchase-requests'
+      fullPath: '/purchase-requests'
+      preLoaderRoute: typeof PurchaseRequestsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/maintenance-calibration': {
+      id: '/maintenance-calibration'
+      path: '/maintenance-calibration'
+      fullPath: '/maintenance-calibration'
+      preLoaderRoute: typeof MaintenanceCalibrationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/inventory-master': {
+      id: '/inventory-master'
+      path: '/inventory-master'
+      fullPath: '/inventory-master'
+      preLoaderRoute: typeof InventoryMasterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/equipment-register': {
+      id: '/equipment-register'
+      path: '/equipment-register'
+      fullPath: '/equipment-register'
+      preLoaderRoute: typeof EquipmentRegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/durables-register': {
+      id: '/durables-register'
+      path: '/durables-register'
+      fullPath: '/durables-register'
+      preLoaderRoute: typeof DurablesRegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/batch-register': {
+      id: '/batch-register'
+      path: '/batch-register'
+      fullPath: '/batch-register'
+      preLoaderRoute: typeof BatchRegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/acceptance-testing': {
+      id: '/acceptance-testing'
+      path: '/acceptance-testing'
+      fullPath: '/acceptance-testing'
+      preLoaderRoute: typeof AcceptanceTestingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -53,6 +317,19 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AcceptanceTestingRoute: AcceptanceTestingRoute,
+  BatchRegisterRoute: BatchRegisterRoute,
+  DurablesRegisterRoute: DurablesRegisterRoute,
+  EquipmentRegisterRoute: EquipmentRegisterRoute,
+  InventoryMasterRoute: InventoryMasterRoute,
+  MaintenanceCalibrationRoute: MaintenanceCalibrationRoute,
+  PurchaseRequestsRoute: PurchaseRequestsRoute,
+  ReadinessAuditRoute: ReadinessAuditRoute,
+  ReportsRoute: ReportsRoute,
+  SectionForecastingRoute: SectionForecastingRoute,
+  SettingsRoute: SettingsRoute,
+  StockMovementsRoute: StockMovementsRoute,
+  SupplyStatusRoute: SupplyStatusRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
