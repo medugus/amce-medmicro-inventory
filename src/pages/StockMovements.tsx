@@ -25,6 +25,7 @@ const TYPES = ["Receive", "Issue", "Transfer", "Adjust", "Discard", "Return", "Q
 export function StockMovementsPage() {
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
+  const [receiveOpen, setReceiveOpen] = useState(false);
   const ready = useDataReady();
   const inventory = useInventory();
   const batches = useBatches();
