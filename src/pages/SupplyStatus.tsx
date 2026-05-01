@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { AMCE_SUPPLY_STATUS } from "@/data/amceSupplyStatus";
+import { useSupplyStatus } from "@/lib/useLiveData";
 import { AMCE_SECTIONS, SECTION_NAME } from "@/data/amceSections";
 import { Header } from "@/components/layout/Header";
 import { SearchInput } from "@/components/common/SearchInput";
@@ -29,6 +29,7 @@ const STATUS_GROUPS: SupplyStatus[] = [
 ];
 
 export function SupplyStatusPage() {
+  const supply = useSupplyStatus();
   const [search, setSearch] = useState("");
   const [section, setSection] = useState(ALL);
   const [responsible, setResponsible] = useState(ALL);
@@ -38,12 +39,12 @@ export function SupplyStatusPage() {
   const [missingOnly, setMissingOnly] = useState(false);
 
   const responsibles = useMemo(
-    () => Array.from(new Set(AMCE_SUPPLY_STATUS.map((s) => s.responsiblePerson))).sort(),
-    []
+    () => Array.from(new Set(supply.map((s) => s.responsiblePerson))).sort(),
+    [supply]
   );
 
   const rows = useMemo(() => {
-    return AMCE_SUPPLY_STATUS.filter((r) => {
+    return supply.filter((r) => {
       if (search && !`${r.itemName} ${r.category} ${r.responsiblePerson}`.toLowerCase().includes(search.toLowerCase())) return false;
       if (section !== ALL && r.laboratorySection !== section) return false;
       if (responsible !== ALL && r.responsiblePerson !== responsible) return false;
@@ -53,10 +54,10 @@ export function SupplyStatusPage() {
       if (missingOnly && supplyStatusFlags(r).length === 0) return false;
       return true;
     });
-  }, [search, section, responsible, supplyFilter, procFilter, critFilter, missingOnly]);
+  }, [supply, search, section, responsible, supplyFilter, procFilter, critFilter, missingOnly]);
 
-  const supplyValues = Array.from(new Set(AMCE_SUPPLY_STATUS.map((s) => s.supplyStatus)));
-  const procValues = Array.from(new Set(AMCE_SUPPLY_STATUS.map((s) => s.procurementStatus)));
+  const supplyValues = Array.from(new Set(supply.map((s) => s.supplyStatus)));
+  const procValues = Array.from(new Set(supply.map((s) => s.procurementStatus)));
 
   const grouped = STATUS_GROUPS.map((g) => ({
     status: g,
