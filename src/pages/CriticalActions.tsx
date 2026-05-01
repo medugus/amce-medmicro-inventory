@@ -45,6 +45,7 @@ export function CriticalActionsPage() {
   return (
     <div>
       <Header
+        helpTopic="criticalActions"
         title="Critical Actions"
         description="Live list of items requiring immediate operational attention, derived from supply, inventory, quality and equipment data."
         actions={<PrintButton label="Print critical actions" />}

@@ -17,6 +17,7 @@ export function ExpiredWastedStockPage() {
   return (
     <div>
       <Header
+        helpTopic="expiredWasted"
         title="Expired and Wasted Stock"
         description="Batches that have expired or been discarded. Used for wastage tracking and supplier feedback."
         actions={<><PrintButton label="Print expired list" /><ExportButton /></>}

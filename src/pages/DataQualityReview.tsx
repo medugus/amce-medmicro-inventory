@@ -14,6 +14,7 @@ export function DataQualityReviewPage() {
   return (
     <div>
       <Header
+        helpTopic="dataQuality"
         title="Data Quality Review"
         description="Records flagged for missing or inconsistent documentation. Resolve before further procurement or stock action."
         actions={<ExportButton />}

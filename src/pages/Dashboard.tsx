@@ -9,6 +9,7 @@ import { AMCE_SECTIONS, SECTION_NAME } from "@/data/amceSections";
 import { StatusBadge, toneForCriticality } from "@/components/common/StatusBadge";
 import { buildCriticalActions } from "@/logic/criticalActions";
 import { Link } from "@tanstack/react-router";
+
 import {
   useInventory,
   useBatches,
@@ -54,6 +55,7 @@ export function DashboardPage() {
       <Header
         title="AMCE Medical Microbiology Lab Command Centre"
         description="Live operational view across supply, inventory, quality and asset readiness."
+        helpTopic="dashboard"
         actions={
           <Link
             to="/critical-actions"
@@ -64,34 +66,6 @@ export function DashboardPage() {
         }
       />
       <div className="p-6 space-y-6">
-        <section>
-          <h2 className="text-sm font-semibold text-foreground mb-2">Next operational task</h2>
-          <div className="bg-card border border-border rounded-md p-4">
-            <div className="flex items-start justify-between gap-3 flex-wrap">
-              <div className="min-w-0">
-                <div className="text-sm font-semibold">Prepare current inventory import mapping</div>
-                <p className="text-xs text-muted-foreground mt-1 max-w-3xl">
-                  Current inventory file has been received. The next step is to map each workbook sheet to the correct module before importing data.
-                </p>
-              </div>
-              <div className="flex items-center gap-2 text-xs">
-                <StatusBadge label="Pending inventory mapping approval" tone="warning" />
-                <span className="text-muted-foreground">Owner: <span className="font-medium text-foreground">Dr Medugu</span></span>
-              </div>
-            </div>
-            <ol className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-1 text-xs list-decimal list-inside text-foreground">
-              <li>Confirm workbook sheet names.</li>
-              <li>Classify each sheet as Supply Status, Inventory Master, Batch/Lot Register, Usage History, Purchase Planning, Durables, Equipment, Forecasting, or Expired/Wasted Stock.</li>
-              <li>Identify missing critical fields.</li>
-              <li>Confirm which rows represent usable stock.</li>
-              <li>Confirm which rows are only requests or pending procurement.</li>
-              <li>Do not import requested or pending items as usable stock.</li>
-              <li>Wait for equipment list before final import.</li>
-              <li>Import only after build and deployment checks are green.</li>
-            </ol>
-          </div>
-        </section>
-
         <section>
           <h2 className="text-sm font-semibold text-foreground mb-2">Critical actions</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">

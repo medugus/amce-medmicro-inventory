@@ -28,6 +28,7 @@ export function ExpiryFEFOPage() {
   return (
     <div>
       <Header
+        helpTopic="expiryFEFO"
         title="Expiry and FEFO"
         description="Batches sorted by expiry. The first eligible batch per item is flagged for first-expiry-first-out issue."
         actions={<ExportButton />}

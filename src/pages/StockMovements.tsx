@@ -19,6 +19,7 @@ import { useBatches, useInventory, useStockMovements, useDataReady } from "@/lib
 import { recordMovement } from "@/lib/actions";
 import { getCurrentUser } from "@/lib/currentUser";
 import { toast } from "sonner";
+import { InlineWarning } from "@/components/common/InlineWarning";
 
 const TYPES = ["Receive", "Issue", "Transfer", "Adjust", "Discard", "Return", "Quarantine", "Release from quarantine"] as const;
 
@@ -96,6 +97,7 @@ export function StockMovementsPage() {
   return (
     <div>
       <Header
+        helpTopic="stockMovements"
         title="Stock Movements"
         description="Receipt, issue, transfer, adjustment, discard, quarantine, and release. FEFO is recommended on issue and negative balances are blocked."
         actions={
@@ -181,6 +183,21 @@ export function StockMovementsPage() {
                       <Input value={authorisedBy} onChange={(e) => setAuthorisedBy(e.target.value)} placeholder="Officer name" />
                     </div>
                   </div>
+                  {(() => {
+                    const b = batchId ? batchesById[batchId] : undefined;
+                    const qty = Number(quantity);
+                    const warnings: React.ReactNode[] = [];
+                    if (b && b.expiryDate && new Date(b.expiryDate) < new Date() && movementType === "Issue") {
+                      warnings.push(<>This batch expired on <strong>{b.expiryDate}</strong>. Issuing expired stock is normally not allowed — move it to Expired/Wasted Stock instead.</>);
+                    }
+                    if (b && qty > 0 && movementType === "Issue" && qty > (b.quantityAvailable ?? 0)) {
+                      warnings.push(<>You're trying to issue <strong>{qty}</strong> but the batch only has <strong>{b.quantityAvailable}</strong> available. Split across batches or reduce the quantity.</>);
+                    }
+                    if (movementType === "Adjust" && !reason.trim()) {
+                      warnings.push(<>Adjustments must include a reason for the audit trail.</>);
+                    }
+                    return warnings.map((w, i) => <InlineWarning key={i}>{w}</InlineWarning>);
+                  })()}
                   <div>
                     <Label className="text-xs">Reason</Label>
                     <Textarea value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Required for adjustments and discards" />
@@ -202,7 +219,7 @@ export function StockMovementsPage() {
         <SearchInput value={search} onChange={setSearch} placeholder="Search movements..." />
         {!ready ? (
           <div className="text-sm text-muted-foreground">Loading local database…</div>
-        ) : rows.length === 0 ? <EmptyState /> : (
+        ) : rows.length === 0 ? <EmptyState title="No movements recorded." description="Movements need at least one released batch. Receive a batch and clear it in Acceptance Testing first." /> : (
           <div className="border border-border rounded-md overflow-x-auto bg-card">
             <table className="w-full text-sm">
               <thead className="bg-muted/50 text-left text-[11px] uppercase tracking-wider text-muted-foreground">

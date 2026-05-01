@@ -20,6 +20,7 @@ export function LowStockReorderPage() {
   return (
     <div>
       <Header
+        helpTopic="lowStockReorder"
         title="Low Stock and Reorder"
         description="Catalogue items where usable stock from accepted, non-expired batches is at or below reorder level."
         actions={<><PrintButton label="Print reorder list" /><ExportButton /></>}

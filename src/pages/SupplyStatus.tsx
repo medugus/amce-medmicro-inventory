@@ -144,6 +144,7 @@ export function SupplyStatusPage() {
   return (
     <div>
       <Header
+        helpTopic="supplyStatus"
         title="AMCE Supply Status"
         description="Tracks requested, pending, ordered, and supplied items, grouped by supply status. These are not usable inventory until received and accepted."
         actions={<ExportButton />}

@@ -20,6 +20,7 @@ export function ProcurementFollowupPage() {
   return (
     <div>
       <Header
+        helpTopic="procurementFollowup"
         title="Procurement Follow-up"
         description="Open procurement workstream: items that are not yet supplied or are awaiting clarification, action or escalation."
         actions={<ExportButton />}

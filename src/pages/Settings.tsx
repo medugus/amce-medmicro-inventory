@@ -6,7 +6,7 @@ import { StatusBadge } from "@/components/common/StatusBadge";
 export function SettingsPage() {
   return (
     <div>
-      <Header title="Settings" description="Sections, leads and user roles for AMCE Microbiology." />
+      <Header helpTopic="settings" title="Settings" description="Sections, leads and user roles for AMCE Microbiology." />
       <div className="p-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
         <section>
           <h2 className="text-sm font-semibold mb-2">Laboratory sections</h2>

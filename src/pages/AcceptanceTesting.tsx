@@ -26,7 +26,7 @@ function classify(t: AcceptanceTest): GroupKey {
 }
 
 function TestTable({ rows }: { rows: AcceptanceTest[] }) {
-  if (rows.length === 0) return <EmptyState />;
+  if (rows.length === 0) return <EmptyState title="Nothing to test right now." description="New batches received in Batch Register appear here automatically for QC release." />;
   return (
     <div className="border border-border rounded-md overflow-x-auto bg-card">
       <table className="w-full text-sm">
@@ -131,6 +131,7 @@ export function AcceptanceTestingPage() {
   return (
     <div>
       <Header
+        helpTopic="acceptanceTesting"
         title="Acceptance Testing"
         description="Receipt checks and QC for critical reagents, kits, cartridges, media, stains, discs and QC materials. Items cannot be issued until accepted."
         actions={
