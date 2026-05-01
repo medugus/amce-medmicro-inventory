@@ -112,10 +112,10 @@ export function ensureSeeded(): Promise<void> {
         if ((await db.equipment.count()) === 0 && AMCE_EQUIPMENT.length) {
           await db.equipment.bulkAdd(AMCE_EQUIPMENT);
         }
-        // Durables: fill in any missing seed rows by id, never overwrite edits.
-        const existingDur = new Set((await db.durables.toCollection().primaryKeys()) as string[]);
-        const newDur = AMCE_DURABLES.filter((d) => !existingDur.has(d.id));
-        if (newDur.length) await db.durables.bulkAdd(newDur);
+        // Durables: bulkPut refreshes seed rows (id prefix `dur-seed-`) from the
+        // current spreadsheet baseline. User-added rows use a different id prefix
+        // and are never touched.
+        if (AMCE_DURABLES.length) await db.durables.bulkPut(AMCE_DURABLES);
 
         await db.meta.put({ key: "seedVersion", value: SEED_VERSION });
       }
