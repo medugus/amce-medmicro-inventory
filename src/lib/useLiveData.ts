@@ -3,6 +3,7 @@
 
 import { useEffect, useState } from "react";
 import { db, ensureDurablesSeeded, ensureEquipmentSeeded, ensureSeeded } from "@/lib/db";
+import { AMCE_DURABLES, AMCE_EQUIPMENT } from "@/data/amceAssets";
 import type {
   InventoryItem,
   InventoryBatch,
@@ -102,14 +103,16 @@ export function useAuditTrail(): AuditTrailEntry[] {
 export function useEquipment(): EquipmentAsset[] {
   return useTable(async () => {
     await ensureEquipmentSeeded();
-    return db.equipment.toArray();
+    const rows = await db.equipment.toArray();
+    return rows.length ? rows : AMCE_EQUIPMENT;
   });
 }
 
 export function useDurables(): DurableAsset[] {
   return useTable(async () => {
     await ensureDurablesSeeded();
-    return db.durables.toArray();
+    const rows = await db.durables.toArray();
+    return rows.length ? rows : AMCE_DURABLES;
   });
 }
 
