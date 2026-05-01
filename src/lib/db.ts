@@ -109,6 +109,12 @@ export function ensureSeeded(): Promise<void> {
         if ((await db.audit.count()) === 0 && AMCE_AUDIT_TRAIL.length) {
           await db.audit.bulkAdd(AMCE_AUDIT_TRAIL);
         }
+        if ((await db.equipment.count()) === 0 && AMCE_EQUIPMENT.length) {
+          await db.equipment.bulkAdd(AMCE_EQUIPMENT);
+        }
+        if ((await db.durables.count()) === 0 && AMCE_DURABLES.length) {
+          await db.durables.bulkAdd(AMCE_DURABLES);
+        }
 
         await db.meta.put({ key: "seedVersion", value: SEED_VERSION });
       }
