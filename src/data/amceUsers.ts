@@ -1,7 +1,6 @@
 import type { AMCEUser } from "@/types";
 
 export const AMCE_USERS: AMCEUser[] = [
-  { id: "u-medugu", name: "Dr Medugu", role: "Consultant/Director", title: "Quality system and consultant oversight", sections: [], active: true },
   { id: "u-nubwa", name: "Dr Nubwa", role: "Consultant", title: "Consultant microbiologist", sections: [], active: true },
   { id: "u-imran", name: "Dr Imran", role: "Specialist", title: "Preanalytical and analytical procedure oversight", sections: [], active: true },
   { id: "u-george", name: "George", role: "Section Head", title: "Blood culture and Sensitivity bench lead", sections: ["blood-culture", "sensitivity"], active: true },
