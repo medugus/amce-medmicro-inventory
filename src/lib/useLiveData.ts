@@ -10,6 +10,8 @@ import type {
   AcceptanceTest,
   SupplyStatusRecord,
   AuditTrailEntry,
+  EquipmentAsset,
+  DurableAsset,
 } from "@/types";
 
 let ready = false;
