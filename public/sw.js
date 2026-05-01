@@ -9,7 +9,7 @@
 //
 // This worker only registers on the published origin (see src/lib/registerSW.ts).
 
-const CACHE_VERSION = "amce-v1";
+const CACHE_VERSION = "amce-v2-durables";
 const APP_SHELL = ["/", "/manifest.webmanifest", "/icon-192.png", "/icon-512.png"];
 
 self.addEventListener("install", (event) => {
@@ -71,6 +71,7 @@ self.addEventListener("fetch", (event) => {
       if (res && res.ok) cache.put(req, res.clone());
       return res;
     }).catch(() => null);
-    return cached || (await networkPromise) || new Response("Offline", { status: 503 });
+    const fresh = await networkPromise;
+    return fresh || cached || new Response("Offline", { status: 503 });
   })());
 });
