@@ -69,7 +69,7 @@ export const db = new AMCEDatabase();
 // you want each lab PC to re-seed missing rows from the new baseline. We will
 // only INSERT rows that don't already exist on the lab PC, so user-entered
 // data is never overwritten.
-const SEED_VERSION = "2026-05-01.2";
+const SEED_VERSION = "2026-05-01.3-durables";
 
 let seedPromise: Promise<void> | null = null;
 
@@ -112,9 +112,10 @@ export function ensureSeeded(): Promise<void> {
         if ((await db.equipment.count()) === 0 && AMCE_EQUIPMENT.length) {
           await db.equipment.bulkAdd(AMCE_EQUIPMENT);
         }
-        if ((await db.durables.count()) === 0 && AMCE_DURABLES.length) {
-          await db.durables.bulkAdd(AMCE_DURABLES);
-        }
+        // Durables: fill in any missing seed rows by id, never overwrite edits.
+        const existingDur = new Set((await db.durables.toCollection().primaryKeys()) as string[]);
+        const newDur = AMCE_DURABLES.filter((d) => !existingDur.has(d.id));
+        if (newDur.length) await db.durables.bulkAdd(newDur);
 
         await db.meta.put({ key: "seedVersion", value: SEED_VERSION });
       }
