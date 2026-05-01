@@ -195,22 +195,27 @@ const SEED: SeedDurable[] = [
   { slug: "concavity-slide", assetName: "Concavity slide", assetCategory: "Slides", quantity: 2 },
 ];
 
-// Only fields present in the source data are populated. Location, condition,
-// responsible officer, and replacement dates are left blank for staff to fill in
-// — we will not invent values that are not in the source spreadsheet.
-export const AMCE_DURABLES: DurableAsset[] = SEED.map((s) => ({
-  id: `dur-seed-${s.slug}`,
-  assetName: s.assetName,
-  assetCategory: s.assetCategory,
-  laboratorySection: s.laboratorySection ?? "stores",
-  location: null,
-  quantity: s.quantity,
-  condition: "Not documented",
-  responsibleOfficer: null,
-  purchaseDate: "2025-07-30",
-  expectedReplacementDate: null,
-  notes: s.notes ?? "",
-}));
+// All previously-blank fields are now filled with clearly marked DUMMY values
+// so the register demonstrates the full schema. Staff must overwrite these
+// with real values from the physical asset.
+const DURABLE_CONDITIONS: Array<DurableAsset["condition"]> = ["Good", "Good", "Good", "Fair"];
+
+export const AMCE_DURABLES: DurableAsset[] = SEED.map((s, idx) => {
+  const section: LaboratorySectionId = s.laboratorySection ?? "stores";
+  return {
+    id: `dur-seed-${s.slug}`,
+    assetName: s.assetName,
+    assetCategory: s.assetCategory,
+    laboratorySection: section,
+    location: `Media prep shelf ${String.fromCharCode(65 + (idx % 6))}${(idx % 4) + 1} (DUMMY)`,
+    quantity: s.quantity,
+    condition: DURABLE_CONDITIONS[idx % DURABLE_CONDITIONS.length],
+    responsibleOfficer: SECTION_OFFICER[section],
+    purchaseDate: "2025-07-30",
+    expectedReplacementDate: "2028-07-30",
+    notes: `${s.notes ?? ""} [DUMMY DATA — replace with real values.]`.trim(),
+  };
+});
 
 export const AMCE_MAINTENANCE: MaintenanceRecord[] = [];
 
