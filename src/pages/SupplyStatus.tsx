@@ -217,6 +217,7 @@ export function SupplyStatusPage() {
                         <th className="p-2">Crit.</th>
                         <th className="p-2">Remarks</th>
                         <th className="p-2">Action required</th>
+                        <th className="p-2 print:hidden"></th>
                       </tr>
                     </thead>
                     <tbody>
@@ -246,6 +247,9 @@ export function SupplyStatusPage() {
                               )}
                             </td>
                             <td className="p-2 text-xs">{actionRequired(r)}</td>
+                            <td className="p-2 print:hidden">
+                              <Button size="sm" variant="outline" onClick={() => startEdit(r)}>Update</Button>
+                            </td>
                           </tr>
                         );
                       })}
@@ -257,6 +261,79 @@ export function SupplyStatusPage() {
           </div>
         )}
       </div>
+
+      <Dialog open={!!editing} onOpenChange={(o) => { if (!o) setEditing(null); }}>
+        <DialogContent className="max-w-xl">
+          <DialogHeader><DialogTitle>Update supply record</DialogTitle></DialogHeader>
+          {editing && (
+            <div className="space-y-3">
+              <div className="text-sm">
+                <div className="font-medium">{editing.itemName}</div>
+                <div className="text-xs text-muted-foreground">{editing.category} — {SECTION_NAME[editing.laboratorySection]}</div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label className="text-xs">Supply status</Label>
+                  <Select value={eSupply} onValueChange={(v) => setESupply(v as SupplyStatus)}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {SUPPLY_VALUES.map((v) => <SelectItem key={v} value={v}>{v}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-xs">Procurement status</Label>
+                  <Select value={eProc} onValueChange={(v) => setEProc(v as ProcurementStatus)}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {PROC_VALUES.map((v) => <SelectItem key={v} value={v}>{v}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label className="text-xs">Supplied quantity</Label>
+                  <Input type="number" min={0} value={eSupplied} onChange={(e) => setESupplied(e.target.value)} />
+                </div>
+                <div>
+                  <Label className="text-xs">Outstanding quantity</Label>
+                  <Input type="number" min={0} value={eOutstanding} onChange={(e) => setEOutstanding(e.target.value)} />
+                </div>
+              </div>
+              <div>
+                <Label className="text-xs">Supplier</Label>
+                <Input value={eSupplier} onChange={(e) => setESupplier(e.target.value)} />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label className="text-xs">Date ordered</Label>
+                  <Input type="date" value={eDateOrdered} onChange={(e) => setEDateOrdered(e.target.value)} />
+                </div>
+                <div>
+                  <Label className="text-xs">Date supplied</Label>
+                  <Input type="date" value={eDateSupplied} onChange={(e) => setEDateSupplied(e.target.value)} />
+                </div>
+              </div>
+              <div>
+                <Label className="text-xs">Remarks</Label>
+                <Textarea value={eRemarks} onChange={(e) => setERemarks(e.target.value)} />
+              </div>
+              <div>
+                <Label className="text-xs">Reason for update (required for audit trail)</Label>
+                <Textarea value={eReason} onChange={(e) => setEReason(e.target.value)} placeholder="e.g. Confirmed delivery from Bio-Rad on 2026-05-01" />
+              </div>
+              <div className="text-xs text-muted-foreground">
+                Recorded by: <span className="font-medium text-foreground">{getCurrentUser()?.name ?? "no user selected"}</span>
+              </div>
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" onClick={() => setEditing(null)}>Cancel</Button>
+                <Button onClick={saveEdit} disabled={eSubmitting}>{eSubmitting ? "Saving…" : "Save update"}</Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
