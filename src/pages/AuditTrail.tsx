@@ -1,22 +1,25 @@
 import { Header } from "@/components/layout/Header";
 import { EmptyState } from "@/components/common/EmptyState";
 import { ScrollText } from "lucide-react";
-import { AMCE_AUDIT_TRAIL } from "@/data/amceAuditTrail";
+import { useAuditTrail, useDataReady } from "@/lib/useLiveData";
 
 export function AuditTrailPage() {
-  const rows = AMCE_AUDIT_TRAIL;
+  const ready = useDataReady();
+  const rows = useAuditTrail();
   return (
     <div>
       <Header
         title="Audit Trail"
-        description="Record of user actions across modules. Persistent audit logging is enabled once the system is connected to a backend."
+        description="Record of every action recorded on this computer, with the named user, before/after values, and reason."
       />
       <div className="p-6">
-        {rows.length === 0 ? (
+        {!ready ? (
+          <div className="text-sm text-muted-foreground">Loading local database…</div>
+        ) : rows.length === 0 ? (
           <EmptyState
             icon={ScrollText}
             title="Audit trail is empty."
-            description="Audit entries will be recorded automatically once user authentication and database persistence are enabled."
+            description="Audit entries are created automatically when you record a stock movement, accept or reject a batch, quarantine, release, discard, or update a supply record."
           />
         ) : (
           <div className="border border-border rounded-md overflow-x-auto bg-card">
