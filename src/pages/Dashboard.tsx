@@ -6,6 +6,25 @@ import { expiryBucket, isLowStock, totalAvailableForItem } from "@/logic/invento
 import { isCriticalRisk, supplyStatusFlags } from "@/logic/supplyStatus";
 import { isCalibrationDue, isMaintenanceDue } from "@/logic/equipment";
 import { AMCE_SECTIONS, SECTION_NAME } from "@/data/amceSections";
+
+const SECTION_EMOJI: Record<string, string> = {
+  "blood-culture": "🩸",
+  "urine-culture": "🧫",
+  "general-culture": "🦠",
+  "sensitivity": "💊",
+  "tb-mgit": "🫁",
+  "gram-stain": "🔬",
+  "serology": "🧪",
+  "molecular": "🧬",
+  "maldi-tof": "⚛️",
+  "media-prep": "⚗️",
+  "isolate-storage": "🧊",
+  "mycology": "🍄",
+  "parasitology": "🦟",
+  "ipc": "🧼",
+  "water": "💧",
+  "stores": "📦",
+};
 import { StatusBadge, toneForCriticality } from "@/components/common/StatusBadge";
 import { buildCriticalActions } from "@/logic/criticalActions";
 import { Link } from "@tanstack/react-router";
