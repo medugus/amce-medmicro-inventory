@@ -13,6 +13,7 @@ import type {
   InventoryItem,
   EquipmentAsset,
   DurableAsset,
+  AcceptanceStatus,
 } from "@/types";
 import { db, newId, appendAudit } from "@/lib/db";
 import { notifyDbChanged } from "@/lib/useLiveData";
