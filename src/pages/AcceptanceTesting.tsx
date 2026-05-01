@@ -1,10 +1,19 @@
-import { useState } from "react";
-import { useAcceptanceTests } from "@/lib/useLiveData";
+import { useMemo, useState } from "react";
+import { useAcceptanceTests, useBatches, useInventory } from "@/lib/useLiveData";
 import { Header } from "@/components/layout/Header";
 import { ExportButton } from "@/components/common/ExportButton";
 import { EmptyState } from "@/components/common/EmptyState";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
+import { recordAcceptance } from "@/lib/actions";
+import { getCurrentUser } from "@/lib/currentUser";
+import { toast } from "sonner";
 import type { AcceptanceTest } from "@/types";
 
 type GroupKey = "Pending acceptance" | "Accepted" | "Rejected" | "Requires corrective action";
@@ -67,6 +76,50 @@ function TestTable({ rows }: { rows: AcceptanceTest[] }) {
 export function AcceptanceTestingPage() {
   const [tab, setTab] = useState<GroupKey>("Pending acceptance");
   const tests = useAcceptanceTests();
+  const batches = useBatches();
+  const inventory = useInventory();
+  const itemsById = useMemo(() => Object.fromEntries(inventory.map((i) => [i.id, i])), [inventory]);
+
+  const pendingBatches = useMemo(
+    () => batches.filter((b) => b.acceptanceStatus === "Pending acceptance" || b.batchStatus === "Pending acceptance"),
+    [batches]
+  );
+
+  const [open, setOpen] = useState(false);
+  const [batchId, setBatchId] = useState("");
+  const [decision, setDecision] = useState<"Accepted" | "Rejected">("Accepted");
+  const [qcResult, setQcResult] = useState<"Pass" | "Fail" | "Pending" | "Not required">("Pass");
+  const [coa, setCoa] = useState(true);
+  const [physical, setPhysical] = useState<"Acceptable" | "Damaged" | "Compromised" | "Pending review">("Acceptable");
+  const [comments, setComments] = useState("");
+  const [corrective, setCorrective] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  function reset() {
+    setBatchId(""); setDecision("Accepted"); setQcResult("Pass"); setCoa(true);
+    setPhysical("Acceptable"); setComments(""); setCorrective("");
+  }
+
+  async function handleSave() {
+    const user = getCurrentUser();
+    if (!user) { toast.error("Select a user in the top bar first."); return; }
+    if (!batchId) { toast.error("Select a batch."); return; }
+    if (decision === "Rejected" && !corrective.trim()) { toast.error("Corrective action is required when rejecting."); return; }
+    setSubmitting(true);
+    try {
+      await recordAcceptance({
+        batchId, decision, qcResult,
+        certificateOfAnalysisAvailable: coa,
+        physicalCondition: physical,
+        comments, correctiveActionIfRejected: corrective,
+      });
+      toast.success(`Batch ${decision.toLowerCase()} by ${user.name}.`);
+      reset(); setOpen(false);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to save.");
+    } finally { setSubmitting(false); }
+  }
+
   const groups: Record<GroupKey, AcceptanceTest[]> = {
     "Pending acceptance": [],
     Accepted: [],
@@ -80,7 +133,92 @@ export function AcceptanceTestingPage() {
       <Header
         title="Acceptance Testing"
         description="Receipt checks and QC for critical reagents, kits, cartridges, media, stains, discs and QC materials. Items cannot be issued until accepted."
-        actions={<ExportButton />}
+        actions={
+          <div className="flex items-center gap-2">
+            <ExportButton />
+            <Dialog open={open} onOpenChange={setOpen}>
+              <DialogTrigger asChild><Button size="sm">Record acceptance</Button></DialogTrigger>
+              <DialogContent className="max-w-lg">
+                <DialogHeader><DialogTitle>Record acceptance decision</DialogTitle></DialogHeader>
+                <div className="space-y-3">
+                  <div>
+                    <Label className="text-xs">Batch awaiting acceptance</Label>
+                    <Select value={batchId} onValueChange={setBatchId}>
+                      <SelectTrigger><SelectValue placeholder={pendingBatches.length ? "Select batch" : "No pending batches"} /></SelectTrigger>
+                      <SelectContent>
+                        {pendingBatches.map((b) => {
+                          const item = itemsById[b.inventoryItemId];
+                          return (
+                            <SelectItem key={b.id} value={b.id}>
+                              {item?.itemName ?? b.inventoryItemId} — {b.batchNumber} — recv {b.dateReceived}
+                            </SelectItem>
+                          );
+                        })}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label className="text-xs">Decision</Label>
+                      <Select value={decision} onValueChange={(v) => setDecision(v as "Accepted" | "Rejected")}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Accepted">Accepted</SelectItem>
+                          <SelectItem value="Rejected">Rejected</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label className="text-xs">QC result</Label>
+                      <Select value={qcResult} onValueChange={(v) => setQcResult(v as typeof qcResult)}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          {(["Pass", "Fail", "Pending", "Not required"] as const).map((v) => (
+                            <SelectItem key={v} value={v}>{v}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label className="text-xs">Physical condition</Label>
+                      <Select value={physical} onValueChange={(v) => setPhysical(v as typeof physical)}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          {(["Acceptable", "Damaged", "Compromised", "Pending review"] as const).map((v) => (
+                            <SelectItem key={v} value={v}>{v}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <label className="flex items-end gap-2 text-xs pb-2">
+                      <Checkbox checked={coa} onCheckedChange={(v) => setCoa(Boolean(v))} />
+                      Certificate of Analysis available
+                    </label>
+                  </div>
+                  <div>
+                    <Label className="text-xs">Comments</Label>
+                    <Textarea value={comments} onChange={(e) => setComments(e.target.value)} />
+                  </div>
+                  {decision === "Rejected" && (
+                    <div>
+                      <Label className="text-xs">Corrective action (required)</Label>
+                      <Textarea value={corrective} onChange={(e) => setCorrective(e.target.value)} />
+                    </div>
+                  )}
+                  <div className="text-xs text-muted-foreground">
+                    Recorded by: <span className="font-medium text-foreground">{getCurrentUser()?.name ?? "no user selected"}</span>
+                  </div>
+                  <div className="flex justify-end gap-2">
+                    <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+                    <Button onClick={handleSave} disabled={submitting}>{submitting ? "Saving…" : "Save decision"}</Button>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
+        }
       />
       <div className="p-6">
         <Tabs value={tab} onValueChange={(v) => setTab(v as GroupKey)}>
