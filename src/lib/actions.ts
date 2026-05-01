@@ -208,6 +208,8 @@ export async function createBatch(input: CreateBatchInput): Promise<InventoryBat
   });
 }
 
+// ---------- Acceptance ----------
+
 export interface RecordAcceptanceInput {
   batchId: string;
   decision: "Accepted" | "Rejected";
