@@ -118,7 +118,7 @@ export function DashboardPage() {
             <DashboardCard label="Inventory items" value={items.length} />
             <DashboardCard label="Low-stock items" value={lowStock} tone={lowStock ? "warning" : "default"} />
             <DashboardCard label="Batch / lot records" value={batches.length} />
-            <DashboardCard label="Stock movements" value={AMCE_STOCK_MOVEMENTS.length} />
+            <DashboardCard label="Stock movements" value={movements.length} />
             <DashboardCard label="Purchase requests" value={AMCE_PURCHASE_REQUESTS.length} />
             <DashboardCard label="Section forecasts" value={AMCE_FORECASTS.length} />
             <DashboardCard label="Equipment assets" value={equipment.length} hint={equipment.length === 0 ? "Pending import" : undefined} />
