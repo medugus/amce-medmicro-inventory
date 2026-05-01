@@ -99,6 +99,14 @@ export function useAuditTrail(): AuditTrailEntry[] {
   );
 }
 
+export function useEquipment(): EquipmentAsset[] {
+  return useTable(() => db.equipment.toArray());
+}
+
+export function useDurables(): DurableAsset[] {
+  return useTable(() => db.durables.toArray());
+}
+
 export function useDataReady(): boolean {
   return useReady();
 }
