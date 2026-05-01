@@ -1,11 +1,12 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Header } from "@/components/layout/Header";
 import { ExportButton } from "@/components/common/ExportButton";
 import { EmptyState } from "@/components/common/EmptyState";
 import { Button } from "@/components/ui/button";
 import { Plus, Pencil, Trash2, Cpu, Hammer, Wrench } from "lucide-react";
 import { useEquipment, useDurables } from "@/lib/useLiveData";
-import { AMCE_MAINTENANCE, AMCE_CALIBRATION } from "@/data/amceAssets";
+import { ensureDurablesSeeded } from "@/lib/db";
+import { AMCE_MAINTENANCE, AMCE_CALIBRATION, AMCE_DURABLES, AMCE_EQUIPMENT } from "@/data/amceAssets";
 import { SECTION_NAME } from "@/data/amceSections";
 import { EquipmentDialog } from "@/components/forms/EquipmentDialog";
 import { DurableDialog } from "@/components/forms/DurableDialog";
@@ -21,6 +22,7 @@ import { Label } from "@/components/ui/label";
 
 export function EquipmentRegisterPage() {
   const equipment = useEquipment();
+  const equipmentRows = equipment.length ? equipment : AMCE_EQUIPMENT;
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<EquipmentAsset | null>(null);
   const [deleting, setDeleting] = useState<EquipmentAsset | null>(null);
@@ -51,7 +53,7 @@ export function EquipmentRegisterPage() {
         }
       />
       <div className="p-6">
-        {equipment.length === 0 ? (
+        {equipmentRows.length === 0 ? (
           <EmptyState
             icon={Cpu}
             title="Equipment register is empty."
@@ -69,7 +71,7 @@ export function EquipmentRegisterPage() {
                 </tr>
               </thead>
               <tbody>
-                {equipment.map((e) => (
+                {equipmentRows.map((e) => (
                   <tr key={e.id} className="border-t border-border hover:bg-muted/30">
                     <td className="p-2 font-medium">{e.equipmentName}</td>
                     <td className="p-2 text-xs">{e.equipmentCategory}</td>
@@ -112,10 +114,13 @@ export function EquipmentRegisterPage() {
 
 export function DurablesRegisterPage() {
   const durables = useDurables();
+  const durableRows = durables.length ? durables : AMCE_DURABLES;
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<DurableAsset | null>(null);
   const [deleting, setDeleting] = useState<DurableAsset | null>(null);
   const [reason, setReason] = useState("");
+  const [loadingBaseline, setLoadingBaseline] = useState(false);
+  const [attemptedAutoLoad, setAttemptedAutoLoad] = useState(false);
 
   async function confirmDelete() {
     if (!deleting) return;
@@ -125,6 +130,26 @@ export function DurablesRegisterPage() {
       setDeleting(null); setReason("");
     } catch (err) { toast.error(err instanceof Error ? err.message : "Failed."); }
   }
+
+  async function loadBaselineDurables() {
+    try {
+      setLoadingBaseline(true);
+      await ensureDurablesSeeded();
+      window.dispatchEvent(new CustomEvent("amce:db-changed"));
+      toast.success("Lab durables loaded.");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to load durables.");
+    } finally {
+      setLoadingBaseline(false);
+    }
+  }
+
+  useEffect(() => {
+    if (durableRows.length > 0 || attemptedAutoLoad || loadingBaseline) return;
+    setAttemptedAutoLoad(true);
+    void loadBaselineDurables();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [durableRows.length, attemptedAutoLoad, loadingBaseline]);
 
   return (
     <div>
@@ -142,8 +167,17 @@ export function DurablesRegisterPage() {
         }
       />
       <div className="p-6">
-        {durables.length === 0 ? (
-          <EmptyState icon={Hammer} title="Durables register is empty." description="Use Add durable to record reusable lab assets." />
+        {durableRows.length === 0 ? (
+          <EmptyState
+            icon={Hammer}
+            title="Durables register is empty."
+            description="Use Add durable to record reusable lab assets, or load the lab baseline list."
+            action={(
+              <Button variant="secondary" onClick={loadBaselineDurables} disabled={loadingBaseline}>
+                {loadingBaseline ? "Loading..." : "Load lab durables"}
+              </Button>
+            )}
+          />
         ) : (
           <div className="border border-border rounded-md overflow-x-auto bg-card">
             <table className="w-full text-sm">
@@ -156,7 +190,7 @@ export function DurablesRegisterPage() {
                 </tr>
               </thead>
               <tbody>
-                {durables.map((d) => (
+                {durableRows.map((d) => (
                   <tr key={d.id} className="border-t border-border hover:bg-muted/30">
                     <td className="p-2 font-medium">{d.assetName}</td>
                     <td className="p-2 text-xs">{d.assetCategory}</td>
