@@ -14,21 +14,42 @@ import {
   FileBarChart2,
   ShieldCheck,
   Settings as SettingsIcon,
+  AlertTriangle,
+  PhoneCall,
+  Hourglass,
+  TrendingDown,
+  ClipboardList,
+  ScrollText,
+  ShieldAlert,
+  Trash2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const NAV: { to: string; label: string; group: string; icon: React.ComponentType<{ className?: string }> }[] = [
-  { to: "/", label: "Dashboard", group: "Overview", icon: LayoutDashboard },
-  { to: "/supply-status", label: "Supply Status", group: "Procurement", icon: PackageSearch },
-  { to: "/purchase-requests", label: "Purchase Requests", group: "Procurement", icon: ShoppingCart },
-  { to: "/section-forecasting", label: "Section Forecasting", group: "Procurement", icon: TrendingUp },
-  { to: "/inventory-master", label: "Inventory Master", group: "Inventory", icon: Boxes },
-  { to: "/batch-register", label: "Batch / Lot Register", group: "Inventory", icon: Layers },
-  { to: "/stock-movements", label: "Stock Movements", group: "Inventory", icon: ArrowLeftRight },
-  { to: "/acceptance-testing", label: "Acceptance Testing", group: "Quality", icon: ClipboardCheck },
-  { to: "/equipment-register", label: "Equipment Register", group: "Assets", icon: Cpu },
-  { to: "/durables-register", label: "Durables Register", group: "Assets", icon: Hammer },
-  { to: "/maintenance-calibration", label: "Maintenance & Calibration", group: "Assets", icon: Wrench },
+  { to: "/", label: "Dashboard", group: "AMCE Microbiology", icon: LayoutDashboard },
+  { to: "/critical-actions", label: "Critical Actions", group: "AMCE Microbiology", icon: AlertTriangle },
+
+  { to: "/supply-status", label: "Supply Status", group: "Supply and Procurement", icon: PackageSearch },
+  { to: "/purchase-requests", label: "Purchase Requests", group: "Supply and Procurement", icon: ShoppingCart },
+  { to: "/section-forecasting", label: "Section Forecasting", group: "Supply and Procurement", icon: TrendingUp },
+  { to: "/procurement-followup", label: "Procurement Follow-up", group: "Supply and Procurement", icon: PhoneCall },
+
+  { to: "/inventory-master", label: "Inventory Master", group: "Inventory Control", icon: Boxes },
+  { to: "/batch-register", label: "Batch / Lot Register", group: "Inventory Control", icon: Layers },
+  { to: "/stock-movements", label: "Stock Movements", group: "Inventory Control", icon: ArrowLeftRight },
+  { to: "/expiry-fefo", label: "Expiry and FEFO", group: "Inventory Control", icon: Hourglass },
+  { to: "/low-stock-reorder", label: "Low Stock and Reorder", group: "Inventory Control", icon: TrendingDown },
+
+  { to: "/acceptance-testing", label: "Acceptance Testing", group: "Quality and Compliance", icon: ClipboardCheck },
+  { to: "/data-quality-review", label: "Data Quality Review", group: "Quality and Compliance", icon: ClipboardList },
+  { to: "/audit-trail", label: "Audit Trail", group: "Quality and Compliance", icon: ScrollText },
+  { to: "/quarantined-stock", label: "Rejected / Quarantined Stock", group: "Quality and Compliance", icon: ShieldAlert },
+  { to: "/expired-wasted-stock", label: "Expired / Wasted Stock", group: "Quality and Compliance", icon: Trash2 },
+
+  { to: "/equipment-register", label: "Equipment Register", group: "Equipment and Assets", icon: Cpu },
+  { to: "/durables-register", label: "Durables Register", group: "Equipment and Assets", icon: Hammer },
+  { to: "/maintenance-calibration", label: "Maintenance and Calibration", group: "Equipment and Assets", icon: Wrench },
+
   { to: "/reports", label: "Reports", group: "Oversight", icon: FileBarChart2 },
   { to: "/readiness-audit", label: "Readiness Audit", group: "Oversight", icon: ShieldCheck },
   { to: "/settings", label: "Settings", group: "Oversight", icon: SettingsIcon },
@@ -43,7 +64,7 @@ export function Sidebar() {
       <div className="p-4 border-b border-sidebar-border">
         <div className="text-[11px] uppercase tracking-wider text-sidebar-foreground/60">AMCE Abuja</div>
         <div className="font-semibold leading-tight mt-1">Microbiology Inventory</div>
-        <div className="text-xs text-sidebar-foreground/70 mt-0.5">Supply &amp; Stock Management</div>
+        <div className="text-xs text-sidebar-foreground/70 mt-0.5">Supply and Stock Management</div>
       </div>
       <nav className="flex-1 overflow-y-auto p-2 space-y-4">
         {groups.map((g) => (
@@ -75,7 +96,7 @@ export function Sidebar() {
         ))}
       </nav>
       <div className="p-3 border-t border-sidebar-border text-[11px] text-sidebar-foreground/60">
-        Department of Medical Microbiology &amp; Immunology
+        Department of Medical Microbiology and Immunology
       </div>
     </aside>
   );

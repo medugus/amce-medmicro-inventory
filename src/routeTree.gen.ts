@@ -15,12 +15,20 @@ import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as SectionForecastingRouteImport } from './routes/section-forecasting'
 import { Route as ReportsRouteImport } from './routes/reports'
 import { Route as ReadinessAuditRouteImport } from './routes/readiness-audit'
+import { Route as QuarantinedStockRouteImport } from './routes/quarantined-stock'
 import { Route as PurchaseRequestsRouteImport } from './routes/purchase-requests'
+import { Route as ProcurementFollowupRouteImport } from './routes/procurement-followup'
 import { Route as MaintenanceCalibrationRouteImport } from './routes/maintenance-calibration'
+import { Route as LowStockReorderRouteImport } from './routes/low-stock-reorder'
 import { Route as InventoryMasterRouteImport } from './routes/inventory-master'
+import { Route as ExpiryFefoRouteImport } from './routes/expiry-fefo'
+import { Route as ExpiredWastedStockRouteImport } from './routes/expired-wasted-stock'
 import { Route as EquipmentRegisterRouteImport } from './routes/equipment-register'
 import { Route as DurablesRegisterRouteImport } from './routes/durables-register'
+import { Route as DataQualityReviewRouteImport } from './routes/data-quality-review'
+import { Route as CriticalActionsRouteImport } from './routes/critical-actions'
 import { Route as BatchRegisterRouteImport } from './routes/batch-register'
+import { Route as AuditTrailRouteImport } from './routes/audit-trail'
 import { Route as AcceptanceTestingRouteImport } from './routes/acceptance-testing'
 import { Route as IndexRouteImport } from './routes/index'
 
@@ -54,9 +62,19 @@ const ReadinessAuditRoute = ReadinessAuditRouteImport.update({
   path: '/readiness-audit',
   getParentRoute: () => rootRouteImport,
 } as any)
+const QuarantinedStockRoute = QuarantinedStockRouteImport.update({
+  id: '/quarantined-stock',
+  path: '/quarantined-stock',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PurchaseRequestsRoute = PurchaseRequestsRouteImport.update({
   id: '/purchase-requests',
   path: '/purchase-requests',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProcurementFollowupRoute = ProcurementFollowupRouteImport.update({
+  id: '/procurement-followup',
+  path: '/procurement-followup',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MaintenanceCalibrationRoute = MaintenanceCalibrationRouteImport.update({
@@ -64,9 +82,24 @@ const MaintenanceCalibrationRoute = MaintenanceCalibrationRouteImport.update({
   path: '/maintenance-calibration',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LowStockReorderRoute = LowStockReorderRouteImport.update({
+  id: '/low-stock-reorder',
+  path: '/low-stock-reorder',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const InventoryMasterRoute = InventoryMasterRouteImport.update({
   id: '/inventory-master',
   path: '/inventory-master',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ExpiryFefoRoute = ExpiryFefoRouteImport.update({
+  id: '/expiry-fefo',
+  path: '/expiry-fefo',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ExpiredWastedStockRoute = ExpiredWastedStockRouteImport.update({
+  id: '/expired-wasted-stock',
+  path: '/expired-wasted-stock',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EquipmentRegisterRoute = EquipmentRegisterRouteImport.update({
@@ -79,9 +112,24 @@ const DurablesRegisterRoute = DurablesRegisterRouteImport.update({
   path: '/durables-register',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DataQualityReviewRoute = DataQualityReviewRouteImport.update({
+  id: '/data-quality-review',
+  path: '/data-quality-review',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CriticalActionsRoute = CriticalActionsRouteImport.update({
+  id: '/critical-actions',
+  path: '/critical-actions',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BatchRegisterRoute = BatchRegisterRouteImport.update({
   id: '/batch-register',
   path: '/batch-register',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuditTrailRoute = AuditTrailRouteImport.update({
+  id: '/audit-trail',
+  path: '/audit-trail',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AcceptanceTestingRoute = AcceptanceTestingRouteImport.update({
@@ -98,12 +146,20 @@ const IndexRoute = IndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/acceptance-testing': typeof AcceptanceTestingRoute
+  '/audit-trail': typeof AuditTrailRoute
   '/batch-register': typeof BatchRegisterRoute
+  '/critical-actions': typeof CriticalActionsRoute
+  '/data-quality-review': typeof DataQualityReviewRoute
   '/durables-register': typeof DurablesRegisterRoute
   '/equipment-register': typeof EquipmentRegisterRoute
+  '/expired-wasted-stock': typeof ExpiredWastedStockRoute
+  '/expiry-fefo': typeof ExpiryFefoRoute
   '/inventory-master': typeof InventoryMasterRoute
+  '/low-stock-reorder': typeof LowStockReorderRoute
   '/maintenance-calibration': typeof MaintenanceCalibrationRoute
+  '/procurement-followup': typeof ProcurementFollowupRoute
   '/purchase-requests': typeof PurchaseRequestsRoute
+  '/quarantined-stock': typeof QuarantinedStockRoute
   '/readiness-audit': typeof ReadinessAuditRoute
   '/reports': typeof ReportsRoute
   '/section-forecasting': typeof SectionForecastingRoute
@@ -114,12 +170,20 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/acceptance-testing': typeof AcceptanceTestingRoute
+  '/audit-trail': typeof AuditTrailRoute
   '/batch-register': typeof BatchRegisterRoute
+  '/critical-actions': typeof CriticalActionsRoute
+  '/data-quality-review': typeof DataQualityReviewRoute
   '/durables-register': typeof DurablesRegisterRoute
   '/equipment-register': typeof EquipmentRegisterRoute
+  '/expired-wasted-stock': typeof ExpiredWastedStockRoute
+  '/expiry-fefo': typeof ExpiryFefoRoute
   '/inventory-master': typeof InventoryMasterRoute
+  '/low-stock-reorder': typeof LowStockReorderRoute
   '/maintenance-calibration': typeof MaintenanceCalibrationRoute
+  '/procurement-followup': typeof ProcurementFollowupRoute
   '/purchase-requests': typeof PurchaseRequestsRoute
+  '/quarantined-stock': typeof QuarantinedStockRoute
   '/readiness-audit': typeof ReadinessAuditRoute
   '/reports': typeof ReportsRoute
   '/section-forecasting': typeof SectionForecastingRoute
@@ -131,12 +195,20 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/acceptance-testing': typeof AcceptanceTestingRoute
+  '/audit-trail': typeof AuditTrailRoute
   '/batch-register': typeof BatchRegisterRoute
+  '/critical-actions': typeof CriticalActionsRoute
+  '/data-quality-review': typeof DataQualityReviewRoute
   '/durables-register': typeof DurablesRegisterRoute
   '/equipment-register': typeof EquipmentRegisterRoute
+  '/expired-wasted-stock': typeof ExpiredWastedStockRoute
+  '/expiry-fefo': typeof ExpiryFefoRoute
   '/inventory-master': typeof InventoryMasterRoute
+  '/low-stock-reorder': typeof LowStockReorderRoute
   '/maintenance-calibration': typeof MaintenanceCalibrationRoute
+  '/procurement-followup': typeof ProcurementFollowupRoute
   '/purchase-requests': typeof PurchaseRequestsRoute
+  '/quarantined-stock': typeof QuarantinedStockRoute
   '/readiness-audit': typeof ReadinessAuditRoute
   '/reports': typeof ReportsRoute
   '/section-forecasting': typeof SectionForecastingRoute
@@ -149,12 +221,20 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/acceptance-testing'
+    | '/audit-trail'
     | '/batch-register'
+    | '/critical-actions'
+    | '/data-quality-review'
     | '/durables-register'
     | '/equipment-register'
+    | '/expired-wasted-stock'
+    | '/expiry-fefo'
     | '/inventory-master'
+    | '/low-stock-reorder'
     | '/maintenance-calibration'
+    | '/procurement-followup'
     | '/purchase-requests'
+    | '/quarantined-stock'
     | '/readiness-audit'
     | '/reports'
     | '/section-forecasting'
@@ -165,12 +245,20 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/acceptance-testing'
+    | '/audit-trail'
     | '/batch-register'
+    | '/critical-actions'
+    | '/data-quality-review'
     | '/durables-register'
     | '/equipment-register'
+    | '/expired-wasted-stock'
+    | '/expiry-fefo'
     | '/inventory-master'
+    | '/low-stock-reorder'
     | '/maintenance-calibration'
+    | '/procurement-followup'
     | '/purchase-requests'
+    | '/quarantined-stock'
     | '/readiness-audit'
     | '/reports'
     | '/section-forecasting'
@@ -181,12 +269,20 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/acceptance-testing'
+    | '/audit-trail'
     | '/batch-register'
+    | '/critical-actions'
+    | '/data-quality-review'
     | '/durables-register'
     | '/equipment-register'
+    | '/expired-wasted-stock'
+    | '/expiry-fefo'
     | '/inventory-master'
+    | '/low-stock-reorder'
     | '/maintenance-calibration'
+    | '/procurement-followup'
     | '/purchase-requests'
+    | '/quarantined-stock'
     | '/readiness-audit'
     | '/reports'
     | '/section-forecasting'
@@ -198,12 +294,20 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AcceptanceTestingRoute: typeof AcceptanceTestingRoute
+  AuditTrailRoute: typeof AuditTrailRoute
   BatchRegisterRoute: typeof BatchRegisterRoute
+  CriticalActionsRoute: typeof CriticalActionsRoute
+  DataQualityReviewRoute: typeof DataQualityReviewRoute
   DurablesRegisterRoute: typeof DurablesRegisterRoute
   EquipmentRegisterRoute: typeof EquipmentRegisterRoute
+  ExpiredWastedStockRoute: typeof ExpiredWastedStockRoute
+  ExpiryFefoRoute: typeof ExpiryFefoRoute
   InventoryMasterRoute: typeof InventoryMasterRoute
+  LowStockReorderRoute: typeof LowStockReorderRoute
   MaintenanceCalibrationRoute: typeof MaintenanceCalibrationRoute
+  ProcurementFollowupRoute: typeof ProcurementFollowupRoute
   PurchaseRequestsRoute: typeof PurchaseRequestsRoute
+  QuarantinedStockRoute: typeof QuarantinedStockRoute
   ReadinessAuditRoute: typeof ReadinessAuditRoute
   ReportsRoute: typeof ReportsRoute
   SectionForecastingRoute: typeof SectionForecastingRoute
@@ -256,11 +360,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ReadinessAuditRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/quarantined-stock': {
+      id: '/quarantined-stock'
+      path: '/quarantined-stock'
+      fullPath: '/quarantined-stock'
+      preLoaderRoute: typeof QuarantinedStockRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/purchase-requests': {
       id: '/purchase-requests'
       path: '/purchase-requests'
       fullPath: '/purchase-requests'
       preLoaderRoute: typeof PurchaseRequestsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/procurement-followup': {
+      id: '/procurement-followup'
+      path: '/procurement-followup'
+      fullPath: '/procurement-followup'
+      preLoaderRoute: typeof ProcurementFollowupRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/maintenance-calibration': {
@@ -270,11 +388,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MaintenanceCalibrationRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/low-stock-reorder': {
+      id: '/low-stock-reorder'
+      path: '/low-stock-reorder'
+      fullPath: '/low-stock-reorder'
+      preLoaderRoute: typeof LowStockReorderRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/inventory-master': {
       id: '/inventory-master'
       path: '/inventory-master'
       fullPath: '/inventory-master'
       preLoaderRoute: typeof InventoryMasterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/expiry-fefo': {
+      id: '/expiry-fefo'
+      path: '/expiry-fefo'
+      fullPath: '/expiry-fefo'
+      preLoaderRoute: typeof ExpiryFefoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/expired-wasted-stock': {
+      id: '/expired-wasted-stock'
+      path: '/expired-wasted-stock'
+      fullPath: '/expired-wasted-stock'
+      preLoaderRoute: typeof ExpiredWastedStockRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/equipment-register': {
@@ -291,11 +430,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DurablesRegisterRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/data-quality-review': {
+      id: '/data-quality-review'
+      path: '/data-quality-review'
+      fullPath: '/data-quality-review'
+      preLoaderRoute: typeof DataQualityReviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/critical-actions': {
+      id: '/critical-actions'
+      path: '/critical-actions'
+      fullPath: '/critical-actions'
+      preLoaderRoute: typeof CriticalActionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/batch-register': {
       id: '/batch-register'
       path: '/batch-register'
       fullPath: '/batch-register'
       preLoaderRoute: typeof BatchRegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/audit-trail': {
+      id: '/audit-trail'
+      path: '/audit-trail'
+      fullPath: '/audit-trail'
+      preLoaderRoute: typeof AuditTrailRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/acceptance-testing': {
@@ -318,12 +478,20 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AcceptanceTestingRoute: AcceptanceTestingRoute,
+  AuditTrailRoute: AuditTrailRoute,
   BatchRegisterRoute: BatchRegisterRoute,
+  CriticalActionsRoute: CriticalActionsRoute,
+  DataQualityReviewRoute: DataQualityReviewRoute,
   DurablesRegisterRoute: DurablesRegisterRoute,
   EquipmentRegisterRoute: EquipmentRegisterRoute,
+  ExpiredWastedStockRoute: ExpiredWastedStockRoute,
+  ExpiryFefoRoute: ExpiryFefoRoute,
   InventoryMasterRoute: InventoryMasterRoute,
+  LowStockReorderRoute: LowStockReorderRoute,
   MaintenanceCalibrationRoute: MaintenanceCalibrationRoute,
+  ProcurementFollowupRoute: ProcurementFollowupRoute,
   PurchaseRequestsRoute: PurchaseRequestsRoute,
+  QuarantinedStockRoute: QuarantinedStockRoute,
   ReadinessAuditRoute: ReadinessAuditRoute,
   ReportsRoute: ReportsRoute,
   SectionForecastingRoute: SectionForecastingRoute,
