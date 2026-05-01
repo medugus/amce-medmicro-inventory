@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Plus, Pencil, Trash2, Cpu, Hammer, Wrench } from "lucide-react";
 import { useEquipment, useDurables } from "@/lib/useLiveData";
 import { ensureDurablesSeeded } from "@/lib/db";
-import { AMCE_MAINTENANCE, AMCE_CALIBRATION, AMCE_DURABLES, AMCE_EQUIPMENT } from "@/data/amceAssets";
+import { AMCE_MAINTENANCE, AMCE_CALIBRATION } from "@/data/amceAssets";
 import { SECTION_NAME } from "@/data/amceSections";
 import { EquipmentDialog } from "@/components/forms/EquipmentDialog";
 import { DurableDialog } from "@/components/forms/DurableDialog";
@@ -145,11 +145,11 @@ export function DurablesRegisterPage() {
   }
 
   useEffect(() => {
-    if (durableRows.length > 0 || attemptedAutoLoad || loadingBaseline) return;
+    if (durables.length > 0 || attemptedAutoLoad || loadingBaseline) return;
     setAttemptedAutoLoad(true);
     void loadBaselineDurables();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [durableRows.length, attemptedAutoLoad, loadingBaseline]);
+  }, [durables.length, attemptedAutoLoad, loadingBaseline]);
 
   return (
     <div>
@@ -167,7 +167,7 @@ export function DurablesRegisterPage() {
         }
       />
       <div className="p-6">
-        {durableRows.length === 0 ? (
+        {durables.length === 0 ? (
           <EmptyState
             icon={Hammer}
             title="Durables register is empty."
