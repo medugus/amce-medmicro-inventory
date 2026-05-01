@@ -4,6 +4,8 @@ export type LaboratorySectionId =
   | "blood-culture"
   | "urine-culture"
   | "general-culture"
+  | "sensitivity"
+  | "tb-mgit"
   | "gram-stain"
   | "serology"
   | "molecular"

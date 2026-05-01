@@ -4,6 +4,8 @@ export const AMCE_SECTIONS: LaboratorySection[] = [
   { id: "blood-culture", name: "Blood culture bench", leads: ["George"], description: "Aerobic, anaerobic and paediatric blood culture workflows.", active: true },
   { id: "urine-culture", name: "Urine culture bench", leads: ["Chidi"], description: "Urine culture and uropathogen screening.", active: true },
   { id: "general-culture", name: "General culture bench", leads: ["Juwairiya"], description: "Routine bacteriology and isolate work-up.", active: true },
+  { id: "sensitivity", name: "Sensitivity bench", leads: ["George"], description: "Antimicrobial susceptibility testing bench.", active: true },
+  { id: "tb-mgit", name: "TB culture/MGIT and sensitivity", leads: ["Chidi"], description: "Mycobacterial culture (MGIT) and TB drug susceptibility testing.", active: true },
   { id: "gram-stain", name: "Gram stain bench", leads: ["Abubakar"], description: "Gram staining and microscopy reagents.", active: true },
   { id: "serology", name: "Serology and immunology", leads: ["Felicita"], description: "Serology, immunoassays, calibrators and controls.", active: true },
   { id: "molecular", name: "Molecular / GeneXpert", leads: ["Chidi"], description: "GeneXpert cartridges and molecular consumables.", active: true },
