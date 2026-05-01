@@ -69,7 +69,7 @@ export const db = new AMCEDatabase();
 // you want each lab PC to re-seed missing rows from the new baseline. Seeded
 // durables are refreshed by stable ID; user-added rows use different IDs and
 // are never overwritten.
-const SEED_VERSION = "2026-05-01.7-equipment-seed";
+const SEED_VERSION = "2026-05-01.8-dummy-asset-fields";
 
 let seedPromise: Promise<void> | null = null;
 

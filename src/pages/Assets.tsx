@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Plus, Pencil, Trash2, Cpu, Hammer, Wrench } from "lucide-react";
 import { useEquipment, useDurables } from "@/lib/useLiveData";
 import { ensureDurablesSeeded } from "@/lib/db";
-import { AMCE_MAINTENANCE, AMCE_CALIBRATION } from "@/data/amceAssets";
+import { AMCE_MAINTENANCE, AMCE_CALIBRATION, AMCE_EQUIPMENT, AMCE_DURABLES } from "@/data/amceAssets";
 import { SECTION_NAME } from "@/data/amceSections";
 import { EquipmentDialog } from "@/components/forms/EquipmentDialog";
 import { DurableDialog } from "@/components/forms/DurableDialog";
@@ -22,7 +22,7 @@ import { Label } from "@/components/ui/label";
 
 export function EquipmentRegisterPage() {
   const equipment = useEquipment();
-  const equipmentRows = equipment.length ? equipment : AMCE_EQUIPMENT;
+  const equipmentRows: EquipmentAsset[] = equipment.length ? equipment : AMCE_EQUIPMENT;
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<EquipmentAsset | null>(null);
   const [deleting, setDeleting] = useState<EquipmentAsset | null>(null);
@@ -114,7 +114,7 @@ export function EquipmentRegisterPage() {
 
 export function DurablesRegisterPage() {
   const durables = useDurables();
-  const durableRows = durables.length ? durables : AMCE_DURABLES;
+  const durableRows: DurableAsset[] = durables.length ? durables : AMCE_DURABLES;
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<DurableAsset | null>(null);
   const [deleting, setDeleting] = useState<DurableAsset | null>(null);
