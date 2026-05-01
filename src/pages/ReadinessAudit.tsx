@@ -38,7 +38,9 @@ export function ReadinessAuditPage() {
     {
       title: "Inventory import readiness",
       checks: [
-        { label: "Current inventory file received, pending approved import mapping", status: "warn" },
+        { label: "Current inventory file: received, pending mapping review", status: "warn", detail: "Workbook sheets must be classified by module before import." },
+        { label: "Equipment list: pending", status: "warn", detail: "Equipment records will be reviewed separately from consumables and reagents." },
+        { label: "Inventory import: not started", status: "warn", detail: "Current inventory must be mapped by sheet and category before import." },
         { label: "Active supply records detected", status: AMCE_SUPPLY_STATUS.length > 0 ? "pass" : "warn" },
       ],
     },
