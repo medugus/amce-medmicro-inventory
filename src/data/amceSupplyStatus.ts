@@ -179,7 +179,7 @@ export const AMCE_SUPPLY_STATUS: SupplyStatusRecord[] = [
     itemName: "Malaria RDT kits",
     category: "Parasitology reagents",
     laboratorySection: "parasitology",
-    responsiblePerson: "Echici",
+    responsiblePerson: "Chidi",
     requestedQuantity: 50,
     suppliedQuantity: 30,
     outstandingQuantity: 20,
