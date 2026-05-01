@@ -10,6 +10,8 @@ import type {
   AcceptanceTest,
   SupplyStatusRecord,
   AuditTrailEntry,
+  EquipmentAsset,
+  DurableAsset,
 } from "@/types";
 
 let ready = false;
@@ -95,6 +97,14 @@ export function useAuditTrail(): AuditTrailEntry[] {
       rows.sort((a, b) => (b.dateTime ?? "").localeCompare(a.dateTime ?? ""))
     )
   );
+}
+
+export function useEquipment(): EquipmentAsset[] {
+  return useTable(() => db.equipment.toArray());
+}
+
+export function useDurables(): DurableAsset[] {
+  return useTable(() => db.durables.toArray());
 }
 
 export function useDataReady(): boolean {

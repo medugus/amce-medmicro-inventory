@@ -10,6 +10,9 @@ import type {
   SupplyStatusRecord,
   AcceptanceTest,
   BatchStatus,
+  InventoryItem,
+  EquipmentAsset,
+  DurableAsset,
 } from "@/types";
 import { db, newId, appendAudit } from "@/lib/db";
 import { notifyDbChanged } from "@/lib/useLiveData";
@@ -263,3 +266,143 @@ export async function updateSupplyRecord(input: UpdateSupplyInput) {
 }
 
 export { isBatchIssuable };
+
+// ---------- Inventory Master CRUD ----------
+
+export type InventoryItemInput = Omit<InventoryItem, "id">;
+
+function summariseInventory(i: InventoryItem): string {
+  return `${i.itemName} · ${i.category} · reorder ${i.reorderLevel} · ${i.criticality}`;
+}
+
+export async function createInventoryItem(input: InventoryItemInput): Promise<InventoryItem> {
+  const user = requireUser();
+  const item: InventoryItem = { id: newId("inv"), ...input };
+  await db.inventory.add(item);
+  await appendAudit({
+    user, action: "Create inventory item", module: "Inventory Master", entityId: item.id,
+    previousValue: null, newValue: summariseInventory(item), reason: "", notes: "",
+  });
+  notifyDbChanged();
+  return item;
+}
+
+export async function updateInventoryItem(id: string, patch: Partial<InventoryItemInput>, reason = ""): Promise<void> {
+  const user = requireUser();
+  const existing = await db.inventory.get(id);
+  if (!existing) throw new Error("Inventory item not found.");
+  await db.inventory.update(id, patch);
+  const merged = { ...existing, ...patch } as InventoryItem;
+  await appendAudit({
+    user, action: "Update inventory item", module: "Inventory Master", entityId: id,
+    previousValue: summariseInventory(existing), newValue: summariseInventory(merged), reason, notes: "",
+  });
+  notifyDbChanged();
+}
+
+export async function deleteInventoryItem(id: string, reason: string): Promise<void> {
+  const user = requireUser();
+  if (!reason.trim()) throw new Error("Deletion requires a documented reason.");
+  const existing = await db.inventory.get(id);
+  if (!existing) throw new Error("Inventory item not found.");
+  const batchCount = await db.batches.where("inventoryItemId").equals(id).count();
+  if (batchCount > 0) throw new Error("Cannot delete: this item has batches recorded against it. Mark inactive instead.");
+  await db.inventory.delete(id);
+  await appendAudit({
+    user, action: "Delete inventory item", module: "Inventory Master", entityId: id,
+    previousValue: summariseInventory(existing), newValue: null, reason, notes: "",
+  });
+  notifyDbChanged();
+}
+
+// ---------- Equipment CRUD ----------
+
+export type EquipmentInput = Omit<EquipmentAsset, "id">;
+
+function summariseEquipment(e: EquipmentAsset): string {
+  return `${e.equipmentName} · ${e.equipmentCategory} · ${e.operationalStatus} · serial ${e.serialNumber ?? "—"}`;
+}
+
+export async function createEquipment(input: EquipmentInput): Promise<EquipmentAsset> {
+  const user = requireUser();
+  const asset: EquipmentAsset = { id: newId("eq"), ...input };
+  await db.equipment.add(asset);
+  await appendAudit({
+    user, action: "Create equipment", module: "Equipment Register", entityId: asset.id,
+    previousValue: null, newValue: summariseEquipment(asset), reason: "", notes: "",
+  });
+  notifyDbChanged();
+  return asset;
+}
+
+export async function updateEquipment(id: string, patch: Partial<EquipmentInput>, reason = ""): Promise<void> {
+  const user = requireUser();
+  const existing = await db.equipment.get(id);
+  if (!existing) throw new Error("Equipment not found.");
+  await db.equipment.update(id, patch);
+  const merged = { ...existing, ...patch } as EquipmentAsset;
+  await appendAudit({
+    user, action: "Update equipment", module: "Equipment Register", entityId: id,
+    previousValue: summariseEquipment(existing), newValue: summariseEquipment(merged), reason, notes: "",
+  });
+  notifyDbChanged();
+}
+
+export async function deleteEquipment(id: string, reason: string): Promise<void> {
+  const user = requireUser();
+  if (!reason.trim()) throw new Error("Deletion requires a documented reason.");
+  const existing = await db.equipment.get(id);
+  if (!existing) throw new Error("Equipment not found.");
+  await db.equipment.delete(id);
+  await appendAudit({
+    user, action: "Delete equipment", module: "Equipment Register", entityId: id,
+    previousValue: summariseEquipment(existing), newValue: null, reason, notes: "",
+  });
+  notifyDbChanged();
+}
+
+// ---------- Durables CRUD ----------
+
+export type DurableInput = Omit<DurableAsset, "id">;
+
+function summariseDurable(d: DurableAsset): string {
+  return `${d.assetName} · ${d.assetCategory} · qty ${d.quantity ?? "—"} · ${d.condition}`;
+}
+
+export async function createDurable(input: DurableInput): Promise<DurableAsset> {
+  const user = requireUser();
+  const asset: DurableAsset = { id: newId("dur"), ...input };
+  await db.durables.add(asset);
+  await appendAudit({
+    user, action: "Create durable", module: "Durables Register", entityId: asset.id,
+    previousValue: null, newValue: summariseDurable(asset), reason: "", notes: "",
+  });
+  notifyDbChanged();
+  return asset;
+}
+
+export async function updateDurable(id: string, patch: Partial<DurableInput>, reason = ""): Promise<void> {
+  const user = requireUser();
+  const existing = await db.durables.get(id);
+  if (!existing) throw new Error("Durable not found.");
+  await db.durables.update(id, patch);
+  const merged = { ...existing, ...patch } as DurableAsset;
+  await appendAudit({
+    user, action: "Update durable", module: "Durables Register", entityId: id,
+    previousValue: summariseDurable(existing), newValue: summariseDurable(merged), reason, notes: "",
+  });
+  notifyDbChanged();
+}
+
+export async function deleteDurable(id: string, reason: string): Promise<void> {
+  const user = requireUser();
+  if (!reason.trim()) throw new Error("Deletion requires a documented reason.");
+  const existing = await db.durables.get(id);
+  if (!existing) throw new Error("Durable not found.");
+  await db.durables.delete(id);
+  await appendAudit({
+    user, action: "Delete durable", module: "Durables Register", entityId: id,
+    previousValue: summariseDurable(existing), newValue: null, reason, notes: "",
+  });
+  notifyDbChanged();
+}

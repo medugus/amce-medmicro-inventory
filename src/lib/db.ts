@@ -15,6 +15,8 @@ import type {
   AcceptanceTest,
   SupplyStatusRecord,
   AuditTrailEntry,
+  EquipmentAsset,
+  DurableAsset,
 } from "@/types";
 
 import { AMCE_INVENTORY_MASTER } from "@/data/amceInventoryMaster";
@@ -23,6 +25,7 @@ import { AMCE_STOCK_MOVEMENTS } from "@/data/amceStockMovements";
 import { AMCE_ACCEPTANCE_TESTS } from "@/data/amceAcceptanceTesting";
 import { AMCE_SUPPLY_STATUS } from "@/data/amceSupplyStatus";
 import { AMCE_AUDIT_TRAIL } from "@/data/amceAuditTrail";
+import { AMCE_EQUIPMENT, AMCE_DURABLES } from "@/data/amceAssets";
 
 class AMCEDatabase extends Dexie {
   inventory!: Table<InventoryItem, string>;
@@ -31,6 +34,8 @@ class AMCEDatabase extends Dexie {
   acceptance!: Table<AcceptanceTest, string>;
   supply!: Table<SupplyStatusRecord, string>;
   audit!: Table<AuditTrailEntry, string>;
+  equipment!: Table<EquipmentAsset, string>;
+  durables!: Table<DurableAsset, string>;
   meta!: Table<{ key: string; value: string }, string>;
 
   constructor() {
@@ -44,6 +49,17 @@ class AMCEDatabase extends Dexie {
       audit: "id, dateTime, user, module, entityId",
       meta: "key",
     });
+    this.version(2).stores({
+      inventory: "id, itemName, laboratorySection, category, criticality",
+      batches: "id, inventoryItemId, batchNumber, expiryDate, batchStatus, acceptanceStatus",
+      movements: "id, inventoryItemId, batchId, dateTime, movementType, performedBy",
+      acceptance: "id, batchId, dateAccepted, acceptedOrRejected",
+      supply: "id, itemName, laboratorySection, supplyStatus, criticality",
+      audit: "id, dateTime, user, module, entityId",
+      equipment: "id, equipmentName, laboratorySection, equipmentCategory, operationalStatus",
+      durables: "id, assetName, laboratorySection, assetCategory, condition",
+      meta: "key",
+    });
   }
 }
 
@@ -53,7 +69,7 @@ export const db = new AMCEDatabase();
 // you want each lab PC to re-seed missing rows from the new baseline. We will
 // only INSERT rows that don't already exist on the lab PC, so user-entered
 // data is never overwritten.
-const SEED_VERSION = "2026-05-01.1";
+const SEED_VERSION = "2026-05-01.2";
 
 let seedPromise: Promise<void> | null = null;
 
@@ -68,7 +84,7 @@ export function ensureSeeded(): Promise<void> {
     // table is empty so we never overwrite work the lab has done.
     await db.transaction(
       "rw",
-      [db.inventory, db.batches, db.supply, db.movements, db.acceptance, db.audit, db.meta],
+      [db.inventory, db.batches, db.supply, db.movements, db.acceptance, db.audit, db.equipment, db.durables, db.meta],
       async () => {
         // Catalogue + supply backlog: keep current entries, fill in any missing.
         const existingInv = new Set((await db.inventory.toCollection().primaryKeys()) as string[]);
@@ -92,6 +108,12 @@ export function ensureSeeded(): Promise<void> {
         }
         if ((await db.audit.count()) === 0 && AMCE_AUDIT_TRAIL.length) {
           await db.audit.bulkAdd(AMCE_AUDIT_TRAIL);
+        }
+        if ((await db.equipment.count()) === 0 && AMCE_EQUIPMENT.length) {
+          await db.equipment.bulkAdd(AMCE_EQUIPMENT);
+        }
+        if ((await db.durables.count()) === 0 && AMCE_DURABLES.length) {
+          await db.durables.bulkAdd(AMCE_DURABLES);
         }
 
         await db.meta.put({ key: "seedVersion", value: SEED_VERSION });
