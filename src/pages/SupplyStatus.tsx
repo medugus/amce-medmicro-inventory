@@ -57,6 +57,60 @@ export function SupplyStatusPage() {
   const [critFilter, setCritFilter] = useState(ALL);
   const [missingOnly, setMissingOnly] = useState(false);
 
+  // Edit dialog state
+  const [editing, setEditing] = useState<SupplyStatusRecord | null>(null);
+  const [eSupply, setESupply] = useState<SupplyStatus>("Requested");
+  const [eProc, setEProc] = useState<ProcurementStatus>("Not started");
+  const [eSupplied, setESupplied] = useState<string>("");
+  const [eOutstanding, setEOutstanding] = useState<string>("");
+  const [eSupplier, setESupplier] = useState<string>("");
+  const [eDateOrdered, setEDateOrdered] = useState<string>("");
+  const [eDateSupplied, setEDateSupplied] = useState<string>("");
+  const [eRemarks, setERemarks] = useState<string>("");
+  const [eReason, setEReason] = useState<string>("");
+  const [eSubmitting, setESubmitting] = useState(false);
+
+  function startEdit(r: SupplyStatusRecord) {
+    setEditing(r);
+    setESupply(r.supplyStatus);
+    setEProc(r.procurementStatus);
+    setESupplied(r.suppliedQuantity?.toString() ?? "");
+    setEOutstanding(r.outstandingQuantity?.toString() ?? "");
+    setESupplier(r.supplier ?? "");
+    setEDateOrdered(r.dateOrdered ?? "");
+    setEDateSupplied(r.dateSupplied ?? "");
+    setERemarks(r.remarks);
+    setEReason("");
+  }
+
+  async function saveEdit() {
+    if (!editing) return;
+    const user = getCurrentUser();
+    if (!user) { toast.error("Select a user in the top bar first."); return; }
+    if (!eReason.trim()) { toast.error("A reason for the update is required for the audit trail."); return; }
+    setESubmitting(true);
+    try {
+      await updateSupplyRecord({
+        id: editing.id,
+        reason: eReason,
+        patch: {
+          supplyStatus: eSupply,
+          procurementStatus: eProc,
+          suppliedQuantity: eSupplied === "" ? null : Number(eSupplied),
+          outstandingQuantity: eOutstanding === "" ? null : Number(eOutstanding),
+          supplier: eSupplier.trim() || null,
+          dateOrdered: eDateOrdered || null,
+          dateSupplied: eDateSupplied || null,
+          remarks: eRemarks,
+        },
+      });
+      toast.success(`Supply record updated by ${user.name}.`);
+      setEditing(null);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to update.");
+    } finally { setESubmitting(false); }
+  }
+
   const responsibles = useMemo(
     () => Array.from(new Set(supply.map((s) => s.responsiblePerson))).sort(),
     [supply]
