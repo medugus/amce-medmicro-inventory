@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { AMCE_ACCEPTANCE_TESTS } from "@/data/amceAcceptanceTesting";
+import { useAcceptanceTests } from "@/lib/useLiveData";
 import { Header } from "@/components/layout/Header";
 import { ExportButton } from "@/components/common/ExportButton";
 import { EmptyState } from "@/components/common/EmptyState";
@@ -66,13 +66,14 @@ function TestTable({ rows }: { rows: AcceptanceTest[] }) {
 
 export function AcceptanceTestingPage() {
   const [tab, setTab] = useState<GroupKey>("Pending acceptance");
+  const tests = useAcceptanceTests();
   const groups: Record<GroupKey, AcceptanceTest[]> = {
     "Pending acceptance": [],
     Accepted: [],
     Rejected: [],
     "Requires corrective action": [],
   };
-  for (const t of AMCE_ACCEPTANCE_TESTS) groups[classify(t)].push(t);
+  for (const t of tests) groups[classify(t)].push(t);
 
   return (
     <div>

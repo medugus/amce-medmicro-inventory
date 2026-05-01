@@ -3,14 +3,15 @@ import { ExportButton } from "@/components/common/ExportButton";
 import { PrintButton } from "@/components/common/PrintButton";
 import { EmptyState } from "@/components/common/EmptyState";
 import { StatusBadge, toneForCriticality } from "@/components/common/StatusBadge";
-import { AMCE_INVENTORY_MASTER } from "@/data/amceInventoryMaster";
-import { AMCE_BATCHES } from "@/data/amceBatches";
 import { SECTION_NAME, AMCE_SECTIONS } from "@/data/amceSections";
 import { totalAvailableForItem } from "@/logic/inventory";
+import { useBatches, useInventory } from "@/lib/useLiveData";
 
 export function LowStockReorderPage() {
-  const rows = AMCE_INVENTORY_MASTER
-    .map((i) => ({ item: i, available: totalAvailableForItem(AMCE_BATCHES, i.id) }))
+  const inventory = useInventory();
+  const batches = useBatches();
+  const rows = inventory
+    .map((i) => ({ item: i, available: totalAvailableForItem(batches, i.id) }))
     .filter((r) => r.available <= r.item.reorderLevel)
     .sort((a, b) => (a.available - a.item.reorderLevel) - (b.available - b.item.reorderLevel));
 

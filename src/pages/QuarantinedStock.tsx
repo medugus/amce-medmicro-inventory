@@ -2,14 +2,15 @@ import { Header } from "@/components/layout/Header";
 import { ExportButton } from "@/components/common/ExportButton";
 import { EmptyState } from "@/components/common/EmptyState";
 import { StatusBadge, toneForBatchStatus } from "@/components/common/StatusBadge";
-import { AMCE_BATCHES } from "@/data/amceBatches";
-import { AMCE_INVENTORY_MASTER } from "@/data/amceInventoryMaster";
 import { SECTION_NAME } from "@/data/amceSections";
 import { NOT_DOCUMENTED } from "@/data/categories";
+import { useBatches, useInventory } from "@/lib/useLiveData";
 
 export function QuarantinedStockPage() {
-  const itemsById = Object.fromEntries(AMCE_INVENTORY_MASTER.map((i) => [i.id, i]));
-  const rows = AMCE_BATCHES.filter((b) => b.batchStatus === "Quarantined" || b.batchStatus === "Rejected");
+  const inventory = useInventory();
+  const batches = useBatches();
+  const itemsById = Object.fromEntries(inventory.map((i) => [i.id, i]));
+  const rows = batches.filter((b) => b.batchStatus === "Quarantined" || b.batchStatus === "Rejected");
 
   return (
     <div>

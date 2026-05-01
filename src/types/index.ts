@@ -30,6 +30,8 @@ export type UserRole =
   | "Administrator"
   | "Laboratory Manager"
   | "Consultant/Director"
+  | "Consultant"
+  | "Specialist"
   | "Quality Manager"
   | "Section Head"
   | "Procurement Officer"

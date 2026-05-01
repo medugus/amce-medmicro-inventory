@@ -1,10 +1,5 @@
-import { AMCE_SUPPLY_STATUS } from "@/data/amceSupplyStatus";
-import { AMCE_INVENTORY_MASTER } from "@/data/amceInventoryMaster";
-import { AMCE_BATCHES } from "@/data/amceBatches";
-import { AMCE_ACCEPTANCE_TESTS } from "@/data/amceAcceptanceTesting";
 import { AMCE_EQUIPMENT, AMCE_DURABLES } from "@/data/amceAssets";
 import { AMCE_FORECASTS, AMCE_PURCHASE_REQUESTS } from "@/data/amceForecasts";
-import { AMCE_STOCK_MOVEMENTS } from "@/data/amceStockMovements";
 import { DashboardCard } from "@/components/dashboard/DashboardCard";
 import { Header } from "@/components/layout/Header";
 import { expiryBucket, isLowStock, totalAvailableForItem } from "@/logic/inventory";
@@ -14,12 +9,20 @@ import { AMCE_SECTIONS, SECTION_NAME } from "@/data/amceSections";
 import { StatusBadge, toneForCriticality } from "@/components/common/StatusBadge";
 import { buildCriticalActions } from "@/logic/criticalActions";
 import { Link } from "@tanstack/react-router";
+import {
+  useInventory,
+  useBatches,
+  useSupplyStatus,
+  useAcceptanceTests,
+  useStockMovements,
+} from "@/lib/useLiveData";
 
 export function DashboardPage() {
-  const supplies = AMCE_SUPPLY_STATUS;
-  const batches = AMCE_BATCHES;
-  const items = AMCE_INVENTORY_MASTER;
-  const tests = AMCE_ACCEPTANCE_TESTS;
+  const supplies = useSupplyStatus();
+  const batches = useBatches();
+  const items = useInventory();
+  const tests = useAcceptanceTests();
+  const movements = useStockMovements();
   const equipment = AMCE_EQUIPMENT;
 
   const partial = supplies.filter((s) => s.supplyStatus === "Partially supplied").length;
@@ -115,7 +118,7 @@ export function DashboardPage() {
             <DashboardCard label="Inventory items" value={items.length} />
             <DashboardCard label="Low-stock items" value={lowStock} tone={lowStock ? "warning" : "default"} />
             <DashboardCard label="Batch / lot records" value={batches.length} />
-            <DashboardCard label="Stock movements" value={AMCE_STOCK_MOVEMENTS.length} />
+            <DashboardCard label="Stock movements" value={movements.length} />
             <DashboardCard label="Purchase requests" value={AMCE_PURCHASE_REQUESTS.length} />
             <DashboardCard label="Section forecasts" value={AMCE_FORECASTS.length} />
             <DashboardCard label="Equipment assets" value={equipment.length} hint={equipment.length === 0 ? "Pending import" : undefined} />

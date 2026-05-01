@@ -1,6 +1,4 @@
 import { useMemo, useState } from "react";
-import { AMCE_BATCHES } from "@/data/amceBatches";
-import { AMCE_INVENTORY_MASTER } from "@/data/amceInventoryMaster";
 import { Header } from "@/components/layout/Header";
 import { SearchInput } from "@/components/common/SearchInput";
 import { ExportButton } from "@/components/common/ExportButton";
@@ -9,23 +7,26 @@ import { StatusBadge, toneForBatchStatus } from "@/components/common/StatusBadge
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { daysUntilExpiry, expiryBucket } from "@/logic/inventory";
 import { NOT_DOCUMENTED } from "@/data/categories";
+import { useBatches, useInventory } from "@/lib/useLiveData";
 
 const ALL = "__all";
 
 export function BatchRegisterPage() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState(ALL);
-  const itemsById = useMemo(() => Object.fromEntries(AMCE_INVENTORY_MASTER.map((i) => [i.id, i])), []);
+  const inventory = useInventory();
+  const batches = useBatches();
+  const itemsById = useMemo(() => Object.fromEntries(inventory.map((i) => [i.id, i])), [inventory]);
 
-  const rows = useMemo(() => AMCE_BATCHES.filter((b) => {
+  const rows = useMemo(() => batches.filter((b) => {
     const item = itemsById[b.inventoryItemId];
     const name = item?.itemName ?? "";
     if (search && !`${name} ${b.batchNumber} ${b.lotNumber ?? ""}`.toLowerCase().includes(search.toLowerCase())) return false;
     if (statusFilter !== ALL && b.batchStatus !== statusFilter) return false;
     return true;
-  }), [search, statusFilter, itemsById]);
+  }), [search, statusFilter, itemsById, batches]);
 
-  const statuses = Array.from(new Set(AMCE_BATCHES.map((b) => b.batchStatus)));
+  const statuses = Array.from(new Set(batches.map((b) => b.batchStatus)));
 
   return (
     <div>

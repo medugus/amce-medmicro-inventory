@@ -1,6 +1,4 @@
 import { useMemo, useState } from "react";
-import { AMCE_INVENTORY_MASTER } from "@/data/amceInventoryMaster";
-import { AMCE_BATCHES } from "@/data/amceBatches";
 import { AMCE_SECTIONS, SECTION_NAME } from "@/data/amceSections";
 import { Header } from "@/components/layout/Header";
 import { SearchInput } from "@/components/common/SearchInput";
@@ -10,18 +8,21 @@ import { StatusBadge, toneForCriticality } from "@/components/common/StatusBadge
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { isLowStock, totalAvailableForItem } from "@/logic/inventory";
 import { NOT_DOCUMENTED } from "@/data/categories";
+import { useBatches, useInventory } from "@/lib/useLiveData";
 
 const ALL = "__all";
 
 export function InventoryMasterPage() {
   const [search, setSearch] = useState("");
   const [section, setSection] = useState(ALL);
+  const inventory = useInventory();
+  const batches = useBatches();
 
-  const rows = useMemo(() => AMCE_INVENTORY_MASTER.filter((i) => {
+  const rows = useMemo(() => inventory.filter((i) => {
     if (search && !`${i.itemName} ${i.category} ${i.manufacturer ?? ""}`.toLowerCase().includes(search.toLowerCase())) return false;
     if (section !== ALL && i.laboratorySection !== section) return false;
     return true;
-  }), [search, section]);
+  }), [search, section, inventory]);
 
   return (
     <div>
@@ -62,8 +63,8 @@ export function InventoryMasterPage() {
               </thead>
               <tbody>
                 {rows.map((i) => {
-                  const avail = totalAvailableForItem(AMCE_BATCHES, i.id);
-                  const low = isLowStock(i, AMCE_BATCHES);
+                  const avail = totalAvailableForItem(batches, i.id);
+                  const low = isLowStock(i, batches);
                   return (
                     <tr key={i.id} className="border-t border-border hover:bg-muted/30">
                       <td className="p-2 font-medium">{i.itemName}</td>
