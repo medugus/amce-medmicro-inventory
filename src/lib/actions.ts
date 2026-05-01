@@ -10,6 +10,9 @@ import type {
   SupplyStatusRecord,
   AcceptanceTest,
   BatchStatus,
+  InventoryItem,
+  EquipmentAsset,
+  DurableAsset,
 } from "@/types";
 import { db, newId, appendAudit } from "@/lib/db";
 import { notifyDbChanged } from "@/lib/useLiveData";
