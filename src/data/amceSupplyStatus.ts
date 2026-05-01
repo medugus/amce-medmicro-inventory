@@ -46,7 +46,7 @@ export const AMCE_SUPPLY_STATUS: SupplyStatusRecord[] = [
     itemName: "Cefoxitin 30 mcg discs",
     category: "Antimicrobial susceptibility testing materials",
     laboratorySection: "general-culture",
-    responsiblePerson: "George",
+    responsiblePerson: "Juwairiya",
     requestedQuantity: 10,
     suppliedQuantity: 10,
     outstandingQuantity: 0,
