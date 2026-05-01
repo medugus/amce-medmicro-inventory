@@ -1,5 +1,6 @@
 import { Header } from "@/components/layout/Header";
 import { ExportButton } from "@/components/common/ExportButton";
+import { PrintButton } from "@/components/common/PrintButton";
 import { EmptyState } from "@/components/common/EmptyState";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { AMCE_BATCHES } from "@/data/amceBatches";
@@ -17,7 +18,7 @@ export function ExpiredWastedStockPage() {
       <Header
         title="Expired and Wasted Stock"
         description="Batches that have expired or been discarded. Used for wastage tracking and supplier feedback."
-        actions={<ExportButton />}
+        actions={<><PrintButton label="Print expired list" /><ExportButton /></>}
       />
       <div className="p-6 space-y-4">
         {rows.length === 0 ? (

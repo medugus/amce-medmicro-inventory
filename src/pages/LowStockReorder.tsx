@@ -1,5 +1,6 @@
 import { Header } from "@/components/layout/Header";
 import { ExportButton } from "@/components/common/ExportButton";
+import { PrintButton } from "@/components/common/PrintButton";
 import { EmptyState } from "@/components/common/EmptyState";
 import { StatusBadge, toneForCriticality } from "@/components/common/StatusBadge";
 import { AMCE_INVENTORY_MASTER } from "@/data/amceInventoryMaster";
@@ -20,7 +21,7 @@ export function LowStockReorderPage() {
       <Header
         title="Low Stock and Reorder"
         description="Catalogue items where usable stock from accepted, non-expired batches is at or below reorder level."
-        actions={<ExportButton />}
+        actions={<><PrintButton label="Print reorder list" /><ExportButton /></>}
       />
       <div className="p-6 space-y-4">
         {rows.length === 0 ? (
