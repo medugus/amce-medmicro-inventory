@@ -203,7 +203,7 @@ export function StockMovementsPage() {
         <SearchInput value={search} onChange={setSearch} placeholder="Search movements..." />
         {!ready ? (
           <div className="text-sm text-muted-foreground">Loading local database…</div>
-        ) : rows.length === 0 ? <EmptyState /> : (
+        ) : rows.length === 0 ? <EmptyState title="No movements recorded." description="Movements need at least one released batch. Receive a batch and clear it in Acceptance Testing first." /> : (
           <div className="border border-border rounded-md overflow-x-auto bg-card">
             <table className="w-full text-sm">
               <thead className="bg-muted/50 text-left text-[11px] uppercase tracking-wider text-muted-foreground">

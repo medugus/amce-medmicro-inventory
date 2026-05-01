@@ -48,7 +48,7 @@ export function BatchRegisterPage() {
           </Select>
         </div>
 
-        {rows.length === 0 ? <EmptyState /> : (
+        {rows.length === 0 ? <EmptyState title="No batches recorded." description="Receive a batch when stock physically arrives. The item must already exist in Inventory Master." /> : (
           <div className="border border-border rounded-md overflow-x-auto bg-card">
             <table className="w-full text-sm">
               <thead className="bg-muted/50 text-left text-[11px] uppercase tracking-wider text-muted-foreground">

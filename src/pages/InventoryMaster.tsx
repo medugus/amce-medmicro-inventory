@@ -80,7 +80,7 @@ export function InventoryMasterPage() {
           </Select>
         </div>
 
-        {rows.length === 0 ? <EmptyState /> : (
+        {rows.length === 0 ? <EmptyState title="No inventory items match." description="Add items via &quot;Add inventory item&quot;. Each item must exist here before you can receive batches or record movements for it." /> : (
           <div className="border border-border rounded-md overflow-x-auto bg-card">
             <table className="w-full text-sm">
               <thead className="bg-muted/50 text-left text-[11px] uppercase tracking-wider text-muted-foreground">
