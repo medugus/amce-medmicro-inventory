@@ -1,51 +1,89 @@
 import { useMemo, useState } from "react";
-import { AMCE_STOCK_MOVEMENTS } from "@/data/amceStockMovements";
-import { AMCE_INVENTORY_MASTER } from "@/data/amceInventoryMaster";
-import { AMCE_BATCHES } from "@/data/amceBatches";
 import { Header } from "@/components/layout/Header";
 import { SearchInput } from "@/components/common/SearchInput";
 import { ExportButton } from "@/components/common/ExportButton";
 import { EmptyState } from "@/components/common/EmptyState";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { SECTION_NAME } from "@/data/amceSections";
-import { fefoBatches, isBatchIssuable, validateMovement } from "@/logic/inventory";
+import { fefoBatches, isBatchIssuable } from "@/logic/inventory";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { useBatches, useInventory, useStockMovements, useDataReady } from "@/lib/useLiveData";
+import { recordMovement } from "@/lib/actions";
+import { getCurrentUser } from "@/lib/currentUser";
+import { toast } from "sonner";
 
 const TYPES = ["Receive", "Issue", "Transfer", "Adjust", "Discard", "Return", "Quarantine", "Release from quarantine"] as const;
 
 export function StockMovementsPage() {
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
-  const itemsById = useMemo(() => Object.fromEntries(AMCE_INVENTORY_MASTER.map((i) => [i.id, i])), []);
-  const batchesById = useMemo(() => Object.fromEntries(AMCE_BATCHES.map((b) => [b.id, b])), []);
+  const ready = useDataReady();
+  const inventory = useInventory();
+  const batches = useBatches();
+  const movements = useStockMovements();
 
-  // Form state (simulated; movements list is read-only seed)
+  const itemsById = useMemo(() => Object.fromEntries(inventory.map((i) => [i.id, i])), [inventory]);
+  const batchesById = useMemo(() => Object.fromEntries(batches.map((b) => [b.id, b])), [batches]);
+
   const [movementType, setMovementType] = useState<typeof TYPES[number]>("Issue");
   const [itemId, setItemId] = useState<string>("");
   const [batchId, setBatchId] = useState<string>("");
   const [quantity, setQuantity] = useState<string>("");
   const [reason, setReason] = useState<string>("");
   const [authorisedBy, setAuthorisedBy] = useState<string>("");
-  const [validation, setValidation] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
-  const fefo = itemId ? fefoBatches(AMCE_BATCHES, itemId) : [];
+  const fefo = itemId ? fefoBatches(batches, itemId) : [];
 
-  function tryValidate() {
-    const b = batchesById[batchId];
-    if (!b) { setValidation("Select a batch."); return; }
-    const err = validateMovement(
-      { movementType, quantity: Number(quantity || 0), reason, authorisedBy: authorisedBy || null },
-      b
-    );
-    setValidation(err ?? "Validation passed. (Persistence not yet enabled.)");
+  function resetForm() {
+    setMovementType("Issue");
+    setItemId("");
+    setBatchId("");
+    setQuantity("");
+    setReason("");
+    setAuthorisedBy("");
   }
 
-  const rows = AMCE_STOCK_MOVEMENTS.filter((m) => {
+  async function handleSave() {
+    const user = getCurrentUser();
+    if (!user) {
+      toast.error("Select a user in the top bar before recording movements.");
+      return;
+    }
+    if (!itemId || !batchId) { toast.error("Select an item and a batch."); return; }
+    if (!quantity || Number(quantity) <= 0) { toast.error("Enter a quantity greater than zero."); return; }
+
+    setSubmitting(true);
+    try {
+      const b = batchesById[batchId];
+      await recordMovement({
+        movementType,
+        inventoryItemId: itemId,
+        batchId,
+        quantity: Number(quantity),
+        fromSection: b?.inventoryItemId ? itemsById[b.inventoryItemId]?.laboratorySection ?? null : null,
+        toSection: null,
+        reason,
+        authorisedBy: authorisedBy.trim() || null,
+        referenceNumber: null,
+        notes: "",
+      });
+      toast.success(`${movementType} recorded by ${user.name}.`);
+      resetForm();
+      setOpen(false);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to record movement.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  const rows = movements.filter((m) => {
     if (!search) return true;
     const item = itemsById[m.inventoryItemId];
     return `${item?.itemName ?? ""} ${m.movementType} ${m.referenceNumber ?? ""} ${m.performedBy}`.toLowerCase().includes(search.toLowerCase());
@@ -75,7 +113,7 @@ export function StockMovementsPage() {
                     <Label className="text-xs">Inventory item</Label>
                     <Select value={itemId} onValueChange={(v) => { setItemId(v); setBatchId(""); }}>
                       <SelectTrigger><SelectValue placeholder="Select item" /></SelectTrigger>
-                      <SelectContent>{AMCE_INVENTORY_MASTER.map((i) => <SelectItem key={i.id} value={i.id}>{i.itemName}</SelectItem>)}</SelectContent>
+                      <SelectContent>{inventory.map((i) => <SelectItem key={i.id} value={i.id}>{i.itemName}</SelectItem>)}</SelectContent>
                     </Select>
                   </div>
                   {itemId && (
@@ -89,7 +127,7 @@ export function StockMovementsPage() {
                               {idx === 0 ? "★ " : ""}{b.batchNumber} — exp {b.expiryDate ?? "Not documented"} — avail {b.quantityAvailable}
                             </SelectItem>
                           )) : (
-                            AMCE_BATCHES.filter((b) => b.inventoryItemId === itemId).map((b) => (
+                            batches.filter((b) => b.inventoryItemId === itemId).map((b) => (
                               <SelectItem key={b.id} value={b.id}>
                                 {b.batchNumber} — {isBatchIssuable(b).reason ?? "available"}
                               </SelectItem>
@@ -101,11 +139,11 @@ export function StockMovementsPage() {
                   )}
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <Label className="text-xs">Quantity</Label>
-                      <Input type="number" min={1} value={quantity} onChange={(e) => setQuantity(e.target.value)} />
+                      <Label className="text-xs">{movementType === "Adjust" ? "Corrected total quantity" : "Quantity"}</Label>
+                      <Input type="number" min={0} value={quantity} onChange={(e) => setQuantity(e.target.value)} />
                     </div>
                     <div>
-                      <Label className="text-xs">Authorised by</Label>
+                      <Label className="text-xs">Authorised by (optional)</Label>
                       <Input value={authorisedBy} onChange={(e) => setAuthorisedBy(e.target.value)} placeholder="Officer name" />
                     </div>
                   </div>
@@ -113,8 +151,13 @@ export function StockMovementsPage() {
                     <Label className="text-xs">Reason</Label>
                     <Textarea value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Required for adjustments and discards" />
                   </div>
-                  {validation && <div className="text-xs p-2 rounded-md bg-muted">{validation}</div>}
-                  <div className="flex justify-end gap-2"><Button variant="outline" onClick={() => setOpen(false)}>Close</Button><Button onClick={tryValidate}>Validate</Button></div>
+                  <div className="text-xs text-muted-foreground">
+                    Recorded by: <span className="font-medium text-foreground">{getCurrentUser()?.name ?? "no user selected"}</span>
+                  </div>
+                  <div className="flex justify-end gap-2">
+                    <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+                    <Button onClick={handleSave} disabled={submitting}>{submitting ? "Saving…" : "Save movement"}</Button>
+                  </div>
                 </div>
               </DialogContent>
             </Dialog>
@@ -123,7 +166,9 @@ export function StockMovementsPage() {
       />
       <div className="p-6 space-y-4">
         <SearchInput value={search} onChange={setSearch} placeholder="Search movements..." />
-        {rows.length === 0 ? <EmptyState /> : (
+        {!ready ? (
+          <div className="text-sm text-muted-foreground">Loading local database…</div>
+        ) : rows.length === 0 ? <EmptyState /> : (
           <div className="border border-border rounded-md overflow-x-auto bg-card">
             <table className="w-full text-sm">
               <thead className="bg-muted/50 text-left text-[11px] uppercase tracking-wider text-muted-foreground">
