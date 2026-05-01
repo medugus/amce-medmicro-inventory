@@ -14,11 +14,17 @@ import type {
 
 let ready = false;
 const readyListeners = new Set<() => void>();
-ensureSeeded().then(() => {
-  ready = true;
-  readyListeners.forEach((l) => l());
-  readyListeners.clear();
-});
+if (typeof window !== "undefined" && typeof indexedDB !== "undefined") {
+  ensureSeeded()
+    .then(() => {
+      ready = true;
+      readyListeners.forEach((l) => l());
+      readyListeners.clear();
+    })
+    .catch((err) => {
+      console.error("Failed to seed local database:", err);
+    });
+}
 
 function useReady(): boolean {
   const [r, setR] = useState(ready);
