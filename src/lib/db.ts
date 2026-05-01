@@ -69,7 +69,7 @@ export const db = new AMCEDatabase();
 // you want each lab PC to re-seed missing rows from the new baseline. Seeded
 // durables are refreshed by stable ID; user-added rows use different IDs and
 // are never overwritten.
-const SEED_VERSION = "2026-05-01.5-durables-repair";
+const SEED_VERSION = "2026-05-01.6-durables-self-repair";
 
 let seedPromise: Promise<void> | null = null;
 
@@ -126,6 +126,17 @@ export function ensureSeeded(): Promise<void> {
     );
   })();
   return seedPromise;
+}
+
+export async function ensureDurablesSeeded(): Promise<void> {
+  if (!AMCE_DURABLES.length) return;
+  const durableKeys = new Set((await db.durables.toCollection().primaryKeys()) as string[]);
+  const missingSeedRows = AMCE_DURABLES.filter((d) => !durableKeys.has(d.id));
+  if (missingSeedRows.length === 0) return;
+  await db.transaction("rw", [db.durables, db.meta], async () => {
+    await db.durables.bulkPut(AMCE_DURABLES);
+    await db.meta.put({ key: "seedVersion", value: SEED_VERSION });
+  });
 }
 
 export function newId(prefix: string): string {
