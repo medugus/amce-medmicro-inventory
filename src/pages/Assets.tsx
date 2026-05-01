@@ -22,7 +22,7 @@ import { Label } from "@/components/ui/label";
 
 export function EquipmentRegisterPage() {
   const equipment = useEquipment();
-  const equipmentRows = equipment.length ? equipment : AMCE_EQUIPMENT;
+  const equipmentRows: EquipmentAsset[] = equipment.length ? equipment : AMCE_EQUIPMENT;
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<EquipmentAsset | null>(null);
   const [deleting, setDeleting] = useState<EquipmentAsset | null>(null);
