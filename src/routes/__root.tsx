@@ -3,6 +3,7 @@ import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/r
 import appCss from "../styles.css?url";
 import { AppShell } from "@/components/layout/AppShell";
 import { registerOfflineServiceWorker } from "@/lib/registerSW";
+import { Toaster } from "@/components/ui/sonner";
 
 function NotFoundComponent() {
   return (
@@ -63,8 +64,11 @@ function RootComponent() {
     registerOfflineServiceWorker();
   }, []);
   return (
-    <AppShell>
-      <Outlet />
-    </AppShell>
+    <>
+      <AppShell>
+        <Outlet />
+      </AppShell>
+      <Toaster richColors position="top-right" />
+    </>
   );
 }
