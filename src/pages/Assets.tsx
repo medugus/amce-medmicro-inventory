@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Header } from "@/components/layout/Header";
 import { ExportButton } from "@/components/common/ExportButton";
 import { EmptyState } from "@/components/common/EmptyState";
 import { Button } from "@/components/ui/button";
 import { Plus, Pencil, Trash2, Cpu, Hammer, Wrench } from "lucide-react";
 import { useEquipment, useDurables } from "@/lib/useLiveData";
+import { ensureDurablesSeeded } from "@/lib/db";
 import { AMCE_MAINTENANCE, AMCE_CALIBRATION } from "@/data/amceAssets";
 import { SECTION_NAME } from "@/data/amceSections";
 import { EquipmentDialog } from "@/components/forms/EquipmentDialog";
@@ -116,6 +117,8 @@ export function DurablesRegisterPage() {
   const [editing, setEditing] = useState<DurableAsset | null>(null);
   const [deleting, setDeleting] = useState<DurableAsset | null>(null);
   const [reason, setReason] = useState("");
+  const [loadingBaseline, setLoadingBaseline] = useState(false);
+  const [attemptedAutoLoad, setAttemptedAutoLoad] = useState(false);
 
   async function confirmDelete() {
     if (!deleting) return;
@@ -125,6 +128,26 @@ export function DurablesRegisterPage() {
       setDeleting(null); setReason("");
     } catch (err) { toast.error(err instanceof Error ? err.message : "Failed."); }
   }
+
+  async function loadBaselineDurables() {
+    try {
+      setLoadingBaseline(true);
+      await ensureDurablesSeeded();
+      window.dispatchEvent(new CustomEvent("amce:db-changed"));
+      toast.success("Lab durables loaded.");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to load durables.");
+    } finally {
+      setLoadingBaseline(false);
+    }
+  }
+
+  useEffect(() => {
+    if (durables.length > 0 || attemptedAutoLoad || loadingBaseline) return;
+    setAttemptedAutoLoad(true);
+    void loadBaselineDurables();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [durables.length, attemptedAutoLoad, loadingBaseline]);
 
   return (
     <div>
@@ -143,7 +166,16 @@ export function DurablesRegisterPage() {
       />
       <div className="p-6">
         {durables.length === 0 ? (
-          <EmptyState icon={Hammer} title="Durables register is empty." description="Use Add durable to record reusable lab assets." />
+          <EmptyState
+            icon={Hammer}
+            title="Durables register is empty."
+            description="Use Add durable to record reusable lab assets, or load the lab baseline list."
+            action={(
+              <Button variant="secondary" onClick={loadBaselineDurables} disabled={loadingBaseline}>
+                {loadingBaseline ? "Loading..." : "Load lab durables"}
+              </Button>
+            )}
+          />
         ) : (
           <div className="border border-border rounded-md overflow-x-auto bg-card">
             <table className="w-full text-sm">
