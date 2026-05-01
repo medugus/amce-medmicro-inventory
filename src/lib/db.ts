@@ -133,10 +133,9 @@ export function ensureSeeded(): Promise<void> {
 
 export async function ensureDurablesSeeded(): Promise<void> {
   if (!AMCE_DURABLES.length) return;
-  const durableKeys = new Set((await db.durables.toCollection().primaryKeys()) as string[]);
-  const missingSeedRows = AMCE_DURABLES.filter((d) => !durableKeys.has(d.id));
-  if (missingSeedRows.length === 0) return;
   await db.transaction("rw", [db.durables, db.meta], async () => {
+    // Always refresh the bundled seed rows. bulkPut is id-based, so it updates
+    // only these stable `dur-seed-*` records and leaves user-added rows intact.
     await db.durables.bulkPut(AMCE_DURABLES);
     await db.meta.put({ key: "seedVersion", value: SEED_VERSION });
   });
@@ -144,10 +143,9 @@ export async function ensureDurablesSeeded(): Promise<void> {
 
 export async function ensureEquipmentSeeded(): Promise<void> {
   if (!AMCE_EQUIPMENT.length) return;
-  const equipmentKeys = new Set((await db.equipment.toCollection().primaryKeys()) as string[]);
-  const missing = AMCE_EQUIPMENT.filter((e) => !equipmentKeys.has(e.id));
-  if (missing.length === 0) return;
   await db.transaction("rw", [db.equipment, db.meta], async () => {
+    // Always refresh the bundled seed rows. bulkPut is id-based, so it updates
+    // only these stable `eq-seed-*` records and leaves user-added rows intact.
     await db.equipment.bulkPut(AMCE_EQUIPMENT);
     await db.meta.put({ key: "seedVersion", value: SEED_VERSION });
   });
