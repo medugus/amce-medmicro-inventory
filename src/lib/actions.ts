@@ -13,6 +13,7 @@ import type {
   InventoryItem,
   EquipmentAsset,
   DurableAsset,
+  AcceptanceStatus,
 } from "@/types";
 import { db, newId, appendAudit } from "@/lib/db";
 import { notifyDbChanged } from "@/lib/useLiveData";
@@ -127,6 +128,83 @@ export async function recordMovement(input: RecordMovementInput): Promise<StockM
 
     notifyDbChanged();
     return movement;
+  });
+}
+
+// ---------- Receive a new batch ----------
+
+export interface CreateBatchInput {
+  inventoryItemId: string;
+  batchNumber: string;
+  lotNumber: string | null;
+  quantityReceived: number;
+  expiryDate: string | null;
+  dateReceived: string;
+  storageLocation: string;
+  storageConditionRequired: string;
+  notes: string;
+}
+
+export async function createBatch(input: CreateBatchInput): Promise<InventoryBatch> {
+  const user = requireUser();
+  if (!input.inventoryItemId) throw new Error("Select an inventory item.");
+  if (!input.batchNumber.trim()) throw new Error("Batch / lot number is required.");
+  if (input.quantityReceived <= 0) throw new Error("Quantity received must be greater than zero.");
+
+  return db.transaction("rw", [db.inventory, db.batches, db.movements, db.audit], async () => {
+    const item = await db.inventory.get(input.inventoryItemId);
+    if (!item) throw new Error("Inventory item not found.");
+
+    const batch: InventoryBatch = {
+      id: newId("bat"),
+      inventoryItemId: input.inventoryItemId,
+      batchNumber: input.batchNumber.trim(),
+      lotNumber: input.lotNumber?.trim() || null,
+      quantityReceived: input.quantityReceived,
+      quantityAvailable: input.quantityReceived,
+      expiryDate: input.expiryDate || null,
+      dateReceived: input.dateReceived,
+      storageLocation: input.storageLocation || item.storageCondition || "",
+      storageConditionRequired: input.storageConditionRequired || item.storageCondition || "",
+      acceptanceStatus: "Pending acceptance" as AcceptanceStatus,
+      batchStatus: "Pending acceptance",
+      certificateOfAnalysisAvailable: false,
+      qcRequired: true,
+      qcResult: "Pending",
+      acceptedBy: null,
+      dateAccepted: null,
+      quarantineReason: null,
+      notes: input.notes,
+    };
+    await db.batches.add(batch);
+
+    // Log a Receive movement so the batch appears in the movements log.
+    const movement: StockMovement = {
+      id: newId("mv"),
+      inventoryItemId: batch.inventoryItemId,
+      batchId: batch.id,
+      movementType: "Receive",
+      quantity: input.quantityReceived,
+      fromSection: null,
+      toSection: item.laboratorySection,
+      dateTime: new Date().toISOString(),
+      performedBy: user,
+      authorisedBy: null,
+      reason: "Initial receipt — pending acceptance testing",
+      referenceNumber: null,
+      notes: input.notes,
+    };
+    await db.movements.add(movement);
+
+    await appendAudit({
+      user, action: "Receive batch", module: "Batch Register", entityId: batch.id,
+      previousValue: null,
+      newValue: `${item.itemName} · batch ${batch.batchNumber} · qty ${batch.quantityReceived} · exp ${batch.expiryDate ?? "Not documented"}`,
+      reason: "", notes: input.notes,
+    });
+
+    notifyDbChanged();
+    return batch;
   });
 }
 
