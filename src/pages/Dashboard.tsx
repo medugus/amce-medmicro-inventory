@@ -132,7 +132,32 @@ export function DashboardPage() {
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
                       <div className="font-medium text-sm truncate">{s.name}</div>
-                      <div className="text-xs text-muted-foreground">Lead: {s.leads.join(", ")}</div>
+                      <div className="text-xs text-muted-foreground flex flex-wrap items-center gap-1 mt-0.5">
+                        <span>Lead:</span>
+                        {s.leads.map((lead, i) => {
+                          const palette = [
+                            "bg-pink-100 text-pink-700 dark:bg-pink-500/15 dark:text-pink-300",
+                            "bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300",
+                            "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300",
+                            "bg-sky-100 text-sky-700 dark:bg-sky-500/15 dark:text-sky-300",
+                            "bg-violet-100 text-violet-700 dark:bg-violet-500/15 dark:text-violet-300",
+                            "bg-rose-100 text-rose-700 dark:bg-rose-500/15 dark:text-rose-300",
+                            "bg-teal-100 text-teal-700 dark:bg-teal-500/15 dark:text-teal-300",
+                            "bg-orange-100 text-orange-700 dark:bg-orange-500/15 dark:text-orange-300",
+                          ];
+                          const hash = lead.split("").reduce((a, c) => a + c.charCodeAt(0), 0);
+                          const cls = palette[hash % palette.length];
+                          return (
+                            <span
+                              key={i}
+                              className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full font-bold text-[11px] ${cls}`}
+                            >
+                              <span aria-hidden>✨</span>
+                              {lead}
+                            </span>
+                          );
+                        })}
+                      </div>
                     </div>
                     {critical > 0 && <StatusBadge label={`${critical} critical`} tone={toneForCriticality("Critical")} />}
                   </div>
