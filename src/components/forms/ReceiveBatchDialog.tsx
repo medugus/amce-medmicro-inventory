@@ -18,6 +18,7 @@ import { useInventory } from "@/lib/useLiveData";
 import { createBatch } from "@/lib/actions";
 import { getCurrentUser } from "@/lib/currentUser";
 import { toast } from "sonner";
+import { InlineWarning } from "@/components/common/InlineWarning";
 
 interface ReceiveBatchDialogProps {
   open: boolean;
@@ -154,6 +155,11 @@ export function ReceiveBatchDialog({
               />
             </div>
           </div>
+          {!expiryDate && (
+            <InlineWarning>
+              No expiry date entered. This batch will not appear in FEFO or expiry alerts. Only leave blank if the product genuinely has no expiry.
+            </InlineWarning>
+          )}
           <div>
             <Label className="text-xs">Storage location</Label>
             <Input
