@@ -43,18 +43,21 @@ const SEED: SeedDurable[] = [
   { slug: "concavity-slide", assetName: "Concavity slide", assetCategory: "Slides", quantity: 2 },
 ];
 
+// Only fields present in the Durables sheet are populated. Location, condition,
+// responsible officer, and replacement dates are left blank for staff to fill in
+// — we will not invent values that are not in the source spreadsheet.
 export const AMCE_DURABLES: DurableAsset[] = SEED.map((s) => ({
   id: `dur-seed-${s.slug}`,
   assetName: s.assetName,
   assetCategory: s.assetCategory,
   laboratorySection: "stores",
-  location: "Media preparation room",
+  location: null,
   quantity: s.quantity,
-  condition: "Good",
+  condition: "Not documented",
   responsibleOfficer: null,
   purchaseDate: "2025-07-30",
   expectedReplacementDate: null,
-  notes: "Seeded from lab Durables stocktake (2025-07-30).",
+  notes: "",
 }));
 
 export const AMCE_MAINTENANCE: MaintenanceRecord[] = [];
