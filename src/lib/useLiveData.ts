@@ -40,9 +40,9 @@ function useReady(): boolean {
   return r;
 }
 
-function useTable<T>(loader: () => Promise<T[]>, deps: unknown[] = []): T[] {
+function useTable<T>(loader: () => Promise<T[]>, deps: unknown[] = [], initialRows: T[] = []): T[] {
   const ready = useReady();
-  const [rows, setRows] = useState<T[]>([]);
+  const [rows, setRows] = useState<T[]>(initialRows);
 
   useEffect(() => {
     if (!ready) return;
@@ -105,7 +105,7 @@ export function useEquipment(): EquipmentAsset[] {
     await ensureEquipmentSeeded();
     const rows = await db.equipment.toArray();
     return rows.length ? rows : AMCE_EQUIPMENT;
-  });
+  }, [], AMCE_EQUIPMENT);
 }
 
 export function useDurables(): DurableAsset[] {
@@ -113,7 +113,7 @@ export function useDurables(): DurableAsset[] {
     await ensureDurablesSeeded();
     const rows = await db.durables.toArray();
     return rows.length ? rows : AMCE_DURABLES;
-  });
+  }, [], AMCE_DURABLES);
 }
 
 export function useDataReady(): boolean {
