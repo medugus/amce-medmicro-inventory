@@ -52,7 +52,7 @@ export function DashboardPage() {
   return (
     <div>
       <Header
-        title="AMCE Microbiology Command Centre"
+        title="AMCE Medical Microbiology Lab Command Centre"
         description="Live operational view across supply, inventory, quality and asset readiness."
         actions={
           <Link

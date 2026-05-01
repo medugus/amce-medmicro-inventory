@@ -63,7 +63,7 @@ export function Sidebar() {
     <aside className="w-64 shrink-0 border-r border-sidebar-border bg-sidebar text-sidebar-foreground flex flex-col h-screen sticky top-0">
       <div className="p-4 border-b border-sidebar-border">
         <div className="text-[11px] uppercase tracking-wider text-sidebar-foreground/60">AMCE Abuja</div>
-        <div className="font-semibold leading-tight mt-1">Microbiology Inventory</div>
+        <div className="font-semibold leading-tight mt-1">Medical Microbiology Lab Inventory</div>
         <div className="text-xs text-sidebar-foreground/70 mt-0.5">Supply and Stock Management</div>
       </div>
       <nav className="flex-1 overflow-y-auto p-2 space-y-4">
