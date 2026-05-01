@@ -69,7 +69,7 @@ export const db = new AMCEDatabase();
 // you want each lab PC to re-seed missing rows from the new baseline. Seeded
 // durables are refreshed by stable ID; user-added rows use different IDs and
 // are never overwritten.
-const SEED_VERSION = "2026-05-01.6-durables-self-repair";
+const SEED_VERSION = "2026-05-01.7-equipment-seed";
 
 let seedPromise: Promise<void> | null = null;
 
@@ -79,8 +79,10 @@ export function ensureSeeded(): Promise<void> {
     const meta = await db.meta.get("seedVersion");
     if (meta?.value === SEED_VERSION) {
       const durableKeys = new Set((await db.durables.toCollection().primaryKeys()) as string[]);
+      const equipmentKeys = new Set((await db.equipment.toCollection().primaryKeys()) as string[]);
       const hasAllSeedDurables = AMCE_DURABLES.every((d) => durableKeys.has(d.id));
-      if (hasAllSeedDurables) return;
+      const hasAllSeedEquipment = AMCE_EQUIPMENT.every((e) => equipmentKeys.has(e.id));
+      if (hasAllSeedDurables && hasAllSeedEquipment) return;
     }
 
     // Use bulkPut only for the catalogue + bundled batches (these are baseline
@@ -113,9 +115,10 @@ export function ensureSeeded(): Promise<void> {
         if ((await db.audit.count()) === 0 && AMCE_AUDIT_TRAIL.length) {
           await db.audit.bulkAdd(AMCE_AUDIT_TRAIL);
         }
-        if ((await db.equipment.count()) === 0 && AMCE_EQUIPMENT.length) {
-          await db.equipment.bulkAdd(AMCE_EQUIPMENT);
-        }
+        // Equipment: bulkPut refreshes seed rows (id prefix `eq-seed-`) from the
+        // current equipment list. User-added rows use a different id prefix and
+        // are never touched.
+        if (AMCE_EQUIPMENT.length) await db.equipment.bulkPut(AMCE_EQUIPMENT);
         // Durables: bulkPut refreshes seed rows (id prefix `dur-seed-`) from the
         // current spreadsheet baseline. User-added rows use a different id prefix
         // and are never touched.
@@ -135,6 +138,17 @@ export async function ensureDurablesSeeded(): Promise<void> {
   if (missingSeedRows.length === 0) return;
   await db.transaction("rw", [db.durables, db.meta], async () => {
     await db.durables.bulkPut(AMCE_DURABLES);
+    await db.meta.put({ key: "seedVersion", value: SEED_VERSION });
+  });
+}
+
+export async function ensureEquipmentSeeded(): Promise<void> {
+  if (!AMCE_EQUIPMENT.length) return;
+  const equipmentKeys = new Set((await db.equipment.toCollection().primaryKeys()) as string[]);
+  const missing = AMCE_EQUIPMENT.filter((e) => !equipmentKeys.has(e.id));
+  if (missing.length === 0) return;
+  await db.transaction("rw", [db.equipment, db.meta], async () => {
+    await db.equipment.bulkPut(AMCE_EQUIPMENT);
     await db.meta.put({ key: "seedVersion", value: SEED_VERSION });
   });
 }

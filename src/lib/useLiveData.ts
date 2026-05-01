@@ -2,7 +2,7 @@
 // after seeding has completed.
 
 import { useEffect, useState } from "react";
-import { db, ensureDurablesSeeded, ensureSeeded } from "@/lib/db";
+import { db, ensureDurablesSeeded, ensureEquipmentSeeded, ensureSeeded } from "@/lib/db";
 import type {
   InventoryItem,
   InventoryBatch,
@@ -100,7 +100,10 @@ export function useAuditTrail(): AuditTrailEntry[] {
 }
 
 export function useEquipment(): EquipmentAsset[] {
-  return useTable(() => db.equipment.toArray());
+  return useTable(async () => {
+    await ensureEquipmentSeeded();
+    return db.equipment.toArray();
+  });
 }
 
 export function useDurables(): DurableAsset[] {
