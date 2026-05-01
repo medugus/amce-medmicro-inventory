@@ -2,16 +2,17 @@ import { Header } from "@/components/layout/Header";
 import { ExportButton } from "@/components/common/ExportButton";
 import { EmptyState } from "@/components/common/EmptyState";
 import { StatusBadge } from "@/components/common/StatusBadge";
-import { AMCE_BATCHES } from "@/data/amceBatches";
-import { AMCE_INVENTORY_MASTER } from "@/data/amceInventoryMaster";
 import { SECTION_NAME } from "@/data/amceSections";
 import { daysUntilExpiry, expiryBucket, fefoBatches, isBatchIssuable } from "@/logic/inventory";
 import { NOT_DOCUMENTED } from "@/data/categories";
+import { useBatches, useInventory } from "@/lib/useLiveData";
 
 export function ExpiryFEFOPage() {
-  const itemsById = Object.fromEntries(AMCE_INVENTORY_MASTER.map((i) => [i.id, i]));
+  const inventory = useInventory();
+  const batches = useBatches();
+  const itemsById = Object.fromEntries(inventory.map((i) => [i.id, i]));
 
-  const rows = [...AMCE_BATCHES].sort((a, b) => {
+  const rows = [...batches].sort((a, b) => {
     const ax = a.expiryDate ? new Date(a.expiryDate).getTime() : Infinity;
     const bx = b.expiryDate ? new Date(b.expiryDate).getTime() : Infinity;
     return ax - bx;
@@ -19,8 +20,8 @@ export function ExpiryFEFOPage() {
 
   // FEFO order per item (top batch is recommended next-issue)
   const fefoTopByItem = new Map<string, string>();
-  for (const item of AMCE_INVENTORY_MASTER) {
-    const ordered = fefoBatches(AMCE_BATCHES, item.id);
+  for (const item of inventory) {
+    const ordered = fefoBatches(batches, item.id);
     if (ordered.length > 0) fefoTopByItem.set(item.id, ordered[0].id);
   }
 

@@ -3,15 +3,16 @@ import { ExportButton } from "@/components/common/ExportButton";
 import { PrintButton } from "@/components/common/PrintButton";
 import { EmptyState } from "@/components/common/EmptyState";
 import { StatusBadge } from "@/components/common/StatusBadge";
-import { AMCE_BATCHES } from "@/data/amceBatches";
-import { AMCE_INVENTORY_MASTER } from "@/data/amceInventoryMaster";
 import { SECTION_NAME } from "@/data/amceSections";
 import { daysUntilExpiry, expiryBucket } from "@/logic/inventory";
 import { NOT_DOCUMENTED } from "@/data/categories";
+import { useBatches, useInventory } from "@/lib/useLiveData";
 
 export function ExpiredWastedStockPage() {
-  const itemsById = Object.fromEntries(AMCE_INVENTORY_MASTER.map((i) => [i.id, i]));
-  const rows = AMCE_BATCHES.filter((b) => b.batchStatus === "Expired" || b.batchStatus === "Discarded" || expiryBucket(b.expiryDate) === "expired");
+  const inventory = useInventory();
+  const batches = useBatches();
+  const itemsById = Object.fromEntries(inventory.map((i) => [i.id, i]));
+  const rows = batches.filter((b) => b.batchStatus === "Expired" || b.batchStatus === "Discarded" || expiryBucket(b.expiryDate) === "expired");
 
   return (
     <div>
