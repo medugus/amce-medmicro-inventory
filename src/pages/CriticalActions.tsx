@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { Header } from "@/components/layout/Header";
+import { PrintButton } from "@/components/common/PrintButton";
 import { SearchInput } from "@/components/common/SearchInput";
 import { EmptyState } from "@/components/common/EmptyState";
 import { StatusBadge, toneForCriticality } from "@/components/common/StatusBadge";
@@ -46,6 +47,7 @@ export function CriticalActionsPage() {
       <Header
         title="Critical Actions"
         description="Live list of items requiring immediate operational attention, derived from supply, inventory, quality and equipment data."
+        actions={<PrintButton label="Print critical actions" />}
       />
       <div className="p-6 space-y-4">
         <div className="flex flex-wrap items-center gap-2">
