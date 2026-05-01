@@ -179,6 +179,7 @@ export function DashboardPage() {
                           );
                         })}
                       </div>
+                      </div>
                     </div>
                     {critical > 0 && <StatusBadge label={`${critical} critical`} tone={toneForCriticality("Critical")} />}
                   </div>
