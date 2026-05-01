@@ -14,7 +14,26 @@ import {
 import { actionRequired, supplyStatusFlags } from "@/logic/supplyStatus";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { NOT_DOCUMENTED } from "@/data/categories";
-import type { SupplyStatus } from "@/types";
+import type { SupplyStatus, ProcurementStatus, SupplyStatusRecord } from "@/types";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { updateSupplyRecord } from "@/lib/actions";
+import { getCurrentUser } from "@/lib/currentUser";
+import { toast } from "sonner";
+
+const SUPPLY_VALUES: SupplyStatus[] = [
+  "Requested", "Pending procurement", "Under review", "Ordered",
+  "Partially supplied", "Supplied", "Not supplied", "Delayed",
+  "Cancelled", "Requires clarification",
+];
+const PROC_VALUES: ProcurementStatus[] = [
+  "Not started", "Awaiting quotation", "Quotation received", "Awaiting approval",
+  "Approved", "Ordered", "Delivery pending", "Delivered", "Partially delivered",
+  "Delayed", "Rejected", "Closed", "Requires procurement update",
+];
 
 const ALL = "__all";
 
