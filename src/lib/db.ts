@@ -84,7 +84,7 @@ export function ensureSeeded(): Promise<void> {
     // table is empty so we never overwrite work the lab has done.
     await db.transaction(
       "rw",
-      [db.inventory, db.batches, db.supply, db.movements, db.acceptance, db.audit, db.meta],
+      [db.inventory, db.batches, db.supply, db.movements, db.acceptance, db.audit, db.equipment, db.durables, db.meta],
       async () => {
         // Catalogue + supply backlog: keep current entries, fill in any missing.
         const existingInv = new Set((await db.inventory.toCollection().primaryKeys()) as string[]);
