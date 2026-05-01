@@ -147,9 +147,11 @@ export function DashboardPage() {
                 "No action required";
 
               return (
-                <div key={s.id} className="bg-card border border-border rounded-md p-3">
+                <div key={s.id} className="bg-card border border-border rounded-md p-3 hover:shadow-md transition-shadow">
                   <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0">
+                    <div className="min-w-0 flex items-start gap-2">
+                      <span className="text-2xl leading-none shrink-0" aria-hidden>{SECTION_EMOJI[s.id] ?? "🧪"}</span>
+                      <div className="min-w-0">
                       <div className="font-medium text-sm truncate">{s.name}</div>
                       <div className="text-xs text-muted-foreground flex flex-wrap items-center gap-1 mt-0.5">
                         <span>Lead:</span>
