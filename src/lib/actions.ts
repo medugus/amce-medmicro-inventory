@@ -142,15 +142,16 @@ export interface RecordAcceptanceInput {
 export async function recordAcceptance(input: RecordAcceptanceInput): Promise<AcceptanceTest> {
   const acceptedBy = requireUser();
 
-  return db.transaction("rw", [db.batches, db.acceptance, db.audit], async () => {
+  return db.transaction("rw", [db.batches, db.inventory, db.acceptance, db.audit], async () => {
     const batch = await db.batches.get(input.batchId);
     if (!batch) throw new Error("Batch not found.");
+    const item = await db.inventory.get(batch.inventoryItemId);
 
     const today = new Date().toISOString().slice(0, 10);
     const test: AcceptanceTest = {
       id: newId("acc"),
       batchId: batch.id,
-      itemName: "",
+      itemName: item?.itemName ?? "",
       lotNumber: batch.lotNumber,
       dateReceived: batch.dateReceived,
       expiryDate: batch.expiryDate,
