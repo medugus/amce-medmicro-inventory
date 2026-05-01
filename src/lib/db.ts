@@ -15,6 +15,8 @@ import type {
   AcceptanceTest,
   SupplyStatusRecord,
   AuditTrailEntry,
+  EquipmentAsset,
+  DurableAsset,
 } from "@/types";
 
 import { AMCE_INVENTORY_MASTER } from "@/data/amceInventoryMaster";
@@ -23,6 +25,7 @@ import { AMCE_STOCK_MOVEMENTS } from "@/data/amceStockMovements";
 import { AMCE_ACCEPTANCE_TESTS } from "@/data/amceAcceptanceTesting";
 import { AMCE_SUPPLY_STATUS } from "@/data/amceSupplyStatus";
 import { AMCE_AUDIT_TRAIL } from "@/data/amceAuditTrail";
+import { AMCE_EQUIPMENT, AMCE_DURABLES } from "@/data/amceAssets";
 
 class AMCEDatabase extends Dexie {
   inventory!: Table<InventoryItem, string>;
@@ -31,6 +34,8 @@ class AMCEDatabase extends Dexie {
   acceptance!: Table<AcceptanceTest, string>;
   supply!: Table<SupplyStatusRecord, string>;
   audit!: Table<AuditTrailEntry, string>;
+  equipment!: Table<EquipmentAsset, string>;
+  durables!: Table<DurableAsset, string>;
   meta!: Table<{ key: string; value: string }, string>;
 
   constructor() {
@@ -42,6 +47,17 @@ class AMCEDatabase extends Dexie {
       acceptance: "id, batchId, dateAccepted, acceptedOrRejected",
       supply: "id, itemName, laboratorySection, supplyStatus, criticality",
       audit: "id, dateTime, user, module, entityId",
+      meta: "key",
+    });
+    this.version(2).stores({
+      inventory: "id, itemName, laboratorySection, category, criticality",
+      batches: "id, inventoryItemId, batchNumber, expiryDate, batchStatus, acceptanceStatus",
+      movements: "id, inventoryItemId, batchId, dateTime, movementType, performedBy",
+      acceptance: "id, batchId, dateAccepted, acceptedOrRejected",
+      supply: "id, itemName, laboratorySection, supplyStatus, criticality",
+      audit: "id, dateTime, user, module, entityId",
+      equipment: "id, equipmentName, laboratorySection, equipmentCategory, operationalStatus",
+      durables: "id, assetName, laboratorySection, assetCategory, condition",
       meta: "key",
     });
   }
