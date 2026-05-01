@@ -38,6 +38,7 @@ export function EquipmentRegisterPage() {
   return (
     <div>
       <Header
+        helpTopic="assets"
         title="Equipment Register"
         description="Laboratory equipment is tracked separately from consumables. Serial numbers, asset numbers and calibration dates must be entered from real records."
         actions={
@@ -128,6 +129,7 @@ export function DurablesRegisterPage() {
   return (
     <div>
       <Header
+        helpTopic="assets"
         title="Durables Register"
         description="Reusable laboratory assets that are not consumed per test, tracked separately from inventory."
         actions={
@@ -198,6 +200,7 @@ export function MaintenanceCalibrationPage() {
   return (
     <div>
       <Header
+        helpTopic="assets"
         title="Maintenance and Calibration"
         description="Equipment maintenance, calibration, verification, downtime, service history and next due dates."
         actions={<ExportButton />}
