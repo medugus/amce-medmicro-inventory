@@ -66,10 +66,10 @@ class AMCEDatabase extends Dexie {
 export const db = new AMCEDatabase();
 
 // Bump this string whenever the bundled seed data changes meaningfully and
-// you want each lab PC to re-seed missing rows from the new baseline. We will
-// only INSERT rows that don't already exist on the lab PC, so user-entered
-// data is never overwritten.
-const SEED_VERSION = "2026-05-01.4-durables-clean";
+// you want each lab PC to re-seed missing rows from the new baseline. Seeded
+// durables are refreshed by stable ID; user-added rows use different IDs and
+// are never overwritten.
+const SEED_VERSION = "2026-05-01.5-durables-repair";
 
 let seedPromise: Promise<void> | null = null;
 
@@ -77,7 +77,11 @@ export function ensureSeeded(): Promise<void> {
   if (seedPromise) return seedPromise;
   seedPromise = (async () => {
     const meta = await db.meta.get("seedVersion");
-    if (meta?.value === SEED_VERSION) return;
+    if (meta?.value === SEED_VERSION) {
+      const durableKeys = new Set((await db.durables.toCollection().primaryKeys()) as string[]);
+      const hasAllSeedDurables = AMCE_DURABLES.every((d) => durableKeys.has(d.id));
+      if (hasAllSeedDurables) return;
+    }
 
     // Use bulkPut only for the catalogue + bundled batches (these are baseline
     // reference data). For movements/acceptance/audit we only seed if the
