@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TrainingRouteImport } from './routes/training'
 import { Route as SupplyStatusRouteImport } from './routes/supply-status'
 import { Route as StockMovementsRouteImport } from './routes/stock-movements'
 import { Route as SettingsRouteImport } from './routes/settings'
@@ -32,6 +33,11 @@ import { Route as AuditTrailRouteImport } from './routes/audit-trail'
 import { Route as AcceptanceTestingRouteImport } from './routes/acceptance-testing'
 import { Route as IndexRouteImport } from './routes/index'
 
+const TrainingRoute = TrainingRouteImport.update({
+  id: '/training',
+  path: '/training',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SupplyStatusRoute = SupplyStatusRouteImport.update({
   id: '/supply-status',
   path: '/supply-status',
@@ -166,6 +172,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof SettingsRoute
   '/stock-movements': typeof StockMovementsRoute
   '/supply-status': typeof SupplyStatusRoute
+  '/training': typeof TrainingRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -190,6 +197,7 @@ export interface FileRoutesByTo {
   '/settings': typeof SettingsRoute
   '/stock-movements': typeof StockMovementsRoute
   '/supply-status': typeof SupplyStatusRoute
+  '/training': typeof TrainingRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -215,6 +223,7 @@ export interface FileRoutesById {
   '/settings': typeof SettingsRoute
   '/stock-movements': typeof StockMovementsRoute
   '/supply-status': typeof SupplyStatusRoute
+  '/training': typeof TrainingRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -241,6 +250,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/stock-movements'
     | '/supply-status'
+    | '/training'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -265,6 +275,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/stock-movements'
     | '/supply-status'
+    | '/training'
   id:
     | '__root__'
     | '/'
@@ -289,6 +300,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/stock-movements'
     | '/supply-status'
+    | '/training'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -314,10 +326,18 @@ export interface RootRouteChildren {
   SettingsRoute: typeof SettingsRoute
   StockMovementsRoute: typeof StockMovementsRoute
   SupplyStatusRoute: typeof SupplyStatusRoute
+  TrainingRoute: typeof TrainingRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/training': {
+      id: '/training'
+      path: '/training'
+      fullPath: '/training'
+      preLoaderRoute: typeof TrainingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/supply-status': {
       id: '/supply-status'
       path: '/supply-status'
@@ -498,6 +518,7 @@ const rootRouteChildren: RootRouteChildren = {
   SettingsRoute: SettingsRoute,
   StockMovementsRoute: StockMovementsRoute,
   SupplyStatusRoute: SupplyStatusRoute,
+  TrainingRoute: TrainingRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

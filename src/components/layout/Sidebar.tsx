@@ -22,6 +22,7 @@ import {
   ScrollText,
   ShieldAlert,
   Trash2,
+  BookOpen,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -52,6 +53,7 @@ const NAV: { to: string; label: string; group: string; icon: React.ComponentType
 
   { to: "/reports", label: "Reports", group: "Oversight", icon: FileBarChart2 },
   { to: "/readiness-audit", label: "Readiness Audit", group: "Oversight", icon: ShieldCheck },
+  { to: "/training", label: "Training Guide", group: "Oversight", icon: BookOpen },
   { to: "/settings", label: "Settings", group: "Oversight", icon: SettingsIcon },
 ];
 
