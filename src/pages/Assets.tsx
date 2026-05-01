@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Plus, Pencil, Trash2, Cpu, Hammer, Wrench } from "lucide-react";
 import { useEquipment, useDurables } from "@/lib/useLiveData";
 import { ensureDurablesSeeded } from "@/lib/db";
-import { AMCE_MAINTENANCE, AMCE_CALIBRATION } from "@/data/amceAssets";
+import { AMCE_MAINTENANCE, AMCE_CALIBRATION, AMCE_EQUIPMENT, AMCE_DURABLES } from "@/data/amceAssets";
 import { SECTION_NAME } from "@/data/amceSections";
 import { EquipmentDialog } from "@/components/forms/EquipmentDialog";
 import { DurableDialog } from "@/components/forms/DurableDialog";
