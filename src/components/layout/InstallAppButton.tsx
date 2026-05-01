@@ -54,7 +54,7 @@ export function InstallAppButton() {
         setDeferred(null);
       }}
       className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-2.5 py-1.5 text-xs font-medium text-foreground hover:bg-accent"
-      title="Install AMCE Microbiology as a desktop app"
+      title="Install AMCE Medical Microbiology Lab Inventory as a desktop app"
     >
       <Download className="h-3.5 w-3.5" />
       Install app
