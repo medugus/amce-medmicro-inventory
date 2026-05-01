@@ -114,7 +114,7 @@ export function EquipmentRegisterPage() {
 
 export function DurablesRegisterPage() {
   const durables = useDurables();
-  const durableRows = durables.length ? durables : AMCE_DURABLES;
+  const durableRows: DurableAsset[] = durables.length ? durables : AMCE_DURABLES;
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<DurableAsset | null>(null);
   const [deleting, setDeleting] = useState<DurableAsset | null>(null);
