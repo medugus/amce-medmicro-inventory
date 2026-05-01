@@ -6,6 +6,25 @@ import { expiryBucket, isLowStock, totalAvailableForItem } from "@/logic/invento
 import { isCriticalRisk, supplyStatusFlags } from "@/logic/supplyStatus";
 import { isCalibrationDue, isMaintenanceDue } from "@/logic/equipment";
 import { AMCE_SECTIONS, SECTION_NAME } from "@/data/amceSections";
+
+const SECTION_EMOJI: Record<string, string> = {
+  "blood-culture": "🩸",
+  "urine-culture": "🧫",
+  "general-culture": "🦠",
+  "sensitivity": "💊",
+  "tb-mgit": "🫁",
+  "gram-stain": "🔬",
+  "serology": "🧪",
+  "molecular": "🧬",
+  "maldi-tof": "⚛️",
+  "media-prep": "⚗️",
+  "isolate-storage": "🧊",
+  "mycology": "🍄",
+  "parasitology": "🦟",
+  "ipc": "🧼",
+  "water": "💧",
+  "stores": "📦",
+};
 import { StatusBadge, toneForCriticality } from "@/components/common/StatusBadge";
 import { buildCriticalActions } from "@/logic/criticalActions";
 import { Link } from "@tanstack/react-router";
@@ -128,9 +147,11 @@ export function DashboardPage() {
                 "No action required";
 
               return (
-                <div key={s.id} className="bg-card border border-border rounded-md p-3">
+                <div key={s.id} className="bg-card border border-border rounded-md p-3 hover:shadow-md transition-shadow">
                   <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0">
+                    <div className="min-w-0 flex items-start gap-2">
+                      <span className="text-2xl leading-none shrink-0" aria-hidden>{SECTION_EMOJI[s.id] ?? "🧪"}</span>
+                      <div className="min-w-0">
                       <div className="font-medium text-sm truncate">{s.name}</div>
                       <div className="text-xs text-muted-foreground flex flex-wrap items-center gap-1 mt-0.5">
                         <span>Lead:</span>
@@ -157,6 +178,7 @@ export function DashboardPage() {
                             </span>
                           );
                         })}
+                      </div>
                       </div>
                     </div>
                     {critical > 0 && <StatusBadge label={`${critical} critical`} tone={toneForCriticality("Critical")} />}
