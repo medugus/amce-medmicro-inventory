@@ -1,6 +1,6 @@
 {
-  "name": "AMCE Microbiology Inventory & Supply Management",
-  "short_name": "AMCE Microbiology",
+  "name": "AMCE Medical Microbiology Lab Inventory",
+  "short_name": "AMCE Lab Inventory",
   "description": "Offline-capable inventory, supply status, batch tracking, acceptance testing and equipment management for AMCE Department of Medical Microbiology and Immunology.",
   "start_url": "/",
   "scope": "/",
