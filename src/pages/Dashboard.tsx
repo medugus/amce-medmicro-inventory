@@ -9,7 +9,7 @@ import { AMCE_SECTIONS, SECTION_NAME } from "@/data/amceSections";
 import { StatusBadge, toneForCriticality } from "@/components/common/StatusBadge";
 import { buildCriticalActions } from "@/logic/criticalActions";
 import { Link } from "@tanstack/react-router";
-import { HelpButton } from "@/components/common/HelpButton";
+
 import {
   useInventory,
   useBatches,
@@ -55,16 +55,14 @@ export function DashboardPage() {
       <Header
         title="AMCE Medical Microbiology Lab Command Centre"
         description="Live operational view across supply, inventory, quality and asset readiness."
+        helpTopic="dashboard"
         actions={
-          <>
-            <HelpButton topic="dashboard" />
-            <Link
-              to="/critical-actions"
-              className="text-xs font-medium px-3 py-1.5 rounded-md bg-primary text-primary-foreground hover:bg-primary/90"
-            >
-              View {totalActions} critical actions
-            </Link>
-          </>
+          <Link
+            to="/critical-actions"
+            className="text-xs font-medium px-3 py-1.5 rounded-md bg-primary text-primary-foreground hover:bg-primary/90"
+          >
+            View {totalActions} critical actions
+          </Link>
         }
       />
       <div className="p-6 space-y-6">
