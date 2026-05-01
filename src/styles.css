@@ -128,3 +128,24 @@
     font-feature-settings: "cv11", "ss01";
   }
 }
+
+/* ===== Print styles ===== */
+@media print {
+  @page { size: A4; margin: 14mm; }
+  html, body { background: #fff !important; color: #000 !important; }
+  /* Hide app chrome */
+  aside, nav, [data-print-hide], .print\:hidden { display: none !important; }
+  /* Let content take full width */
+  main { display: block !important; }
+  /* Tables: avoid breaking rows across pages */
+  table { page-break-inside: auto; border-collapse: collapse; width: 100%; }
+  tr { page-break-inside: avoid; page-break-after: auto; }
+  thead { display: table-header-group; }
+  /* Strip dark backgrounds for ink-friendly print */
+  * { box-shadow: none !important; text-shadow: none !important; }
+  .bg-card, .bg-background, .bg-muted, .bg-accent {
+    background-color: #fff !important;
+    color: #000 !important;
+  }
+  a { color: #000 !important; text-decoration: none !important; }
+}
