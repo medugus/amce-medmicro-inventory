@@ -2,6 +2,7 @@ import { Header } from "@/components/layout/Header";
 import { AMCE_SECTIONS } from "@/data/amceSections";
 import { AMCE_USERS } from "@/data/amceUsers";
 import { StatusBadge } from "@/components/common/StatusBadge";
+import { useMaintWindowDays, setMaintWindowDays } from "@/lib/settings";
 
 export function SettingsPage() {
   return (
