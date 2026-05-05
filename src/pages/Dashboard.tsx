@@ -152,7 +152,7 @@ export function DashboardPage() {
                 sectionLow > 0 ? "Raise reorder for low-stock items" :
                 sectionPendingAcc > 0 ? "Complete acceptance testing" :
                 open > 0 ? "Follow up open supply records" :
-                "No action required";
+                "Bench head: review and clear any outstanding matters";
 
               return (
                 <div key={s.id} className="bg-card border border-border rounded-md p-3 hover:shadow-md transition-shadow">
