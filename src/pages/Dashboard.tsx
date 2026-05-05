@@ -1,4 +1,4 @@
-import { AMCE_EQUIPMENT, AMCE_DURABLES } from "@/data/amceAssets";
+// Equipment and durables now read from live Dexie hooks below
 import { AMCE_FORECASTS, AMCE_PURCHASE_REQUESTS } from "@/data/amceForecasts";
 import { DashboardCard } from "@/components/dashboard/DashboardCard";
 import { Header } from "@/components/layout/Header";
@@ -35,6 +35,8 @@ import {
   useSupplyStatus,
   useAcceptanceTests,
   useStockMovements,
+  useEquipment,
+  useDurables,
 } from "@/lib/useLiveData";
 
 export function DashboardPage() {
@@ -43,7 +45,8 @@ export function DashboardPage() {
   const items = useInventory();
   const tests = useAcceptanceTests();
   const movements = useStockMovements();
-  const equipment = AMCE_EQUIPMENT;
+  const equipment = useEquipment();
+  const durables = useDurables();
 
   const partial = supplies.filter((s) => s.supplyStatus === "Partially supplied").length;
   const pendingProcurement = supplies.filter((s) => s.supplyStatus === "Pending procurement").length;
