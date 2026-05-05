@@ -14,9 +14,11 @@ import { Route as SupplyStatusRouteImport } from './routes/supply-status'
 import { Route as StockMovementsRouteImport } from './routes/stock-movements'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as SectionForecastingRouteImport } from './routes/section-forecasting'
+import { Route as ScanRouteImport } from './routes/scan'
 import { Route as ReportsRouteImport } from './routes/reports'
 import { Route as ReadinessAuditRouteImport } from './routes/readiness-audit'
 import { Route as QuarantinedStockRouteImport } from './routes/quarantined-stock'
+import { Route as QrLabelsRouteImport } from './routes/qr-labels'
 import { Route as PurchaseRequestsRouteImport } from './routes/purchase-requests'
 import { Route as ProcurementFollowupRouteImport } from './routes/procurement-followup'
 import { Route as MaintenanceCalibrationRouteImport } from './routes/maintenance-calibration'
@@ -32,6 +34,7 @@ import { Route as BatchRegisterRouteImport } from './routes/batch-register'
 import { Route as AuditTrailRouteImport } from './routes/audit-trail'
 import { Route as AcceptanceTestingRouteImport } from './routes/acceptance-testing'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as RTypeIdRouteImport } from './routes/r.$type.$id'
 
 const TrainingRoute = TrainingRouteImport.update({
   id: '/training',
@@ -58,6 +61,11 @@ const SectionForecastingRoute = SectionForecastingRouteImport.update({
   path: '/section-forecasting',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ScanRoute = ScanRouteImport.update({
+  id: '/scan',
+  path: '/scan',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ReportsRoute = ReportsRouteImport.update({
   id: '/reports',
   path: '/reports',
@@ -71,6 +79,11 @@ const ReadinessAuditRoute = ReadinessAuditRouteImport.update({
 const QuarantinedStockRoute = QuarantinedStockRouteImport.update({
   id: '/quarantined-stock',
   path: '/quarantined-stock',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const QrLabelsRoute = QrLabelsRouteImport.update({
+  id: '/qr-labels',
+  path: '/qr-labels',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PurchaseRequestsRoute = PurchaseRequestsRouteImport.update({
@@ -148,6 +161,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RTypeIdRoute = RTypeIdRouteImport.update({
+  id: '/r/$type/$id',
+  path: '/r/$type/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -165,14 +183,17 @@ export interface FileRoutesByFullPath {
   '/maintenance-calibration': typeof MaintenanceCalibrationRoute
   '/procurement-followup': typeof ProcurementFollowupRoute
   '/purchase-requests': typeof PurchaseRequestsRoute
+  '/qr-labels': typeof QrLabelsRoute
   '/quarantined-stock': typeof QuarantinedStockRoute
   '/readiness-audit': typeof ReadinessAuditRoute
   '/reports': typeof ReportsRoute
+  '/scan': typeof ScanRoute
   '/section-forecasting': typeof SectionForecastingRoute
   '/settings': typeof SettingsRoute
   '/stock-movements': typeof StockMovementsRoute
   '/supply-status': typeof SupplyStatusRoute
   '/training': typeof TrainingRoute
+  '/r/$type/$id': typeof RTypeIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -190,14 +211,17 @@ export interface FileRoutesByTo {
   '/maintenance-calibration': typeof MaintenanceCalibrationRoute
   '/procurement-followup': typeof ProcurementFollowupRoute
   '/purchase-requests': typeof PurchaseRequestsRoute
+  '/qr-labels': typeof QrLabelsRoute
   '/quarantined-stock': typeof QuarantinedStockRoute
   '/readiness-audit': typeof ReadinessAuditRoute
   '/reports': typeof ReportsRoute
+  '/scan': typeof ScanRoute
   '/section-forecasting': typeof SectionForecastingRoute
   '/settings': typeof SettingsRoute
   '/stock-movements': typeof StockMovementsRoute
   '/supply-status': typeof SupplyStatusRoute
   '/training': typeof TrainingRoute
+  '/r/$type/$id': typeof RTypeIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -216,14 +240,17 @@ export interface FileRoutesById {
   '/maintenance-calibration': typeof MaintenanceCalibrationRoute
   '/procurement-followup': typeof ProcurementFollowupRoute
   '/purchase-requests': typeof PurchaseRequestsRoute
+  '/qr-labels': typeof QrLabelsRoute
   '/quarantined-stock': typeof QuarantinedStockRoute
   '/readiness-audit': typeof ReadinessAuditRoute
   '/reports': typeof ReportsRoute
+  '/scan': typeof ScanRoute
   '/section-forecasting': typeof SectionForecastingRoute
   '/settings': typeof SettingsRoute
   '/stock-movements': typeof StockMovementsRoute
   '/supply-status': typeof SupplyStatusRoute
   '/training': typeof TrainingRoute
+  '/r/$type/$id': typeof RTypeIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -243,14 +270,17 @@ export interface FileRouteTypes {
     | '/maintenance-calibration'
     | '/procurement-followup'
     | '/purchase-requests'
+    | '/qr-labels'
     | '/quarantined-stock'
     | '/readiness-audit'
     | '/reports'
+    | '/scan'
     | '/section-forecasting'
     | '/settings'
     | '/stock-movements'
     | '/supply-status'
     | '/training'
+    | '/r/$type/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -268,14 +298,17 @@ export interface FileRouteTypes {
     | '/maintenance-calibration'
     | '/procurement-followup'
     | '/purchase-requests'
+    | '/qr-labels'
     | '/quarantined-stock'
     | '/readiness-audit'
     | '/reports'
+    | '/scan'
     | '/section-forecasting'
     | '/settings'
     | '/stock-movements'
     | '/supply-status'
     | '/training'
+    | '/r/$type/$id'
   id:
     | '__root__'
     | '/'
@@ -293,14 +326,17 @@ export interface FileRouteTypes {
     | '/maintenance-calibration'
     | '/procurement-followup'
     | '/purchase-requests'
+    | '/qr-labels'
     | '/quarantined-stock'
     | '/readiness-audit'
     | '/reports'
+    | '/scan'
     | '/section-forecasting'
     | '/settings'
     | '/stock-movements'
     | '/supply-status'
     | '/training'
+    | '/r/$type/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -319,14 +355,17 @@ export interface RootRouteChildren {
   MaintenanceCalibrationRoute: typeof MaintenanceCalibrationRoute
   ProcurementFollowupRoute: typeof ProcurementFollowupRoute
   PurchaseRequestsRoute: typeof PurchaseRequestsRoute
+  QrLabelsRoute: typeof QrLabelsRoute
   QuarantinedStockRoute: typeof QuarantinedStockRoute
   ReadinessAuditRoute: typeof ReadinessAuditRoute
   ReportsRoute: typeof ReportsRoute
+  ScanRoute: typeof ScanRoute
   SectionForecastingRoute: typeof SectionForecastingRoute
   SettingsRoute: typeof SettingsRoute
   StockMovementsRoute: typeof StockMovementsRoute
   SupplyStatusRoute: typeof SupplyStatusRoute
   TrainingRoute: typeof TrainingRoute
+  RTypeIdRoute: typeof RTypeIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -366,6 +405,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SectionForecastingRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/scan': {
+      id: '/scan'
+      path: '/scan'
+      fullPath: '/scan'
+      preLoaderRoute: typeof ScanRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/reports': {
       id: '/reports'
       path: '/reports'
@@ -385,6 +431,13 @@ declare module '@tanstack/react-router' {
       path: '/quarantined-stock'
       fullPath: '/quarantined-stock'
       preLoaderRoute: typeof QuarantinedStockRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/qr-labels': {
+      id: '/qr-labels'
+      path: '/qr-labels'
+      fullPath: '/qr-labels'
+      preLoaderRoute: typeof QrLabelsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/purchase-requests': {
@@ -492,6 +545,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/r/$type/$id': {
+      id: '/r/$type/$id'
+      path: '/r/$type/$id'
+      fullPath: '/r/$type/$id'
+      preLoaderRoute: typeof RTypeIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -511,24 +571,18 @@ const rootRouteChildren: RootRouteChildren = {
   MaintenanceCalibrationRoute: MaintenanceCalibrationRoute,
   ProcurementFollowupRoute: ProcurementFollowupRoute,
   PurchaseRequestsRoute: PurchaseRequestsRoute,
+  QrLabelsRoute: QrLabelsRoute,
   QuarantinedStockRoute: QuarantinedStockRoute,
   ReadinessAuditRoute: ReadinessAuditRoute,
   ReportsRoute: ReportsRoute,
+  ScanRoute: ScanRoute,
   SectionForecastingRoute: SectionForecastingRoute,
   SettingsRoute: SettingsRoute,
   StockMovementsRoute: StockMovementsRoute,
   SupplyStatusRoute: SupplyStatusRoute,
   TrainingRoute: TrainingRoute,
+  RTypeIdRoute: RTypeIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}

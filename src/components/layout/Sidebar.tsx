@@ -26,12 +26,16 @@ import {
   BookOpen,
   Menu,
   X,
+  ScanLine,
+  QrCode,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const NAV: { to: string; label: string; group: string; icon: React.ComponentType<{ className?: string }> }[] = [
   { to: "/", label: "Dashboard", group: "AMCE Microbiology", icon: LayoutDashboard },
   { to: "/critical-actions", label: "Critical Actions", group: "AMCE Microbiology", icon: AlertTriangle },
+  { to: "/scan", label: "Scan QR / Barcode", group: "AMCE Microbiology", icon: ScanLine },
+  { to: "/qr-labels", label: "QR Labels (Print)", group: "AMCE Microbiology", icon: QrCode },
 
   { to: "/supply-status", label: "Supply Status", group: "Supply and Procurement", icon: PackageSearch },
   { to: "/purchase-requests", label: "Purchase Requests", group: "Supply and Procurement", icon: ShoppingCart },
