@@ -126,7 +126,7 @@ export function DashboardPage() {
             <DashboardCard label="Purchase requests" value={AMCE_PURCHASE_REQUESTS.length} to="/purchase-requests" />
             <DashboardCard label="Section forecasts" value={AMCE_FORECASTS.length} to="/section-forecasting" />
             <DashboardCard label="Equipment assets" value={equipment.length} hint={equipment.length === 0 ? "Pending import" : undefined} to="/equipment-register" />
-            <DashboardCard label="Durable assets" value={AMCE_DURABLES.length} hint={AMCE_DURABLES.length === 0 ? "Pending import" : undefined} to="/durables-register" />
+            <DashboardCard label="Durable assets" value={durables.length} hint={durables.length === 0 ? "Pending import" : undefined} to="/durables-register" />
             <DashboardCard label="Expiring within 30 days" value={expBuckets["30"] ?? 0} tone="warning" to="/expiry-fefo" />
           </div>
         </section>
