@@ -95,18 +95,19 @@ export function DashboardPage() {
         <section>
           <h2 className="text-sm font-semibold text-foreground mb-2">Critical actions</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-            <DashboardCard label="Critical stock risks" value={criticalRisks} tone="destructive" />
-            <DashboardCard label="Pending procurement" value={pendingProcurement} tone="warning" />
-            <DashboardCard label="Partially supplied" value={partial} tone="warning" />
-            <DashboardCard label="Expired batches" value={expBuckets.expired ?? 0} tone="destructive" />
-            <DashboardCard label="Pending acceptance" value={pendingAcceptance} tone="info" />
-            <DashboardCard label="Quarantined / rejected" value={quarantinedRejected} tone="destructive" />
-            <DashboardCard label="Records with missing docs" value={missingDocs} tone="warning" />
+            <DashboardCard label="Critical stock risks" value={criticalRisks} tone="destructive" to="/critical-actions" />
+            <DashboardCard label="Pending procurement" value={pendingProcurement} tone="warning" to="/procurement-followup" />
+            <DashboardCard label="Partially supplied" value={partial} tone="warning" to="/supply-status" />
+            <DashboardCard label="Expired batches" value={expBuckets.expired ?? 0} tone="destructive" to="/expired-wasted-stock" />
+            <DashboardCard label="Pending acceptance" value={pendingAcceptance} tone="info" to="/acceptance-testing" />
+            <DashboardCard label="Quarantined / rejected" value={quarantinedRejected} tone="destructive" to="/quarantined-stock" />
+            <DashboardCard label="Records with missing docs" value={missingDocs} tone="warning" to="/data-quality-review" />
             <DashboardCard
               label="Equipment maintenance / calibration"
               value={maintDue + calDue}
               hint={equipment.length === 0 ? "Equipment register empty" : `${maintDue} maintenance, ${calDue} calibration`}
               tone={maintDue + calDue > 0 ? "warning" : "default"}
+              to="/maintenance-calibration"
             />
           </div>
         </section>
@@ -114,16 +115,16 @@ export function DashboardPage() {
         <section>
           <h2 className="text-sm font-semibold text-foreground mb-2">Operational summaries</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
-            <DashboardCard label="Supply requests" value={supplies.length} />
-            <DashboardCard label="Inventory items" value={items.length} />
-            <DashboardCard label="Low-stock items" value={lowStock} tone={lowStock ? "warning" : "default"} />
-            <DashboardCard label="Batch / lot records" value={batches.length} />
-            <DashboardCard label="Stock movements" value={movements.length} />
-            <DashboardCard label="Purchase requests" value={AMCE_PURCHASE_REQUESTS.length} />
-            <DashboardCard label="Section forecasts" value={AMCE_FORECASTS.length} />
-            <DashboardCard label="Equipment assets" value={equipment.length} hint={equipment.length === 0 ? "Pending import" : undefined} />
-            <DashboardCard label="Durable assets" value={AMCE_DURABLES.length} hint={AMCE_DURABLES.length === 0 ? "Pending import" : undefined} />
-            <DashboardCard label="Expiring within 30 days" value={expBuckets["30"] ?? 0} tone="warning" />
+            <DashboardCard label="Supply requests" value={supplies.length} to="/supply-status" />
+            <DashboardCard label="Inventory items" value={items.length} to="/inventory-master" />
+            <DashboardCard label="Low-stock items" value={lowStock} tone={lowStock ? "warning" : "default"} to="/low-stock-reorder" />
+            <DashboardCard label="Batch / lot records" value={batches.length} to="/batch-register" />
+            <DashboardCard label="Stock movements" value={movements.length} to="/stock-movements" />
+            <DashboardCard label="Purchase requests" value={AMCE_PURCHASE_REQUESTS.length} to="/purchase-requests" />
+            <DashboardCard label="Section forecasts" value={AMCE_FORECASTS.length} to="/section-forecasting" />
+            <DashboardCard label="Equipment assets" value={equipment.length} hint={equipment.length === 0 ? "Pending import" : undefined} to="/equipment-register" />
+            <DashboardCard label="Durable assets" value={AMCE_DURABLES.length} hint={AMCE_DURABLES.length === 0 ? "Pending import" : undefined} to="/durables-register" />
+            <DashboardCard label="Expiring within 30 days" value={expBuckets["30"] ?? 0} tone="warning" to="/expiry-fefo" />
           </div>
         </section>
 
