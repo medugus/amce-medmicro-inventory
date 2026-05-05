@@ -5,10 +5,27 @@ import { StatusBadge } from "@/components/common/StatusBadge";
 import { useMaintWindowDays, setMaintWindowDays } from "@/lib/settings";
 
 export function SettingsPage() {
+  const maintDays = useMaintWindowDays();
   return (
     <div>
       <Header helpTopic="settings" title="Settings" description="Sections, leads and user roles for AMCE Microbiology." />
       <div className="p-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <section className="lg:col-span-2">
+          <h2 className="text-sm font-semibold mb-2">Thresholds</h2>
+          <div className="border border-border rounded-md bg-card px-3 py-3 flex flex-wrap items-center gap-3">
+            <label htmlFor="maint-window" className="text-sm font-medium">Maintenance / calibration warning window</label>
+            <input
+              id="maint-window"
+              type="number"
+              min={1}
+              max={365}
+              value={maintDays}
+              onChange={(e) => setMaintWindowDays(Math.max(1, Number(e.target.value) || 1))}
+              className="w-24 rounded-md border border-input bg-background px-2 py-1 text-sm"
+            />
+            <span className="text-xs text-muted-foreground">days before due date — equipment is flagged on the dashboard within this window.</span>
+          </div>
+        </section>
         <section>
           <h2 className="text-sm font-semibold mb-2">Laboratory sections</h2>
           <div className="border border-border rounded-md bg-card divide-y divide-border">
