@@ -95,18 +95,19 @@ export function DashboardPage() {
         <section>
           <h2 className="text-sm font-semibold text-foreground mb-2">Critical actions</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-            <DashboardCard label="Critical stock risks" value={criticalRisks} tone="destructive" />
-            <DashboardCard label="Pending procurement" value={pendingProcurement} tone="warning" />
-            <DashboardCard label="Partially supplied" value={partial} tone="warning" />
-            <DashboardCard label="Expired batches" value={expBuckets.expired ?? 0} tone="destructive" />
-            <DashboardCard label="Pending acceptance" value={pendingAcceptance} tone="info" />
-            <DashboardCard label="Quarantined / rejected" value={quarantinedRejected} tone="destructive" />
-            <DashboardCard label="Records with missing docs" value={missingDocs} tone="warning" />
+            <DashboardCard label="Critical stock risks" value={criticalRisks} tone="destructive" to="/critical-actions" />
+            <DashboardCard label="Pending procurement" value={pendingProcurement} tone="warning" to="/procurement-followup" />
+            <DashboardCard label="Partially supplied" value={partial} tone="warning" to="/supply-status" />
+            <DashboardCard label="Expired batches" value={expBuckets.expired ?? 0} tone="destructive" to="/expired-wasted-stock" />
+            <DashboardCard label="Pending acceptance" value={pendingAcceptance} tone="info" to="/acceptance-testing" />
+            <DashboardCard label="Quarantined / rejected" value={quarantinedRejected} tone="destructive" to="/quarantined-stock" />
+            <DashboardCard label="Records with missing docs" value={missingDocs} tone="warning" to="/data-quality-review" />
             <DashboardCard
               label="Equipment maintenance / calibration"
               value={maintDue + calDue}
               hint={equipment.length === 0 ? "Equipment register empty" : `${maintDue} maintenance, ${calDue} calibration`}
               tone={maintDue + calDue > 0 ? "warning" : "default"}
+              to="/maintenance-calibration"
             />
           </div>
         </section>
