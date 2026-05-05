@@ -16,6 +16,8 @@ import {
   ScrollText,
   AlertTriangle,
   Lightbulb,
+  QrCode,
+  Camera,
 } from "lucide-react";
 
 function Section({
@@ -329,6 +331,37 @@ export function TrainingPage() {
             />
             <Section
               num={13}
+              icon={QrCode}
+              title="QR Labels (Print)"
+              what="A printable sheet of QR code stickers — one per batch, equipment asset, durable, or inventory item. Each sticker carries a link that opens that exact record when scanned."
+              when="As soon as a new batch is received and accepted, when a new equipment asset is registered, or any time a label is damaged or missing."
+              how={[
+                "Open QR Labels (Print) from the sidebar.",
+                "Filter by type (Batch / Equipment / Durable / Item) and pick what you need labels for.",
+                "Click Print and use sticker sheets — peel and place on the bottle, box, or instrument.",
+                "Always include the lot number and expiry on the label as a backup if the QR is ever unreadable.",
+              ]}
+              link="/qr-labels"
+              linkLabel="QR Labels"
+            />
+            <Section
+              num={14}
+              icon={Camera}
+              title="Scan QR / Barcode"
+              what="Uses your phone or tablet camera to read the QR sticker and jump straight to that batch, equipment, durable or item record — no typing, no searching."
+              when="Anytime you have a physical item in hand: receiving, issuing, doing acceptance testing, logging maintenance, or just checking expiry."
+              how={[
+                "Tap Scan QR / Barcode in the sidebar (works best on a phone — install the app to your home screen first).",
+                "Allow camera access the first time. Camera scanning needs HTTPS, so use the published link, not localhost.",
+                "Point the back camera at the QR sticker — the record opens automatically.",
+                "If the sticker is damaged, type the ID into the manual fallback box on the same page.",
+                "From the opened record you can issue stock, log maintenance, or mark acceptance straight away.",
+              ]}
+              link="/scan"
+              linkLabel="Scan QR / Barcode"
+            />
+            <Section
+              num={15}
               icon={ScrollText}
               title="Audit Trail"
               what="A read-only log of who did what, when, on every batch and movement."
