@@ -17,6 +17,8 @@ import type {
   AuditTrailEntry,
   EquipmentAsset,
   DurableAsset,
+  SectionForecast,
+  PurchaseRequest,
 } from "@/types";
 
 import { AMCE_INVENTORY_MASTER } from "@/data/amceInventoryMaster";
@@ -26,6 +28,7 @@ import { AMCE_ACCEPTANCE_TESTS } from "@/data/amceAcceptanceTesting";
 import { AMCE_SUPPLY_STATUS } from "@/data/amceSupplyStatus";
 import { AMCE_AUDIT_TRAIL } from "@/data/amceAuditTrail";
 import { AMCE_EQUIPMENT, AMCE_DURABLES } from "@/data/amceAssets";
+import { AMCE_FORECASTS, AMCE_PURCHASE_REQUESTS } from "@/data/amceForecasts";
 
 class AMCEDatabase extends Dexie {
   inventory!: Table<InventoryItem, string>;
@@ -36,6 +39,8 @@ class AMCEDatabase extends Dexie {
   audit!: Table<AuditTrailEntry, string>;
   equipment!: Table<EquipmentAsset, string>;
   durables!: Table<DurableAsset, string>;
+  forecasts!: Table<SectionForecast, string>;
+  purchaseRequests!: Table<PurchaseRequest, string>;
   meta!: Table<{ key: string; value: string }, string>;
 
   constructor() {
@@ -60,6 +65,19 @@ class AMCEDatabase extends Dexie {
       durables: "id, assetName, laboratorySection, assetCategory, condition",
       meta: "key",
     });
+    this.version(3).stores({
+      inventory: "id, itemName, laboratorySection, category, criticality",
+      batches: "id, inventoryItemId, batchNumber, expiryDate, batchStatus, acceptanceStatus",
+      movements: "id, inventoryItemId, batchId, dateTime, movementType, performedBy",
+      acceptance: "id, batchId, dateAccepted, acceptedOrRejected",
+      supply: "id, itemName, laboratorySection, supplyStatus, criticality",
+      audit: "id, dateTime, user, module, entityId",
+      equipment: "id, equipmentName, laboratorySection, equipmentCategory, operationalStatus",
+      durables: "id, assetName, laboratorySection, assetCategory, condition",
+      forecasts: "id, laboratorySection, priority, forecastDate",
+      purchaseRequests: "id, requestingSection, approvalStatus, procurementStatus, requestDate",
+      meta: "key",
+    });
   }
 }
 
@@ -69,7 +87,7 @@ export const db = new AMCEDatabase();
 // you want each lab PC to re-seed missing rows from the new baseline. Seeded
 // durables are refreshed by stable ID; user-added rows use different IDs and
 // are never overwritten.
-const SEED_VERSION = "2026-05-01.8-dummy-asset-fields";
+const SEED_VERSION = "2026-05-06.9-forecasts-prs";
 
 let seedPromise: Promise<void> | null = null;
 
@@ -90,7 +108,7 @@ export function ensureSeeded(): Promise<void> {
     // table is empty so we never overwrite work the lab has done.
     await db.transaction(
       "rw",
-      [db.inventory, db.batches, db.supply, db.movements, db.acceptance, db.audit, db.equipment, db.durables, db.meta],
+      [db.inventory, db.batches, db.supply, db.movements, db.acceptance, db.audit, db.equipment, db.durables, db.forecasts, db.purchaseRequests, db.meta],
       async () => {
         // Catalogue + supply backlog: keep current entries, fill in any missing.
         const existingInv = new Set((await db.inventory.toCollection().primaryKeys()) as string[]);
@@ -115,14 +133,18 @@ export function ensureSeeded(): Promise<void> {
         if ((await db.audit.count()) === 0 && AMCE_AUDIT_TRAIL.length) {
           await db.audit.bulkAdd(AMCE_AUDIT_TRAIL);
         }
-        // Equipment: bulkPut refreshes seed rows (id prefix `eq-seed-`) from the
-        // current equipment list. User-added rows use a different id prefix and
-        // are never touched.
         if (AMCE_EQUIPMENT.length) await db.equipment.bulkPut(AMCE_EQUIPMENT);
-        // Durables: bulkPut refreshes seed rows (id prefix `dur-seed-`) from the
-        // current spreadsheet baseline. User-added rows use a different id prefix
-        // and are never touched.
         if (AMCE_DURABLES.length) await db.durables.bulkPut(AMCE_DURABLES);
+
+        // Forecasts: fill in missing seed rows by stable ID; never overwrite edits.
+        const existingFc = new Set((await db.forecasts.toCollection().primaryKeys()) as string[]);
+        const newFc = AMCE_FORECASTS.filter((f) => !existingFc.has(f.id));
+        if (newFc.length) await db.forecasts.bulkAdd(newFc);
+
+        // Purchase requests: seed only if empty (currently no baseline rows).
+        if ((await db.purchaseRequests.count()) === 0 && AMCE_PURCHASE_REQUESTS.length) {
+          await db.purchaseRequests.bulkAdd(AMCE_PURCHASE_REQUESTS);
+        }
 
         await db.meta.put({ key: "seedVersion", value: SEED_VERSION });
       }

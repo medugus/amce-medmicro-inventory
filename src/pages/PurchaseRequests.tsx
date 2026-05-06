@@ -1,4 +1,4 @@
-import { AMCE_PURCHASE_REQUESTS } from "@/data/amceForecasts";
+import { usePurchaseRequests } from "@/lib/useLiveData";
 import { Header } from "@/components/layout/Header";
 import { ExportButton } from "@/components/common/ExportButton";
 import { EmptyState } from "@/components/common/EmptyState";
@@ -7,7 +7,7 @@ import { SECTION_NAME } from "@/data/amceSections";
 import { NOT_DOCUMENTED } from "@/data/categories";
 
 export function PurchaseRequestsPage() {
-  const rows = AMCE_PURCHASE_REQUESTS;
+  const rows = usePurchaseRequests();
   return (
     <div>
       <Header

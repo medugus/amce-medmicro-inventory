@@ -7,6 +7,21 @@ import { SECTION_NAME, AMCE_SECTIONS } from "@/data/amceSections";
 import { expiryBucket, isLowStock, totalAvailableForItem } from "./inventory";
 import { actionRequired, isCriticalRisk, supplyStatusFlags } from "./supplyStatus";
 import { isCalibrationDue, isMaintenanceDue } from "./equipment";
+import type {
+  InventoryItem,
+  InventoryBatch,
+  SupplyStatusRecord,
+  EquipmentAsset,
+  SectionForecast,
+} from "@/types";
+
+export interface CriticalActionsData {
+  inventory?: InventoryItem[];
+  batches?: InventoryBatch[];
+  supply?: SupplyStatusRecord[];
+  equipment?: EquipmentAsset[];
+  forecasts?: SectionForecast[];
+}
 
 export type ActionPriority = "Critical" | "High" | "Medium" | "Low";
 export type ActionGroup =
@@ -37,13 +52,18 @@ const sectionLead = (id: string): string => {
   return s ? s.leads.join(", ") : "Pending assignment";
 };
 
-export function buildCriticalActions(): CriticalAction[] {
+export function buildCriticalActions(data: CriticalActionsData = {}): CriticalAction[] {
+  const inventory = data.inventory ?? AMCE_INVENTORY_MASTER;
+  const batches = data.batches ?? AMCE_BATCHES;
+  const supply = data.supply ?? AMCE_SUPPLY_STATUS;
+  const equipment = data.equipment ?? AMCE_EQUIPMENT;
+  const forecasts = data.forecasts ?? AMCE_FORECASTS;
   const actions: CriticalAction[] = [];
 
   // 1. Critical stock-out or low stock
-  for (const item of AMCE_INVENTORY_MASTER) {
-    if (!isLowStock(item, AMCE_BATCHES)) continue;
-    const avail = totalAvailableForItem(AMCE_BATCHES, item.id);
+  for (const item of inventory) {
+    if (!isLowStock(item, batches)) continue;
+    const avail = totalAvailableForItem(batches, item.id);
     actions.push({
       id: `low-${item.id}`,
       group: "Critical stock-out or low stock",
@@ -58,7 +78,7 @@ export function buildCriticalActions(): CriticalAction[] {
   }
 
   // 2. Pending procurement
-  for (const r of AMCE_SUPPLY_STATUS) {
+  for (const r of supply) {
     if (r.supplyStatus !== "Pending procurement") continue;
     actions.push({
       id: `pp-${r.id}`,
@@ -74,7 +94,7 @@ export function buildCriticalActions(): CriticalAction[] {
   }
 
   // 3. Partially supplied
-  for (const r of AMCE_SUPPLY_STATUS) {
+  for (const r of supply) {
     if (r.supplyStatus !== "Partially supplied") continue;
     actions.push({
       id: `ps-${r.id}`,
@@ -90,9 +110,9 @@ export function buildCriticalActions(): CriticalAction[] {
   }
 
   // 4. Expired stock
-  for (const b of AMCE_BATCHES) {
+  for (const b of batches) {
     if (expiryBucket(b.expiryDate) !== "expired" && b.batchStatus !== "Expired") continue;
-    const item = AMCE_INVENTORY_MASTER.find((i) => i.id === b.inventoryItemId);
+    const item = inventory.find((i) => i.id === b.inventoryItemId);
     if (!item) continue;
     actions.push({
       id: `exp-${b.id}`,
@@ -108,9 +128,9 @@ export function buildCriticalActions(): CriticalAction[] {
   }
 
   // 5. Batches pending acceptance
-  for (const b of AMCE_BATCHES) {
+  for (const b of batches) {
     if (b.batchStatus !== "Pending acceptance") continue;
-    const item = AMCE_INVENTORY_MASTER.find((i) => i.id === b.inventoryItemId);
+    const item = inventory.find((i) => i.id === b.inventoryItemId);
     if (!item) continue;
     actions.push({
       id: `pa-${b.id}`,
@@ -126,9 +146,9 @@ export function buildCriticalActions(): CriticalAction[] {
   }
 
   // 6. Quarantined or rejected
-  for (const b of AMCE_BATCHES) {
+  for (const b of batches) {
     if (b.batchStatus !== "Quarantined" && b.batchStatus !== "Rejected") continue;
-    const item = AMCE_INVENTORY_MASTER.find((i) => i.id === b.inventoryItemId);
+    const item = inventory.find((i) => i.id === b.inventoryItemId);
     if (!item) continue;
     actions.push({
       id: `q-${b.id}`,
@@ -144,7 +164,7 @@ export function buildCriticalActions(): CriticalAction[] {
   }
 
   // 7. Missing documentation
-  for (const r of AMCE_SUPPLY_STATUS) {
+  for (const r of supply) {
     const flags = supplyStatusFlags(r);
     if (flags.length === 0) continue;
     actions.push({
@@ -161,7 +181,7 @@ export function buildCriticalActions(): CriticalAction[] {
   }
 
   // 8. Equipment maintenance or calibration due
-  for (const eq of AMCE_EQUIPMENT) {
+  for (const eq of equipment) {
     const m = isMaintenanceDue(eq);
     const c = isCalibrationDue(eq);
     if (!m && !c) continue;
@@ -179,7 +199,7 @@ export function buildCriticalActions(): CriticalAction[] {
   }
 
   // 9. Forecasts requiring review (Critical priority)
-  for (const f of AMCE_FORECASTS) {
+  for (const f of forecasts) {
     if (f.priority !== "Critical") continue;
     actions.push({
       id: `fc-${f.id}`,

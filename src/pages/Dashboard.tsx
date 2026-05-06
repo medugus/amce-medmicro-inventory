@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { AMCE_FORECASTS, AMCE_PURCHASE_REQUESTS } from "@/data/amceForecasts";
+
 import { AMCE_SECTIONS } from "@/data/amceSections";
 import { DashboardCard } from "@/components/dashboard/DashboardCard";
 import { Header } from "@/components/layout/Header";
@@ -16,6 +16,8 @@ import {
   useStockMovements,
   useEquipment,
   useDurables,
+  useForecasts,
+  usePurchaseRequests,
 } from "@/lib/useLiveData";
 
 const SECTION_EMOJI: Record<string, string> = {
@@ -45,6 +47,8 @@ export function DashboardPage() {
   const movements = useStockMovements();
   const equipment = useEquipment();
   const durables = useDurables();
+  const forecasts = useForecasts();
+  const purchaseRequests = usePurchaseRequests();
 
   const partial = supplies.filter((s) => s.supplyStatus === "Partially supplied").length;
   const pendingProcurement = supplies.filter((s) => s.supplyStatus === "Pending procurement").length;
@@ -68,7 +72,7 @@ export function DashboardPage() {
   const maintDue = equipment.filter(isMaintenanceDue).length;
   const calDue = equipment.filter(isCalibrationDue).length;
 
-  const totalActions = buildCriticalActions().length;
+  const totalActions = buildCriticalActions({ inventory: items, batches, supply: supplies, equipment, forecasts }).length;
 
   return (
     <div>
@@ -121,8 +125,8 @@ export function DashboardPage() {
             <DashboardCard label="Low-stock items" value={lowStock} tone={lowStock ? "warning" : "default"} to="/low-stock-reorder" />
             <DashboardCard label="Batch / lot records" value={batches.length} to="/batch-register" />
             <DashboardCard label="Stock movements" value={movements.length} to="/stock-movements" />
-            <DashboardCard label="Purchase requests" value={AMCE_PURCHASE_REQUESTS.length} to="/purchase-requests" />
-            <DashboardCard label="Section forecasts" value={AMCE_FORECASTS.length} to="/section-forecasting" />
+            <DashboardCard label="Purchase requests" value={purchaseRequests.length} to="/purchase-requests" />
+            <DashboardCard label="Section forecasts" value={forecasts.length} to="/section-forecasting" />
             <DashboardCard label="Equipment assets" value={equipment.length} hint={equipment.length === 0 ? "Pending import" : undefined} to="/equipment-register" />
             <DashboardCard label="Durable assets" value={durables.length} hint={durables.length === 0 ? "Pending import" : undefined} to="/durables-register" />
             <DashboardCard label="Expiring within 30 days" value={expBuckets["30"] ?? 0} tone="warning" to="/expiry-fefo" />

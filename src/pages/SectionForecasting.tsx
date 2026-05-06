@@ -1,4 +1,4 @@
-import { AMCE_FORECASTS } from "@/data/amceForecasts";
+import { useForecasts } from "@/lib/useLiveData";
 import { Header } from "@/components/layout/Header";
 import { ExportButton } from "@/components/common/ExportButton";
 import { EmptyState } from "@/components/common/EmptyState";
@@ -6,7 +6,7 @@ import { StatusBadge, toneForCriticality } from "@/components/common/StatusBadge
 import { SECTION_NAME } from "@/data/amceSections";
 
 export function SectionForecastingPage() {
-  const rows = AMCE_FORECASTS;
+  const rows = useForecasts();
   return (
     <div>
       <Header

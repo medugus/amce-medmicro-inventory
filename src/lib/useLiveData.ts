@@ -13,6 +13,8 @@ import type {
   AuditTrailEntry,
   EquipmentAsset,
   DurableAsset,
+  SectionForecast,
+  PurchaseRequest,
 } from "@/types";
 
 let ready = false;
@@ -114,6 +116,18 @@ export function useDurables(): DurableAsset[] {
     const rows = await db.durables.toArray();
     return rows.length ? rows : AMCE_DURABLES;
   }, [], AMCE_DURABLES);
+}
+
+export function useForecasts(): SectionForecast[] {
+  return useTable(() => db.forecasts.toArray());
+}
+
+export function usePurchaseRequests(): PurchaseRequest[] {
+  return useTable(() =>
+    db.purchaseRequests.toArray().then((rows) =>
+      rows.sort((a, b) => (b.requestDate ?? "").localeCompare(a.requestDate ?? ""))
+    )
+  );
 }
 
 export function useDataReady(): boolean {
