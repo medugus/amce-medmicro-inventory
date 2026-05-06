@@ -19,6 +19,8 @@ import { db, newId, appendAudit } from "@/lib/db";
 import { notifyDbChanged } from "@/lib/useLiveData";
 import { isBatchIssuable, validateMovement } from "@/logic/inventory";
 import { getCurrentUser } from "@/lib/currentUser";
+import { recordMovementSchema, createBatchSchema } from "@/lib/schemas";
+import { todayISODate, nowISODateTime, toISODate } from "@/lib/dates";
 
 function requireUser(): string {
   const u = getCurrentUser();
@@ -41,8 +43,11 @@ export interface RecordMovementInput {
   notes: string;
 }
 
-export async function recordMovement(input: RecordMovementInput): Promise<StockMovement> {
+export async function recordMovement(rawInput: RecordMovementInput): Promise<StockMovement> {
   const performedBy = requireUser();
+  const parsed = recordMovementSchema.safeParse(rawInput);
+  if (!parsed.success) throw new Error(parsed.error.issues[0]?.message ?? "Invalid movement input.");
+  const input = parsed.data as RecordMovementInput;
 
   return db.transaction("rw", [db.batches, db.movements, db.audit], async () => {
     const batch = await db.batches.get(input.batchId);
@@ -106,7 +111,7 @@ export async function recordMovement(input: RecordMovementInput): Promise<StockM
       quantity: input.quantity,
       fromSection: input.fromSection,
       toSection: input.toSection,
-      dateTime: new Date().toISOString(),
+      dateTime: nowISODateTime(),
       performedBy,
       authorisedBy: input.authorisedBy,
       reason: input.reason,
@@ -145,11 +150,15 @@ export interface CreateBatchInput {
   notes: string;
 }
 
-export async function createBatch(input: CreateBatchInput): Promise<InventoryBatch> {
+export async function createBatch(rawInput: CreateBatchInput): Promise<InventoryBatch> {
   const user = requireUser();
-  if (!input.inventoryItemId) throw new Error("Select an inventory item.");
-  if (!input.batchNumber.trim()) throw new Error("Batch / lot number is required.");
-  if (input.quantityReceived <= 0) throw new Error("Quantity received must be greater than zero.");
+  const parsed = createBatchSchema.safeParse({
+    ...rawInput,
+    expiryDate: toISODate(rawInput.expiryDate),
+    dateReceived: toISODate(rawInput.dateReceived) ?? rawInput.dateReceived,
+  });
+  if (!parsed.success) throw new Error(parsed.error.issues[0]?.message ?? "Invalid batch input.");
+  const input = parsed.data as CreateBatchInput;
 
   return db.transaction("rw", [db.inventory, db.batches, db.movements, db.audit], async () => {
     const item = await db.inventory.get(input.inventoryItemId);
@@ -187,7 +196,7 @@ export async function createBatch(input: CreateBatchInput): Promise<InventoryBat
       quantity: input.quantityReceived,
       fromSection: null,
       toSection: item.laboratorySection,
-      dateTime: new Date().toISOString(),
+      dateTime: nowISODateTime(),
       performedBy: user,
       authorisedBy: null,
       reason: "Initial receipt — pending acceptance testing",
@@ -228,7 +237,7 @@ export async function recordAcceptance(input: RecordAcceptanceInput): Promise<Ac
     if (!batch) throw new Error("Batch not found.");
     const item = await db.inventory.get(batch.inventoryItemId);
 
-    const today = new Date().toISOString().slice(0, 10);
+    const today = todayISODate();
     const test: AcceptanceTest = {
       id: newId("acc"),
       batchId: batch.id,
