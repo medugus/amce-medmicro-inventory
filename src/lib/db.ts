@@ -17,6 +17,8 @@ import type {
   AuditTrailEntry,
   EquipmentAsset,
   DurableAsset,
+  SectionForecast,
+  PurchaseRequest,
 } from "@/types";
 
 import { AMCE_INVENTORY_MASTER } from "@/data/amceInventoryMaster";
@@ -26,6 +28,7 @@ import { AMCE_ACCEPTANCE_TESTS } from "@/data/amceAcceptanceTesting";
 import { AMCE_SUPPLY_STATUS } from "@/data/amceSupplyStatus";
 import { AMCE_AUDIT_TRAIL } from "@/data/amceAuditTrail";
 import { AMCE_EQUIPMENT, AMCE_DURABLES } from "@/data/amceAssets";
+import { AMCE_FORECASTS, AMCE_PURCHASE_REQUESTS } from "@/data/amceForecasts";
 
 class AMCEDatabase extends Dexie {
   inventory!: Table<InventoryItem, string>;
@@ -36,6 +39,8 @@ class AMCEDatabase extends Dexie {
   audit!: Table<AuditTrailEntry, string>;
   equipment!: Table<EquipmentAsset, string>;
   durables!: Table<DurableAsset, string>;
+  forecasts!: Table<SectionForecast, string>;
+  purchaseRequests!: Table<PurchaseRequest, string>;
   meta!: Table<{ key: string; value: string }, string>;
 
   constructor() {
@@ -58,6 +63,19 @@ class AMCEDatabase extends Dexie {
       audit: "id, dateTime, user, module, entityId",
       equipment: "id, equipmentName, laboratorySection, equipmentCategory, operationalStatus",
       durables: "id, assetName, laboratorySection, assetCategory, condition",
+      meta: "key",
+    });
+    this.version(3).stores({
+      inventory: "id, itemName, laboratorySection, category, criticality",
+      batches: "id, inventoryItemId, batchNumber, expiryDate, batchStatus, acceptanceStatus",
+      movements: "id, inventoryItemId, batchId, dateTime, movementType, performedBy",
+      acceptance: "id, batchId, dateAccepted, acceptedOrRejected",
+      supply: "id, itemName, laboratorySection, supplyStatus, criticality",
+      audit: "id, dateTime, user, module, entityId",
+      equipment: "id, equipmentName, laboratorySection, equipmentCategory, operationalStatus",
+      durables: "id, assetName, laboratorySection, assetCategory, condition",
+      forecasts: "id, laboratorySection, priority, forecastDate",
+      purchaseRequests: "id, requestingSection, approvalStatus, procurementStatus, requestDate",
       meta: "key",
     });
   }
