@@ -44,9 +44,9 @@ export function ReportsPage() {
     {
       title: "Inventory reports",
       reports: [
-        { title: "Inventory catalogue", value: AMCE_INVENTORY_MASTER.length, hint: "Confirmed catalogue items" },
-        { title: "Batch / lot register", value: AMCE_BATCHES.length, hint: "Tracked batches" },
-        { title: "Stock movements", value: AMCE_STOCK_MOVEMENTS.length, hint: "Logged movements" },
+        { title: "Inventory catalogue", value: inventory.length, hint: "Confirmed catalogue items" },
+        { title: "Batch / lot register", value: batches.length, hint: "Tracked batches" },
+        { title: "Stock movements", value: movements.length, hint: "Logged movements" },
         { title: "Low-stock items", value: lowStock, hint: "At or below reorder level", tone: "warning" },
         { title: "Expired batches", value: expired, hint: "Expired or past use-by", tone: "destructive" },
       ],
@@ -54,25 +54,25 @@ export function ReportsPage() {
     {
       title: "Procurement reports",
       reports: [
-        { title: "Supply-status records", value: AMCE_SUPPLY_STATUS.length, hint: "All tracked records" },
+        { title: "Supply-status records", value: supplies.length, hint: "All tracked records" },
         { title: "Critical stock risks", value: critical, hint: "Risk-scored items", tone: "destructive" },
-        { title: "Purchase requests", value: AMCE_PURCHASE_REQUESTS.length, hint: "Submitted to procurement" },
-        { title: "Section forecasts", value: AMCE_FORECASTS.length, hint: "Three-month forecasts" },
+        { title: "Purchase requests", value: purchaseRequests.length, hint: "Submitted to procurement" },
+        { title: "Section forecasts", value: forecasts.length, hint: "Three-month forecasts" },
       ],
     },
     {
       title: "Quality reports",
       reports: [
-        { title: "Acceptance testing records", value: AMCE_ACCEPTANCE_TESTS.length, hint: "All decisions" },
-        { title: "Quarantined / rejected batches", value: AMCE_BATCHES.filter((b) => b.batchStatus === "Quarantined" || b.batchStatus === "Rejected").length, tone: "destructive" },
+        { title: "Acceptance testing records", value: acceptance.length, hint: "All decisions" },
+        { title: "Quarantined / rejected batches", value: batches.filter((b) => b.batchStatus === "Quarantined" || b.batchStatus === "Rejected").length, tone: "destructive" },
         { title: "Data quality flags", value: dq, hint: "Records with missing documentation", tone: "warning" },
       ],
     },
     {
       title: "Equipment and asset reports",
       reports: [
-        { title: "Equipment register", value: AMCE_EQUIPMENT.length, hint: AMCE_EQUIPMENT.length === 0 ? "Equipment list pending" : undefined },
-        { title: "Durables register", value: AMCE_DURABLES.length, hint: AMCE_DURABLES.length === 0 ? "Durables list pending" : undefined },
+        { title: "Equipment register", value: equipment.length, hint: equipment.length === 0 ? "Equipment list pending" : undefined },
+        { title: "Durables register", value: durables.length, hint: durables.length === 0 ? "Durables list pending" : undefined },
         { title: "Maintenance records", value: AMCE_MAINTENANCE.length, hint: "Pending equipment import" },
         { title: "Calibration records", value: AMCE_CALIBRATION.length, hint: "Pending equipment import" },
       ],
@@ -81,7 +81,7 @@ export function ReportsPage() {
       title: "Section reports",
       reports: AMCE_SECTIONS.map((s) => ({
         title: s.name,
-        value: AMCE_SUPPLY_STATUS.filter((r) => r.laboratorySection === s.id).length,
+        value: supplies.filter((r) => r.laboratorySection === s.id).length,
         hint: `Lead: ${s.leads.join(", ")}`,
       })),
     },
