@@ -27,6 +27,13 @@ export function UserPicker() {
     if (!user) setPickerOpen(true);
   }, [user]);
 
+  // Listen for action layers requesting the picker (AuthRequiredError).
+  useEffect(() => {
+    function open() { setPickerOpen(true); }
+    window.addEventListener("amce:request-user-picker", open);
+    return () => window.removeEventListener("amce:request-user-picker", open);
+  }, []);
+
   return (
     <>
       <DropdownMenu>

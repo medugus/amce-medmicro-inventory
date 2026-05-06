@@ -21,10 +21,14 @@ import { isBatchIssuable, validateMovement } from "@/logic/inventory";
 import { getCurrentUser } from "@/lib/currentUser";
 import { recordMovementSchema, createBatchSchema } from "@/lib/schemas";
 import { todayISODate, nowISODateTime, toISODate } from "@/lib/dates";
+import { AuthRequiredError, requestUserPicker } from "@/lib/authError";
 
 function requireUser(): string {
   const u = getCurrentUser();
-  if (!u) throw new Error("Select a user in the top bar before recording actions.");
+  if (!u) {
+    requestUserPicker();
+    throw new AuthRequiredError();
+  }
   return u.name;
 }
 
