@@ -53,11 +53,11 @@ const sectionLead = (id: string): string => {
 };
 
 export function buildCriticalActions(data: CriticalActionsData = {}): CriticalAction[] {
-  const inventory = data.inventory ?? inventory;
-  const batches = data.batches ?? batches;
-  const supply = data.supply ?? supply;
-  const equipment = data.equipment ?? equipment;
-  const forecasts = data.forecasts ?? forecasts;
+  const inventory = data.inventory ?? AMCE_INVENTORY_MASTER;
+  const batches = data.batches ?? AMCE_BATCHES;
+  const supply = data.supply ?? AMCE_SUPPLY_STATUS;
+  const equipment = data.equipment ?? AMCE_EQUIPMENT;
+  const forecasts = data.forecasts ?? AMCE_FORECASTS;
   const actions: CriticalAction[] = [];
 
   // 1. Critical stock-out or low stock
