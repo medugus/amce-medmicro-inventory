@@ -7,6 +7,21 @@ import { SECTION_NAME, AMCE_SECTIONS } from "@/data/amceSections";
 import { expiryBucket, isLowStock, totalAvailableForItem } from "./inventory";
 import { actionRequired, isCriticalRisk, supplyStatusFlags } from "./supplyStatus";
 import { isCalibrationDue, isMaintenanceDue } from "./equipment";
+import type {
+  InventoryItem,
+  InventoryBatch,
+  SupplyStatusRecord,
+  EquipmentAsset,
+  SectionForecast,
+} from "@/types";
+
+export interface CriticalActionsData {
+  inventory?: InventoryItem[];
+  batches?: InventoryBatch[];
+  supply?: SupplyStatusRecord[];
+  equipment?: EquipmentAsset[];
+  forecasts?: SectionForecast[];
+}
 
 export type ActionPriority = "Critical" | "High" | "Medium" | "Low";
 export type ActionGroup =
@@ -37,7 +52,12 @@ const sectionLead = (id: string): string => {
   return s ? s.leads.join(", ") : "Pending assignment";
 };
 
-export function buildCriticalActions(): CriticalAction[] {
+export function buildCriticalActions(data: CriticalActionsData = {}): CriticalAction[] {
+  const inventory = data.inventory ?? AMCE_INVENTORY_MASTER;
+  const batches = data.batches ?? AMCE_BATCHES;
+  const supply = data.supply ?? AMCE_SUPPLY_STATUS;
+  const equipment = data.equipment ?? AMCE_EQUIPMENT;
+  const forecasts = data.forecasts ?? AMCE_FORECASTS;
   const actions: CriticalAction[] = [];
 
   // 1. Critical stock-out or low stock
