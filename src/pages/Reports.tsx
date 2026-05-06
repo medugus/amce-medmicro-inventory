@@ -1,16 +1,21 @@
-import { AMCE_SUPPLY_STATUS } from "@/data/amceSupplyStatus";
-import { AMCE_INVENTORY_MASTER } from "@/data/amceInventoryMaster";
-import { AMCE_BATCHES } from "@/data/amceBatches";
-import { AMCE_FORECASTS, AMCE_PURCHASE_REQUESTS } from "@/data/amceForecasts";
-import { AMCE_STOCK_MOVEMENTS } from "@/data/amceStockMovements";
-import { AMCE_ACCEPTANCE_TESTS } from "@/data/amceAcceptanceTesting";
-import { AMCE_EQUIPMENT, AMCE_MAINTENANCE, AMCE_CALIBRATION, AMCE_DURABLES } from "@/data/amceAssets";
+import { AMCE_MAINTENANCE, AMCE_CALIBRATION } from "@/data/amceAssets";
 import { AMCE_SECTIONS } from "@/data/amceSections";
 import { Header } from "@/components/layout/Header";
 import { DashboardCard } from "@/components/dashboard/DashboardCard";
 import { ExportButton } from "@/components/common/ExportButton";
 import { isCriticalRisk, supplyStatusFlags } from "@/logic/supplyStatus";
 import { expiryBucket, isLowStock } from "@/logic/inventory";
+import {
+  useInventory,
+  useBatches,
+  useSupplyStatus,
+  useStockMovements,
+  useAcceptanceTests,
+  useEquipment,
+  useDurables,
+  useForecasts,
+  usePurchaseRequests,
+} from "@/lib/useLiveData";
 
 interface ReportTile {
   title: string;
@@ -20,10 +25,20 @@ interface ReportTile {
 }
 
 export function ReportsPage() {
-  const lowStock = AMCE_INVENTORY_MASTER.filter((i) => isLowStock(i, AMCE_BATCHES)).length;
-  const expired = AMCE_BATCHES.filter((b) => expiryBucket(b.expiryDate) === "expired" || b.batchStatus === "Expired").length;
-  const dq = AMCE_SUPPLY_STATUS.filter((s) => supplyStatusFlags(s).length > 0).length;
-  const critical = AMCE_SUPPLY_STATUS.filter(isCriticalRisk).length;
+  const inventory = useInventory();
+  const batches = useBatches();
+  const supplies = useSupplyStatus();
+  const movements = useStockMovements();
+  const acceptance = useAcceptanceTests();
+  const equipment = useEquipment();
+  const durables = useDurables();
+  const forecasts = useForecasts();
+  const purchaseRequests = usePurchaseRequests();
+
+  const lowStock = inventory.filter((i) => isLowStock(i, batches)).length;
+  const expired = batches.filter((b) => expiryBucket(b.expiryDate) === "expired" || b.batchStatus === "Expired").length;
+  const dq = supplies.filter((s) => supplyStatusFlags(s).length > 0).length;
+  const critical = supplies.filter(isCriticalRisk).length;
 
   const sections: { title: string; reports: ReportTile[] }[] = [
     {
