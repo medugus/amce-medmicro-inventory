@@ -1,11 +1,22 @@
-// Equipment and durables now read from live Dexie hooks below
+import { Link } from "@tanstack/react-router";
 import { AMCE_FORECASTS, AMCE_PURCHASE_REQUESTS } from "@/data/amceForecasts";
+import { AMCE_SECTIONS } from "@/data/amceSections";
 import { DashboardCard } from "@/components/dashboard/DashboardCard";
 import { Header } from "@/components/layout/Header";
+import { StatusBadge, toneForCriticality } from "@/components/common/StatusBadge";
 import { expiryBucket, isLowStock, totalAvailableForItem } from "@/logic/inventory";
 import { isCriticalRisk, supplyStatusFlags } from "@/logic/supplyStatus";
 import { isCalibrationDue, isMaintenanceDue } from "@/logic/equipment";
-import { AMCE_SECTIONS, SECTION_NAME } from "@/data/amceSections";
+import { buildCriticalActions } from "@/logic/criticalActions";
+import {
+  useInventory,
+  useBatches,
+  useSupplyStatus,
+  useAcceptanceTests,
+  useStockMovements,
+  useEquipment,
+  useDurables,
+} from "@/lib/useLiveData";
 
 const SECTION_EMOJI: Record<string, string> = {
   "blood-culture": "🩸",
@@ -25,19 +36,6 @@ const SECTION_EMOJI: Record<string, string> = {
   "water": "💧",
   "stores": "📦",
 };
-import { StatusBadge, toneForCriticality } from "@/components/common/StatusBadge";
-import { buildCriticalActions } from "@/logic/criticalActions";
-import { Link } from "@tanstack/react-router";
-
-import {
-  useInventory,
-  useBatches,
-  useSupplyStatus,
-  useAcceptanceTests,
-  useStockMovements,
-  useEquipment,
-  useDurables,
-} from "@/lib/useLiveData";
 
 export function DashboardPage() {
   const supplies = useSupplyStatus();

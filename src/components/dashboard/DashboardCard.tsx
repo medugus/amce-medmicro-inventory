@@ -32,12 +32,17 @@ export function DashboardCard({
     accent,
     to && "hover:shadow-md hover:bg-accent/30 transition-all cursor-pointer"
   );
+  const ariaLabel = `${label}: ${value}${hint ? `. ${hint}` : ""}`;
   if (to) {
     return (
-      <Link to={to} className={base}>
+      <Link to={to} className={base} aria-label={ariaLabel}>
         {content}
       </Link>
     );
   }
-  return <div className={base}>{content}</div>;
+  return (
+    <div className={base} role="group" aria-label={ariaLabel}>
+      {content}
+    </div>
+  );
 }
