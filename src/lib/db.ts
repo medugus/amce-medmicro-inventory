@@ -87,7 +87,7 @@ export const db = new AMCEDatabase();
 // you want each lab PC to re-seed missing rows from the new baseline. Seeded
 // durables are refreshed by stable ID; user-added rows use different IDs and
 // are never overwritten.
-const SEED_VERSION = "2026-05-01.8-dummy-asset-fields";
+const SEED_VERSION = "2026-05-06.9-forecasts-prs";
 
 let seedPromise: Promise<void> | null = null;
 
@@ -108,7 +108,7 @@ export function ensureSeeded(): Promise<void> {
     // table is empty so we never overwrite work the lab has done.
     await db.transaction(
       "rw",
-      [db.inventory, db.batches, db.supply, db.movements, db.acceptance, db.audit, db.equipment, db.durables, db.meta],
+      [db.inventory, db.batches, db.supply, db.movements, db.acceptance, db.audit, db.equipment, db.durables, db.forecasts, db.purchaseRequests, db.meta],
       async () => {
         // Catalogue + supply backlog: keep current entries, fill in any missing.
         const existingInv = new Set((await db.inventory.toCollection().primaryKeys()) as string[]);
@@ -133,14 +133,18 @@ export function ensureSeeded(): Promise<void> {
         if ((await db.audit.count()) === 0 && AMCE_AUDIT_TRAIL.length) {
           await db.audit.bulkAdd(AMCE_AUDIT_TRAIL);
         }
-        // Equipment: bulkPut refreshes seed rows (id prefix `eq-seed-`) from the
-        // current equipment list. User-added rows use a different id prefix and
-        // are never touched.
         if (AMCE_EQUIPMENT.length) await db.equipment.bulkPut(AMCE_EQUIPMENT);
-        // Durables: bulkPut refreshes seed rows (id prefix `dur-seed-`) from the
-        // current spreadsheet baseline. User-added rows use a different id prefix
-        // and are never touched.
         if (AMCE_DURABLES.length) await db.durables.bulkPut(AMCE_DURABLES);
+
+        // Forecasts: fill in missing seed rows by stable ID; never overwrite edits.
+        const existingFc = new Set((await db.forecasts.toCollection().primaryKeys()) as string[]);
+        const newFc = AMCE_FORECASTS.filter((f) => !existingFc.has(f.id));
+        if (newFc.length) await db.forecasts.bulkAdd(newFc);
+
+        // Purchase requests: seed only if empty (currently no baseline rows).
+        if ((await db.purchaseRequests.count()) === 0 && AMCE_PURCHASE_REQUESTS.length) {
+          await db.purchaseRequests.bulkAdd(AMCE_PURCHASE_REQUESTS);
+        }
 
         await db.meta.put({ key: "seedVersion", value: SEED_VERSION });
       }
