@@ -6,6 +6,7 @@ import { EmptyState } from "@/components/common/EmptyState";
 import { StatusBadge, toneForCriticality } from "@/components/common/StatusBadge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { buildCriticalActions, PRIORITY_ORDER, type ActionGroup } from "@/logic/criticalActions";
+import { useInventory, useBatches, useSupplyStatus, useEquipment, useForecasts } from "@/lib/useLiveData";
 
 const ALL = "__all";
 
@@ -26,7 +27,15 @@ export function CriticalActionsPage() {
   const [priority, setPriority] = useState(ALL);
   const [group, setGroup] = useState(ALL);
 
-  const actions = useMemo(() => buildCriticalActions(), []);
+  const inventory = useInventory();
+  const batches = useBatches();
+  const supply = useSupplyStatus();
+  const equipment = useEquipment();
+  const forecasts = useForecasts();
+  const actions = useMemo(
+    () => buildCriticalActions({ inventory, batches, supply, equipment, forecasts }),
+    [inventory, batches, supply, equipment, forecasts]
+  );
 
   const filtered = actions.filter((a) => {
     if (search && !`${a.itemOrAsset} ${a.section} ${a.responsible} ${a.reason}`.toLowerCase().includes(search.toLowerCase())) return false;
