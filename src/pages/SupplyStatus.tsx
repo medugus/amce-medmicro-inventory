@@ -1,39 +1,15 @@
 import { useMemo, useState } from "react";
 import { useSupplyStatus } from "@/lib/useLiveData";
-import { AMCE_SECTIONS, SECTION_NAME } from "@/data/amceSections";
+import { AMCE_SECTIONS } from "@/data/amceSections";
 import { Header } from "@/components/layout/Header";
 import { SearchInput } from "@/components/common/SearchInput";
 import { ExportButton } from "@/components/common/ExportButton";
 import { EmptyState } from "@/components/common/EmptyState";
-import {
-  StatusBadge,
-  toneForCriticality,
-  toneForProcurementStatus,
-  toneForSupplyStatus,
-} from "@/components/common/StatusBadge";
-import { actionRequired, supplyStatusFlags } from "@/logic/supplyStatus";
+import { supplyStatusFlags } from "@/logic/supplyStatus";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { NOT_DOCUMENTED } from "@/data/categories";
-import type { SupplyStatus, ProcurementStatus, SupplyStatusRecord } from "@/types";
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { updateSupplyRecord } from "@/lib/actions";
-import { getCurrentUser } from "@/lib/currentUser";
-import { toast } from "sonner";
-
-const SUPPLY_VALUES: SupplyStatus[] = [
-  "Requested", "Pending procurement", "Under review", "Ordered",
-  "Partially supplied", "Supplied", "Not supplied", "Delayed",
-  "Cancelled", "Requires clarification",
-];
-const PROC_VALUES: ProcurementStatus[] = [
-  "Not started", "Awaiting quotation", "Quotation received", "Awaiting approval",
-  "Approved", "Ordered", "Delivery pending", "Delivered", "Partially delivered",
-  "Delayed", "Rejected", "Closed", "Requires procurement update",
-];
+import type { SupplyStatus, SupplyStatusRecord } from "@/types";
+import { SupplyEditDialog } from "@/components/supply/SupplyEditDialog";
+import { SupplyTable } from "@/components/supply/SupplyTable";
 
 const ALL = "__all";
 
@@ -56,60 +32,7 @@ export function SupplyStatusPage() {
   const [procFilter, setProcFilter] = useState(ALL);
   const [critFilter, setCritFilter] = useState(ALL);
   const [missingOnly, setMissingOnly] = useState(false);
-
-  // Edit dialog state
   const [editing, setEditing] = useState<SupplyStatusRecord | null>(null);
-  const [eSupply, setESupply] = useState<SupplyStatus>("Requested");
-  const [eProc, setEProc] = useState<ProcurementStatus>("Not started");
-  const [eSupplied, setESupplied] = useState<string>("");
-  const [eOutstanding, setEOutstanding] = useState<string>("");
-  const [eSupplier, setESupplier] = useState<string>("");
-  const [eDateOrdered, setEDateOrdered] = useState<string>("");
-  const [eDateSupplied, setEDateSupplied] = useState<string>("");
-  const [eRemarks, setERemarks] = useState<string>("");
-  const [eReason, setEReason] = useState<string>("");
-  const [eSubmitting, setESubmitting] = useState(false);
-
-  function startEdit(r: SupplyStatusRecord) {
-    setEditing(r);
-    setESupply(r.supplyStatus);
-    setEProc(r.procurementStatus);
-    setESupplied(r.suppliedQuantity?.toString() ?? "");
-    setEOutstanding(r.outstandingQuantity?.toString() ?? "");
-    setESupplier(r.supplier ?? "");
-    setEDateOrdered(r.dateOrdered ?? "");
-    setEDateSupplied(r.dateSupplied ?? "");
-    setERemarks(r.remarks);
-    setEReason("");
-  }
-
-  async function saveEdit() {
-    if (!editing) return;
-    const user = getCurrentUser();
-    if (!user) { toast.error("Select a user in the top bar first."); return; }
-    if (!eReason.trim()) { toast.error("A reason for the update is required for the audit trail."); return; }
-    setESubmitting(true);
-    try {
-      await updateSupplyRecord({
-        id: editing.id,
-        reason: eReason,
-        patch: {
-          supplyStatus: eSupply,
-          procurementStatus: eProc,
-          suppliedQuantity: eSupplied === "" ? null : Number(eSupplied),
-          outstandingQuantity: eOutstanding === "" ? null : Number(eOutstanding),
-          supplier: eSupplier.trim() || null,
-          dateOrdered: eDateOrdered || null,
-          dateSupplied: eDateSupplied || null,
-          remarks: eRemarks,
-        },
-      });
-      toast.success(`Supply record updated by ${user.name}.`);
-      setEditing(null);
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to update.");
-    } finally { setESubmitting(false); }
-  }
 
   const responsibles = useMemo(
     () => Array.from(new Set(supply.map((s) => s.responsiblePerson))).sort(),
@@ -137,7 +60,6 @@ export function SupplyStatusPage() {
     rows: rows.filter((r) => r.supplyStatus === g),
   })).filter((g) => g.rows.length > 0);
 
-  // Catch-all for any status not in STATUS_GROUPS (e.g., Requested, Under review, Not supplied)
   const otherRows = rows.filter((r) => !STATUS_GROUPS.includes(r.supplyStatus));
   if (otherRows.length > 0) grouped.push({ status: "Other" as SupplyStatus, rows: otherRows });
 
@@ -203,138 +125,14 @@ export function SupplyStatusPage() {
                   <h2 className="text-sm font-semibold">{g.status}</h2>
                   <span className="text-xs text-muted-foreground">({g.rows.length})</span>
                 </div>
-                <div className="border border-border rounded-md overflow-x-auto bg-card">
-                  <table className="w-full text-sm">
-                    <thead className="bg-muted/50 text-left text-[11px] uppercase tracking-wider text-muted-foreground">
-                      <tr>
-                        <th className="p-2">Item</th>
-                        <th className="p-2">Section</th>
-                        <th className="p-2">Responsible</th>
-                        <th className="p-2 text-right">Requested</th>
-                        <th className="p-2 text-right">Supplied</th>
-                        <th className="p-2 text-right">Outstanding</th>
-                        <th className="p-2">Supplier</th>
-                        <th className="p-2">Procurement</th>
-                        <th className="p-2">Crit.</th>
-                        <th className="p-2">Remarks</th>
-                        <th className="p-2">Action required</th>
-                        <th className="p-2 print:hidden"></th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {g.rows.map((r) => {
-                        const flags = supplyStatusFlags(r);
-                        return (
-                          <tr key={r.id} className="border-t border-border hover:bg-muted/30 align-top">
-                            <td className="p-2">
-                              <div className="font-medium">{r.itemName}</div>
-                              <div className="text-xs text-muted-foreground">{r.category}</div>
-                              <div className="mt-1"><StatusBadge label={r.supplyStatus} tone={toneForSupplyStatus(r.supplyStatus)} /></div>
-                            </td>
-                            <td className="p-2 text-xs">{SECTION_NAME[r.laboratorySection]}</td>
-                            <td className="p-2 text-xs">{r.responsiblePerson}</td>
-                            <td className="p-2 text-right tabular-nums">{r.requestedQuantity ?? <span className="text-muted-foreground">{NOT_DOCUMENTED}</span>}</td>
-                            <td className="p-2 text-right tabular-nums">{r.suppliedQuantity ?? <span className="text-muted-foreground">{NOT_DOCUMENTED}</span>}</td>
-                            <td className="p-2 text-right tabular-nums">{r.outstandingQuantity ?? <span className="text-muted-foreground">{NOT_DOCUMENTED}</span>}</td>
-                            <td className="p-2 text-xs">{r.supplier ?? <span className="text-muted-foreground">{NOT_DOCUMENTED}</span>}</td>
-                            <td className="p-2"><StatusBadge label={r.procurementStatus} tone={toneForProcurementStatus(r.procurementStatus)} /></td>
-                            <td className="p-2"><StatusBadge label={r.criticality} tone={toneForCriticality(r.criticality)} /></td>
-                            <td className="p-2 text-xs max-w-xs">
-                              <div>{r.remarks}</div>
-                              {flags.length > 0 && (
-                                <div className="flex flex-col gap-0.5 mt-1">
-                                  {flags.map((f, i) => <StatusBadge key={i} label={f.message} tone="warning" />)}
-                                </div>
-                              )}
-                            </td>
-                            <td className="p-2 text-xs">{actionRequired(r)}</td>
-                            <td className="p-2 print:hidden">
-                              <Button size="sm" variant="outline" onClick={() => startEdit(r)}>Update</Button>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
+                <SupplyTable rows={g.rows} onEdit={setEditing} />
               </section>
             ))}
           </div>
         )}
       </div>
 
-      <Dialog open={!!editing} onOpenChange={(o) => { if (!o) setEditing(null); }}>
-        <DialogContent className="max-w-xl">
-          <DialogHeader><DialogTitle>Update supply record</DialogTitle></DialogHeader>
-          {editing && (
-            <div className="space-y-3">
-              <div className="text-sm">
-                <div className="font-medium">{editing.itemName}</div>
-                <div className="text-xs text-muted-foreground">{editing.category} — {SECTION_NAME[editing.laboratorySection]}</div>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <Label className="text-xs">Supply status</Label>
-                  <Select value={eSupply} onValueChange={(v) => setESupply(v as SupplyStatus)}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      {SUPPLY_VALUES.map((v) => <SelectItem key={v} value={v}>{v}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label className="text-xs">Procurement status</Label>
-                  <Select value={eProc} onValueChange={(v) => setEProc(v as ProcurementStatus)}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      {PROC_VALUES.map((v) => <SelectItem key={v} value={v}>{v}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <Label className="text-xs">Supplied quantity</Label>
-                  <Input type="number" min={0} value={eSupplied} onChange={(e) => setESupplied(e.target.value)} />
-                </div>
-                <div>
-                  <Label className="text-xs">Outstanding quantity</Label>
-                  <Input type="number" min={0} value={eOutstanding} onChange={(e) => setEOutstanding(e.target.value)} />
-                </div>
-              </div>
-              <div>
-                <Label className="text-xs">Supplier</Label>
-                <Input value={eSupplier} onChange={(e) => setESupplier(e.target.value)} />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <Label className="text-xs">Date ordered</Label>
-                  <Input type="date" value={eDateOrdered} onChange={(e) => setEDateOrdered(e.target.value)} />
-                </div>
-                <div>
-                  <Label className="text-xs">Date supplied</Label>
-                  <Input type="date" value={eDateSupplied} onChange={(e) => setEDateSupplied(e.target.value)} />
-                </div>
-              </div>
-              <div>
-                <Label className="text-xs">Remarks</Label>
-                <Textarea value={eRemarks} onChange={(e) => setERemarks(e.target.value)} />
-              </div>
-              <div>
-                <Label className="text-xs">Reason for update (required for audit trail)</Label>
-                <Textarea value={eReason} onChange={(e) => setEReason(e.target.value)} placeholder="e.g. Confirmed delivery from Bio-Rad on 2026-05-01" />
-              </div>
-              <div className="text-xs text-muted-foreground">
-                Recorded by: <span className="font-medium text-foreground">{getCurrentUser()?.name ?? "no user selected"}</span>
-              </div>
-              <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={() => setEditing(null)}>Cancel</Button>
-                <Button onClick={saveEdit} disabled={eSubmitting}>{eSubmitting ? "Saving…" : "Save update"}</Button>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+      <SupplyEditDialog record={editing} onClose={() => setEditing(null)} />
     </div>
   );
 }
