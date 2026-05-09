@@ -119,6 +119,8 @@ export function ScanPage() {
   const items = useInventory();
   const equipment = useEquipment();
   const durables = useDurables();
+  const purchaseRequests = usePurchaseRequests();
+  const dataReady = useDataReady();
 
   useEffect(() => {
     return () => {
@@ -130,33 +132,52 @@ export function ScanPage() {
     };
   }, []);
 
-  function go(type: QrEntityType, id: string) {
+  function go(target: ScannerTarget) {
     stopScanner();
-    navigate({ to: "/r/$type/$id", params: { type, id } });
+    if (target.kind === "purchaseRequests") {
+      navigate({ to: "/purchase-requests" });
+      return;
+    }
+    navigate({ to: "/r/$type/$id", params: { type: target.type, id: target.id } });
   }
 
-  function fallbackLookup(raw: string): { type: QrEntityType; id: string } | null {
-    const needle = raw.trim();
-    if (!needle) return null;
-    const lc = needle.toLowerCase();
+  function fallbackLookup(raw: string): ScannerTarget | null {
+    const candidates = candidatePayloads(raw);
+    if (candidates.length === 0) return null;
 
-    // Direct ID match
-    if (batches.some((b) => b.id === needle)) return { type: "batch", id: needle };
-    if (items.some((i) => i.id === needle)) return { type: "item", id: needle };
-    if (equipment.some((e) => e.id === needle)) return { type: "equipment", id: needle };
-    if (durables.some((d) => d.id === needle)) return { type: "durable", id: needle };
+    for (const code of candidates) {
+      const typeId = code.match(/^([a-z][a-z -]{0,24})\s*[:/#|]\s*(.+)$/i);
+      if (typeId) {
+        const type = TYPE_ALIASES[canonical(typeId[1])];
+        if (type === "purchaseRequests") return { kind: "purchaseRequests" };
+        if (type) return { kind: "record", type, id: cleanCodeValue(typeId[2]) };
+      }
 
-    // Batch / lot number
-    const batch = batches.find(
-      (b) => b.batchNumber?.toLowerCase() === lc || b.lotNumber?.toLowerCase() === lc,
-    );
-    if (batch) return { type: "batch", id: batch.id };
+      if (/^(pr|purchase request|purchase-request)\b/i.test(code)) return { kind: "purchaseRequests" };
+      const batch = batches.find((b) => equalCode(b.id, code) || equalCode(b.batchNumber, code) || equalCode(b.lotNumber, code));
+      if (batch) return { kind: "record", type: "batch", id: batch.id };
 
-    // Equipment serial / asset number
-    const eq = equipment.find(
-      (e) => e.serialNumber?.toLowerCase() === lc || e.assetNumber?.toLowerCase() === lc,
-    );
-    if (eq) return { type: "equipment", id: eq.id };
+      const item = items.find((i) =>
+        equalCode(i.id, code) ||
+        equalCode(i.catalogueNumber, code) ||
+        equalCode(i.itemName, code) ||
+        (compact(code).length >= 4 && [i.catalogueNumber, i.manufacturer, i.supplier].some((v) => v && compact(v).includes(compact(code))))
+      );
+      if (item) return { kind: "record", type: "item", id: item.id };
+
+      const eq = equipment.find((e) =>
+        equalCode(e.id, code) || equalCode(e.serialNumber, code) || equalCode(e.assetNumber, code) || equalCode(e.equipmentName, code)
+      );
+      if (eq) return { kind: "record", type: "equipment", id: eq.id };
+
+      const durable = durables.find((d) => equalCode(d.id, code) || equalCode(d.assetName, code));
+      if (durable) return { kind: "record", type: "durable", id: durable.id };
+    }
+
+    const haystack = compact(candidates.join(" "));
+    const item = haystack.length >= 6 ? items.find((i) => compact(i.itemName).includes(haystack) || haystack.includes(compact(i.itemName))) : undefined;
+    if (item) return { kind: "record", type: "item", id: item.id };
+    if (purchaseRequests.length > 0 && /\b(pr|purchase\s*request|requested\s*by|approval|procurement)\b/i.test(raw)) return { kind: "purchaseRequests" };
 
     return null;
   }
