@@ -99,21 +99,57 @@ export function ScanPage() {
 
   async function startScanner() {
     setActive(true);
-    const { Html5Qrcode } = await import("html5-qrcode");
+    const { Html5Qrcode, Html5QrcodeSupportedFormats } = await import("html5-qrcode");
     if (!containerRef.current) return;
     const id = "qr-reader-region";
     containerRef.current.innerHTML = `<div id="${id}" class="w-full"></div>`;
-    const scanner = new Html5Qrcode(id);
+    const formats = [
+      Html5QrcodeSupportedFormats.QR_CODE,
+      Html5QrcodeSupportedFormats.DATA_MATRIX,
+      Html5QrcodeSupportedFormats.CODE_128,
+      Html5QrcodeSupportedFormats.CODE_39,
+      Html5QrcodeSupportedFormats.CODE_93,
+      Html5QrcodeSupportedFormats.EAN_13,
+      Html5QrcodeSupportedFormats.EAN_8,
+      Html5QrcodeSupportedFormats.UPC_A,
+      Html5QrcodeSupportedFormats.UPC_E,
+      Html5QrcodeSupportedFormats.ITF,
+      Html5QrcodeSupportedFormats.CODABAR,
+      Html5QrcodeSupportedFormats.PDF_417,
+      Html5QrcodeSupportedFormats.AZTEC,
+    ];
+    const scanner = new Html5Qrcode(id, { formatsToSupport: formats, verbose: false });
     scannerRef.current = scanner;
     try {
       await scanner.start(
         { facingMode: "environment" },
-        { fps: 10, qrbox: { width: 240, height: 240 } },
+        {
+          fps: 10,
+          qrbox: (vw: number, vh: number) => {
+            const min = Math.min(vw, vh);
+            const size = Math.floor(min * 0.7);
+            return { width: size, height: size };
+          },
+          aspectRatio: 1.7777778,
+        },
         (decoded) => handleResult(decoded),
         () => undefined,
       );
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Camera unavailable.");
+      const msg = err instanceof Error ? err.message : String(err);
+      if (/permission|NotAllowed/i.test(msg)) {
+        toast.error("Camera permission denied", {
+          description: "Allow camera access in your browser settings, then tap Start camera again.",
+        });
+      } else if (/NotFound|device/i.test(msg)) {
+        toast.error("No camera found on this device.");
+      } else if (/secure|https/i.test(msg) || (typeof window !== "undefined" && window.location.protocol !== "https:" && window.location.hostname !== "localhost")) {
+        toast.error("Camera requires HTTPS", {
+          description: "Open the published https:// URL on your phone — most browsers block the camera on http://.",
+        });
+      } else {
+        toast.error(msg || "Camera unavailable.");
+      }
       setActive(false);
     }
   }
