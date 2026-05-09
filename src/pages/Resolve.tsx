@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "@tanstack/react-router";
 import { Header } from "@/components/layout/Header";
-import { useBatches, useEquipment, useDurables, useInventory } from "@/lib/useLiveData";
+import { useBatches, useDataReady, useEquipment, useDurables, useInventory } from "@/lib/useLiveData";
 import { SECTION_NAME } from "@/data/amceSections";
 import { ArrowRight, AlertCircle } from "lucide-react";
 import type { QrEntityType } from "@/lib/qrLinks";
@@ -13,6 +13,7 @@ export function ResolvePage() {
   const items = useInventory();
   const equipment = useEquipment();
   const durables = useDurables();
+  const dataReady = useDataReady();
   const [autoNav, setAutoNav] = useState(false);
 
   const record = useMemo(() => {
@@ -92,6 +93,15 @@ export function ResolvePage() {
   useEffect(() => {
     setAutoNav(true);
   }, [id]);
+
+  if (!dataReady) {
+    return (
+      <div>
+        <Header title="Opening scanned record" description="Checking the local register for this code." />
+        <div className="p-6 text-sm text-muted-foreground">Loading register…</div>
+      </div>
+    );
+  }
 
   if (!record) {
     return (
