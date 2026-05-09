@@ -6,6 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ScanLine, Camera, X } from "lucide-react";
 import { toast } from "sonner";
+import { useBatches, useEquipment, useDurables, useInventory } from "@/lib/useLiveData";
+import type { QrEntityType } from "@/lib/qrLinks";
 
 export function ScanPage() {
   const navigate = useNavigate();
@@ -14,10 +16,15 @@ export function ScanPage() {
   const scannerRef = useRef<any>(null);
   const [active, setActive] = useState(false);
   const [manual, setManual] = useState("");
+  const [lastPayload, setLastPayload] = useState<string | null>(null);
+
+  const batches = useBatches();
+  const items = useInventory();
+  const equipment = useEquipment();
+  const durables = useDurables();
 
   useEffect(() => {
     return () => {
-      // Cleanup on unmount
       if (scannerRef.current) {
         scannerRef.current.stop().catch(() => undefined);
         scannerRef.current.clear?.();
@@ -26,25 +33,67 @@ export function ScanPage() {
     };
   }, []);
 
+  function go(type: QrEntityType, id: string) {
+    stopScanner();
+    navigate({ to: "/r/$type/$id", params: { type, id } });
+  }
+
+  function fallbackLookup(raw: string): { type: QrEntityType; id: string } | null {
+    const needle = raw.trim();
+    if (!needle) return null;
+    const lc = needle.toLowerCase();
+
+    // Direct ID match
+    if (batches.some((b) => b.id === needle)) return { type: "batch", id: needle };
+    if (items.some((i) => i.id === needle)) return { type: "item", id: needle };
+    if (equipment.some((e) => e.id === needle)) return { type: "equipment", id: needle };
+    if (durables.some((d) => d.id === needle)) return { type: "durable", id: needle };
+
+    // Batch / lot number
+    const batch = batches.find(
+      (b) => b.batchNumber?.toLowerCase() === lc || b.lotNumber?.toLowerCase() === lc,
+    );
+    if (batch) return { type: "batch", id: batch.id };
+
+    // Equipment serial / asset number
+    const eq = equipment.find(
+      (e) => e.serialNumber?.toLowerCase() === lc || e.assetNumber?.toLowerCase() === lc,
+    );
+    if (eq) return { type: "equipment", id: eq.id };
+
+    return null;
+  }
+
   function handleResult(text: string) {
-    // Accept full URLs or raw "type/id" payloads.
+    const raw = text.trim();
+    setLastPayload(raw);
     try {
-      let path = text.trim();
-      if (path.startsWith("http")) {
-        const url = new URL(path);
-        path = url.pathname;
+      let path = raw;
+      if (/^https?:\/\//i.test(path)) {
+        try {
+          const url = new URL(path);
+          path = url.pathname;
+        } catch {
+          // fall through to fallback
+        }
       }
-      const m = path.match(/\/?r\/([^/]+)\/(.+)$/) ?? path.match(/^([^/]+)\/(.+)$/);
-      if (!m) {
-        toast.error("Unrecognised QR payload.");
-        return;
+      const m =
+        path.match(/\/?r\/([^/]+)\/(.+)$/) ??
+        path.match(/^(batch|equipment|durable|item)\/(.+)$/i);
+      if (m) {
+        const type = m[1].toLowerCase() as QrEntityType;
+        const id = decodeURIComponent(m[2]);
+        return go(type, id);
       }
-      const type = m[1];
-      const id = decodeURIComponent(m[2]);
-      stopScanner();
-      navigate({ to: "/r/$type/$id", params: { type, id } });
+
+      const fb = fallbackLookup(raw);
+      if (fb) return go(fb.type, fb.id);
+
+      toast.error("Code not recognised", {
+        description: `Scanned: "${raw.length > 60 ? raw.slice(0, 60) + "…" : raw}". No matching batch, item, equipment or durable found.`,
+      });
     } catch {
-      toast.error("Could not parse QR code.");
+      toast.error("Could not parse code.");
     }
   }
 
@@ -61,7 +110,7 @@ export function ScanPage() {
         { facingMode: "environment" },
         { fps: 10, qrbox: { width: 240, height: 240 } },
         (decoded) => handleResult(decoded),
-        () => undefined
+        () => undefined,
       );
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Camera unavailable.");
@@ -110,18 +159,23 @@ export function ScanPage() {
         <section className="bg-card border border-border rounded-md p-4 space-y-3">
           <div className="font-semibold text-sm">Enter code manually</div>
           <div className="flex flex-col gap-2">
-            <Label htmlFor="manual">Paste a label URL or "type/id"</Label>
+            <Label htmlFor="manual">Paste a label URL, "type/id", or a batch/lot/serial number</Label>
             <div className="flex gap-2">
               <Input
                 id="manual"
                 value={manual}
                 onChange={(e) => setManual(e.target.value)}
-                placeholder="e.g. batch/BATCH-001 or full URL"
+                placeholder="e.g. BATCH-001, LOT-2025-04, full URL, or batch/<id>"
               />
               <Button onClick={() => handleResult(manual)} disabled={!manual.trim()}>
                 Open
               </Button>
             </div>
+            {lastPayload && (
+              <div className="text-[11px] text-muted-foreground font-mono break-all">
+                Last scan: {lastPayload}
+              </div>
+            )}
           </div>
         </section>
       </div>
