@@ -1,7 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "@tanstack/react-router";
 import { Header } from "@/components/layout/Header";
-import { useBatches, useEquipment, useDurables, useInventory } from "@/lib/useLiveData";
+import { useBatches, useDataReady, useEquipment, useDurables, useInventory } from "@/lib/useLiveData";
+import { AMCE_BATCHES } from "@/data/amceBatches";
+import { AMCE_INVENTORY_MASTER } from "@/data/amceInventoryMaster";
+import { AMCE_DURABLES, AMCE_EQUIPMENT } from "@/data/amceAssets";
 import { SECTION_NAME } from "@/data/amceSections";
 import { ArrowRight, AlertCircle } from "lucide-react";
 import type { QrEntityType } from "@/lib/qrLinks";
@@ -13,14 +16,19 @@ export function ResolvePage() {
   const items = useInventory();
   const equipment = useEquipment();
   const durables = useDurables();
+  const dataReady = useDataReady();
+  const lookupBatches = batches.length ? batches : AMCE_BATCHES;
+  const lookupItems = items.length ? items : AMCE_INVENTORY_MASTER;
+  const lookupEquipment = equipment.length ? equipment : AMCE_EQUIPMENT;
+  const lookupDurables = durables.length ? durables : AMCE_DURABLES;
   const [autoNav, setAutoNav] = useState(false);
 
   const record = useMemo(() => {
     switch (type as QrEntityType) {
       case "batch": {
-        const b = batches.find((x) => x.id === id);
+        const b = lookupBatches.find((x) => x.id === id);
         if (!b) return null;
-        const item = items.find((i) => i.id === b.inventoryItemId);
+        const item = lookupItems.find((i) => i.id === b.inventoryItemId);
         return {
           title: `Batch ${b.batchNumber}`,
           subtitle: item?.itemName ?? "Unknown item",
@@ -35,7 +43,7 @@ export function ResolvePage() {
         };
       }
       case "item": {
-        const i = items.find((x) => x.id === id);
+        const i = lookupItems.find((x) => x.id === id);
         if (!i) return null;
         return {
           title: i.itemName,
@@ -50,7 +58,7 @@ export function ResolvePage() {
         };
       }
       case "equipment": {
-        const e = equipment.find((x) => x.id === id);
+        const e = lookupEquipment.find((x) => x.id === id);
         if (!e) return null;
         return {
           title: e.equipmentName,
@@ -68,7 +76,7 @@ export function ResolvePage() {
         };
       }
       case "durable": {
-        const d = durables.find((x) => x.id === id);
+        const d = lookupDurables.find((x) => x.id === id);
         if (!d) return null;
         return {
           title: d.assetName,
@@ -85,13 +93,22 @@ export function ResolvePage() {
       default:
         return null;
     }
-  }, [type, id, batches, items, equipment, durables]);
+  }, [type, id, lookupBatches, lookupItems, lookupEquipment, lookupDurables]);
 
   const targetRoute = targetRouteFor(type as QrEntityType);
 
   useEffect(() => {
     setAutoNav(true);
   }, [id]);
+
+  if (!dataReady) {
+    return (
+      <div>
+        <Header title="Opening scanned record" description="Checking the local register for this code." />
+        <div className="p-6 text-sm text-muted-foreground">Loading register…</div>
+      </div>
+    );
+  }
 
   if (!record) {
     return (

@@ -28,6 +28,9 @@ if (typeof window !== "undefined" && typeof indexedDB !== "undefined") {
     })
     .catch((err) => {
       console.error("Failed to seed local database:", err);
+      ready = true;
+      readyListeners.forEach((l) => l());
+      readyListeners.clear();
     });
 }
 
@@ -35,8 +38,24 @@ function useReady(): boolean {
   const [r, setR] = useState(ready);
   useEffect(() => {
     if (ready) { setR(true); return; }
+    if (typeof indexedDB === "undefined") { setR(true); return; }
     const fn = () => setR(true);
     readyListeners.add(fn);
+    ensureSeeded()
+      .then(() => {
+        ready = true;
+        fn();
+      })
+      .catch((err) => {
+        console.error("Failed to seed local database:", err);
+        ready = true;
+        fn();
+      });
+    if (ready) {
+      readyListeners.delete(fn);
+      setR(true);
+      return;
+    }
     return () => { readyListeners.delete(fn); };
   }, []);
   return r;
