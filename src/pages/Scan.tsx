@@ -8,6 +8,9 @@ import { ScanLine, Camera, X } from "lucide-react";
 import { toast } from "sonner";
 import { useBatches, useDataReady, useEquipment, useDurables, useInventory, usePurchaseRequests } from "@/lib/useLiveData";
 import type { QrEntityType } from "@/lib/qrLinks";
+import { AMCE_BATCHES } from "@/data/amceBatches";
+import { AMCE_INVENTORY_MASTER } from "@/data/amceInventoryMaster";
+import { AMCE_DURABLES, AMCE_EQUIPMENT } from "@/data/amceAssets";
 
 type ScannerTarget = { kind: "record"; type: QrEntityType; id: string } | { kind: "purchaseRequests" };
 
@@ -121,6 +124,10 @@ export function ScanPage() {
   const durables = useDurables();
   const purchaseRequests = usePurchaseRequests();
   const dataReady = useDataReady();
+  const scanBatches = batches.length ? batches : AMCE_BATCHES;
+  const scanItems = items.length ? items : AMCE_INVENTORY_MASTER;
+  const scanEquipment = equipment.length ? equipment : AMCE_EQUIPMENT;
+  const scanDurables = durables.length ? durables : AMCE_DURABLES;
 
   useEffect(() => {
     return () => {
@@ -154,10 +161,10 @@ export function ScanPage() {
       }
 
       if (/^(pr|purchase request|purchase-request)\b/i.test(code)) return { kind: "purchaseRequests" };
-      const batch = batches.find((b) => equalCode(b.id, code) || equalCode(b.batchNumber, code) || equalCode(b.lotNumber, code));
+      const batch = scanBatches.find((b) => equalCode(b.id, code) || equalCode(b.batchNumber, code) || equalCode(b.lotNumber, code));
       if (batch) return { kind: "record", type: "batch", id: batch.id };
 
-      const item = items.find((i) =>
+      const item = scanItems.find((i) =>
         equalCode(i.id, code) ||
         equalCode(i.catalogueNumber, code) ||
         equalCode(i.itemName, code) ||
@@ -165,17 +172,17 @@ export function ScanPage() {
       );
       if (item) return { kind: "record", type: "item", id: item.id };
 
-      const eq = equipment.find((e) =>
+      const eq = scanEquipment.find((e) =>
         equalCode(e.id, code) || equalCode(e.serialNumber, code) || equalCode(e.assetNumber, code) || equalCode(e.equipmentName, code)
       );
       if (eq) return { kind: "record", type: "equipment", id: eq.id };
 
-      const durable = durables.find((d) => equalCode(d.id, code) || equalCode(d.assetName, code));
+      const durable = scanDurables.find((d) => equalCode(d.id, code) || equalCode(d.assetName, code));
       if (durable) return { kind: "record", type: "durable", id: durable.id };
     }
 
     const haystack = compact(candidates.join(" "));
-    const item = haystack.length >= 6 ? items.find((i) => compact(i.itemName).includes(haystack) || haystack.includes(compact(i.itemName))) : undefined;
+    const item = haystack.length >= 6 ? scanItems.find((i) => compact(i.itemName).includes(haystack) || haystack.includes(compact(i.itemName))) : undefined;
     if (item) return { kind: "record", type: "item", id: item.id };
     if (purchaseRequests.length > 0 && /\b(pr|purchase\s*request|requested\s*by|approval|procurement)\b/i.test(raw)) return { kind: "purchaseRequests" };
 
@@ -185,10 +192,6 @@ export function ScanPage() {
   function handleResult(text: string) {
     const raw = cleanCodeValue(text);
     setLastPayload(raw);
-    if (!dataReady) {
-      toast.error("Inventory still loading", { description: "Wait a moment, then scan again." });
-      return;
-    }
     try {
       const linkTarget = appLinkTarget(raw);
       if (linkTarget) return go(linkTarget);
