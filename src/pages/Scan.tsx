@@ -6,8 +6,105 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ScanLine, Camera, X } from "lucide-react";
 import { toast } from "sonner";
-import { useBatches, useEquipment, useDurables, useInventory } from "@/lib/useLiveData";
+import { useBatches, useDataReady, useEquipment, useDurables, useInventory, usePurchaseRequests } from "@/lib/useLiveData";
 import type { QrEntityType } from "@/lib/qrLinks";
+
+type ScannerTarget = { kind: "record"; type: QrEntityType; id: string } | { kind: "purchaseRequests" };
+
+const TYPE_ALIASES: Record<string, QrEntityType | "purchaseRequests"> = {
+  batch: "batch",
+  batches: "batch",
+  lot: "batch",
+  lots: "batch",
+  b: "batch",
+  item: "item",
+  inventory: "item",
+  inv: "item",
+  sku: "item",
+  equipment: "equipment",
+  eq: "equipment",
+  asset: "equipment",
+  durable: "durable",
+  durables: "durable",
+  dur: "durable",
+  pr: "purchaseRequests",
+  purchase: "purchaseRequests",
+  "purchase-request": "purchaseRequests",
+  "purchase-requests": "purchaseRequests",
+};
+
+function cleanCodeValue(value: string): string {
+  let text = value.normalize("NFKC").replace(/[\u0000-\u001f\u007f\u200b-\u200d\ufeff]/g, "").trim();
+  if (text.startsWith("]") && text.length > 3) text = text.slice(3).trim();
+  try { text = decodeURIComponent(text); } catch { /* keep original */ }
+  return text.replace(/^['"]+|['"]+$/g, "").trim();
+}
+
+function canonical(value: string): string {
+  return cleanCodeValue(value).toLowerCase().replace(/[‐‑‒–—−]/g, "-").replace(/\s+/g, " ").trim();
+}
+
+function compact(value: string): string {
+  return canonical(value).replace(/[^a-z0-9]/g, "");
+}
+
+function equalCode(a: string | null | undefined, b: string): boolean {
+  if (!a) return false;
+  return canonical(a) === canonical(b) || compact(a) === compact(b);
+}
+
+function addCandidate(set: Set<string>, value: unknown) {
+  if (value == null) return;
+  const text = cleanCodeValue(String(value));
+  if (text) set.add(text);
+}
+
+function collectJsonStrings(value: unknown, set: Set<string>) {
+  if (typeof value === "string" || typeof value === "number") addCandidate(set, value);
+  else if (Array.isArray(value)) value.forEach((v) => collectJsonStrings(v, set));
+  else if (value && typeof value === "object") Object.values(value).forEach((v) => collectJsonStrings(v, set));
+}
+
+function candidatePayloads(raw: string): string[] {
+  const set = new Set<string>();
+  addCandidate(set, raw);
+  const cleaned = cleanCodeValue(raw);
+
+  try {
+    const url = new URL(cleaned);
+    addCandidate(set, url.pathname);
+    addCandidate(set, url.hash.replace(/^#/, ""));
+    url.pathname.split("/").forEach((part) => addCandidate(set, part));
+    url.searchParams.forEach((value) => addCandidate(set, value));
+  } catch { /* not a URL */ }
+
+  if (/^[\[{]/.test(cleaned)) {
+    try { collectJsonStrings(JSON.parse(cleaned), set); } catch { /* not JSON */ }
+  }
+
+  for (const match of cleaned.matchAll(/\((\d{2,4})\)([^()]+)/g)) addCandidate(set, match[2]);
+  cleaned.split(/[\n\r\t|;,]+/).forEach((part) => {
+    addCandidate(set, part);
+    const keyValue = part.match(/^[\w -]{1,32}\s*[:=]\s*(.+)$/);
+    if (keyValue) addCandidate(set, keyValue[1]);
+  });
+
+  return [...set];
+}
+
+function appLinkTarget(raw: string): ScannerTarget | null {
+  for (const candidate of candidatePayloads(raw)) {
+    let path = candidate;
+    try { path = new URL(candidate).pathname; } catch { /* not a URL */ }
+    const match = path.match(/\/?r\/([^/]+)\/(.+)$/i);
+    if (!match) continue;
+    const type = TYPE_ALIASES[canonical(match[1])];
+    if (!type) continue;
+    if (type === "purchaseRequests") return { kind: "purchaseRequests" };
+    return { kind: "record", type, id: cleanCodeValue(match[2]) };
+  }
+  return null;
+}
 
 export function ScanPage() {
   const navigate = useNavigate();
