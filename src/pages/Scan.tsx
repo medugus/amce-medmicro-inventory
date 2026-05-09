@@ -183,32 +183,21 @@ export function ScanPage() {
   }
 
   function handleResult(text: string) {
-    const raw = text.trim();
+    const raw = cleanCodeValue(text);
     setLastPayload(raw);
+    if (!dataReady) {
+      toast.error("Inventory still loading", { description: "Wait a moment, then scan again." });
+      return;
+    }
     try {
-      let path = raw;
-      if (/^https?:\/\//i.test(path)) {
-        try {
-          const url = new URL(path);
-          path = url.pathname;
-        } catch {
-          // fall through to fallback
-        }
-      }
-      const m =
-        path.match(/\/?r\/([^/]+)\/(.+)$/) ??
-        path.match(/^(batch|equipment|durable|item)\/(.+)$/i);
-      if (m) {
-        const type = m[1].toLowerCase() as QrEntityType;
-        const id = decodeURIComponent(m[2]);
-        return go(type, id);
-      }
+      const linkTarget = appLinkTarget(raw);
+      if (linkTarget) return go(linkTarget);
 
       const fb = fallbackLookup(raw);
-      if (fb) return go(fb.type, fb.id);
+      if (fb) return go(fb);
 
       toast.error("Code not recognised", {
-        description: `Scanned: "${raw.length > 60 ? raw.slice(0, 60) + "…" : raw}". No matching batch, item, equipment or durable found.`,
+        description: `Scanned: "${raw.length > 60 ? raw.slice(0, 60) + "…" : raw}". No matching batch, item, equipment, durable or purchase request found.`,
       });
     } catch {
       toast.error("Could not parse code.");
