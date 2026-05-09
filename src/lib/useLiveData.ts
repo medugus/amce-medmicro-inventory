@@ -28,6 +28,9 @@ if (typeof window !== "undefined" && typeof indexedDB !== "undefined") {
     })
     .catch((err) => {
       console.error("Failed to seed local database:", err);
+      ready = true;
+      readyListeners.forEach((l) => l());
+      readyListeners.clear();
     });
 }
 
@@ -37,6 +40,11 @@ function useReady(): boolean {
     if (ready) { setR(true); return; }
     const fn = () => setR(true);
     readyListeners.add(fn);
+    if (ready || typeof indexedDB === "undefined") {
+      readyListeners.delete(fn);
+      setR(true);
+      return;
+    }
     return () => { readyListeners.delete(fn); };
   }, []);
   return r;
