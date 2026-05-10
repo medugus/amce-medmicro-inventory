@@ -61,6 +61,7 @@ const NAV: { to: string; label: string; group: string; icon: React.ComponentType
 
   { to: "/reports", label: "Reports", group: "Oversight", icon: FileBarChart2 },
   { to: "/readiness-audit", label: "Readiness Audit", group: "Oversight", icon: ShieldCheck },
+  { to: "/welcome", label: "Welcome / Quick Tour", group: "Oversight", icon: Sparkles },
   { to: "/training", label: "Training Guide", group: "Oversight", icon: BookOpen },
   { to: "/settings", label: "Settings", group: "Oversight", icon: SettingsIcon },
 ];
