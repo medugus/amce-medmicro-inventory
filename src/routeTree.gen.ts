@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WelcomeRouteImport } from './routes/welcome'
 import { Route as TrainingRouteImport } from './routes/training'
 import { Route as SupplyStatusRouteImport } from './routes/supply-status'
 import { Route as StockMovementsRouteImport } from './routes/stock-movements'
@@ -36,6 +37,11 @@ import { Route as AcceptanceTestingRouteImport } from './routes/acceptance-testi
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as RTypeIdRouteImport } from './routes/r.$type.$id'
 
+const WelcomeRoute = WelcomeRouteImport.update({
+  id: '/welcome',
+  path: '/welcome',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TrainingRoute = TrainingRouteImport.update({
   id: '/training',
   path: '/training',
@@ -193,6 +199,7 @@ export interface FileRoutesByFullPath {
   '/stock-movements': typeof StockMovementsRoute
   '/supply-status': typeof SupplyStatusRoute
   '/training': typeof TrainingRoute
+  '/welcome': typeof WelcomeRoute
   '/r/$type/$id': typeof RTypeIdRoute
 }
 export interface FileRoutesByTo {
@@ -221,6 +228,7 @@ export interface FileRoutesByTo {
   '/stock-movements': typeof StockMovementsRoute
   '/supply-status': typeof SupplyStatusRoute
   '/training': typeof TrainingRoute
+  '/welcome': typeof WelcomeRoute
   '/r/$type/$id': typeof RTypeIdRoute
 }
 export interface FileRoutesById {
@@ -250,6 +258,7 @@ export interface FileRoutesById {
   '/stock-movements': typeof StockMovementsRoute
   '/supply-status': typeof SupplyStatusRoute
   '/training': typeof TrainingRoute
+  '/welcome': typeof WelcomeRoute
   '/r/$type/$id': typeof RTypeIdRoute
 }
 export interface FileRouteTypes {
@@ -280,6 +289,7 @@ export interface FileRouteTypes {
     | '/stock-movements'
     | '/supply-status'
     | '/training'
+    | '/welcome'
     | '/r/$type/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -308,6 +318,7 @@ export interface FileRouteTypes {
     | '/stock-movements'
     | '/supply-status'
     | '/training'
+    | '/welcome'
     | '/r/$type/$id'
   id:
     | '__root__'
@@ -336,6 +347,7 @@ export interface FileRouteTypes {
     | '/stock-movements'
     | '/supply-status'
     | '/training'
+    | '/welcome'
     | '/r/$type/$id'
   fileRoutesById: FileRoutesById
 }
@@ -365,11 +377,19 @@ export interface RootRouteChildren {
   StockMovementsRoute: typeof StockMovementsRoute
   SupplyStatusRoute: typeof SupplyStatusRoute
   TrainingRoute: typeof TrainingRoute
+  WelcomeRoute: typeof WelcomeRoute
   RTypeIdRoute: typeof RTypeIdRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/welcome': {
+      id: '/welcome'
+      path: '/welcome'
+      fullPath: '/welcome'
+      preLoaderRoute: typeof WelcomeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/training': {
       id: '/training'
       path: '/training'
@@ -581,6 +601,7 @@ const rootRouteChildren: RootRouteChildren = {
   StockMovementsRoute: StockMovementsRoute,
   SupplyStatusRoute: SupplyStatusRoute,
   TrainingRoute: TrainingRoute,
+  WelcomeRoute: WelcomeRoute,
   RTypeIdRoute: RTypeIdRoute,
 }
 export const routeTree = rootRouteImport
