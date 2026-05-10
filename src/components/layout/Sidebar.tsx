@@ -28,6 +28,7 @@ import {
   X,
   ScanLine,
   QrCode,
+  Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
