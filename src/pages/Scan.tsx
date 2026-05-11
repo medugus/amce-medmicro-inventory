@@ -4,15 +4,25 @@ import { Header } from "@/components/layout/Header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ScanLine, Camera, X } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ScanLine, Camera, X, PackagePlus } from "lucide-react";
 import { toast } from "sonner";
 import { useBatches, useDataReady, useEquipment, useDurables, useInventory, usePurchaseRequests } from "@/lib/useLiveData";
 import type { QrEntityType } from "@/lib/qrLinks";
 import { AMCE_BATCHES } from "@/data/amceBatches";
 import { AMCE_INVENTORY_MASTER } from "@/data/amceInventoryMaster";
 import { AMCE_DURABLES, AMCE_EQUIPMENT } from "@/data/amceAssets";
+import { ReceiveBatchDialog } from "@/components/forms/ReceiveBatchDialog";
+import { recordAcceptance } from "@/lib/actions";
+import { getCurrentUser } from "@/lib/currentUser";
 
-type ScannerTarget = { kind: "record"; type: QrEntityType; id: string } | { kind: "purchaseRequests" };
+type ScannerTarget =
+  | { kind: "record"; type: QrEntityType; id: string }
+  | { kind: "receive"; scannedCode: string; inventoryItemId?: string }
+  | { kind: "purchaseRequests" };
 
 const TYPE_ALIASES: Record<string, QrEntityType | "purchaseRequests"> = {
   batch: "batch",
@@ -117,6 +127,18 @@ export function ScanPage() {
   const [active, setActive] = useState(false);
   const [manual, setManual] = useState("");
   const [lastPayload, setLastPayload] = useState<string | null>(null);
+  const [receiveOpen, setReceiveOpen] = useState(false);
+  const [receiveItemId, setReceiveItemId] = useState("");
+  const [receiveCode, setReceiveCode] = useState("");
+  const [acceptOpen, setAcceptOpen] = useState(false);
+  const [acceptBatchId, setAcceptBatchId] = useState("");
+  const [decision, setDecision] = useState<"Accepted" | "Rejected">("Accepted");
+  const [qcResult, setQcResult] = useState<"Pass" | "Fail" | "Pending" | "Not required">("Pass");
+  const [coa, setCoa] = useState(true);
+  const [physical, setPhysical] = useState<"Acceptable" | "Damaged" | "Compromised" | "Pending review">("Acceptable");
+  const [comments, setComments] = useState("");
+  const [corrective, setCorrective] = useState("");
+  const [accepting, setAccepting] = useState(false);
 
   const batches = useBatches();
   const items = useInventory();
@@ -128,6 +150,8 @@ export function ScanPage() {
   const scanItems = items.length ? items : AMCE_INVENTORY_MASTER;
   const scanEquipment = equipment.length ? equipment : AMCE_EQUIPMENT;
   const scanDurables = durables.length ? durables : AMCE_DURABLES;
+  const acceptBatch = scanBatches.find((b) => b.id === acceptBatchId);
+  const acceptItem = acceptBatch ? scanItems.find((i) => i.id === acceptBatch.inventoryItemId) : undefined;
 
   useEffect(() => {
     return () => {
@@ -145,7 +169,66 @@ export function ScanPage() {
       navigate({ to: "/purchase-requests" });
       return;
     }
+    if (target.kind === "receive") {
+      openReceipt(target.scannedCode, target.inventoryItemId ?? "");
+      return;
+    }
+    if (target.type === "item") {
+      openReceipt("", target.id);
+      return;
+    }
+    if (target.type === "batch") {
+      const batch = scanBatches.find((b) => b.id === target.id);
+      if (batch?.acceptanceStatus === "Pending acceptance" || batch?.batchStatus === "Pending acceptance") {
+        openAcceptance(target.id);
+        return;
+      }
+    }
     navigate({ to: "/r/$type/$id", params: { type: target.type, id: target.id } });
+  }
+
+  function openReceipt(scannedCode = "", inventoryItemId = "") {
+    stopScanner();
+    setReceiveCode(scannedCode);
+    setReceiveItemId(inventoryItemId);
+    setReceiveOpen(true);
+  }
+
+  function openAcceptance(batchId: string) {
+    stopScanner();
+    setAcceptBatchId(batchId);
+    setDecision("Accepted");
+    setQcResult("Pass");
+    setCoa(true);
+    setPhysical("Acceptable");
+    setComments("");
+    setCorrective("");
+    setAcceptOpen(true);
+  }
+
+  async function saveAcceptance() {
+    const user = getCurrentUser();
+    if (!user) { toast.error("Select a user in the top bar first."); return; }
+    if (!acceptBatchId) { toast.error("Scan or select a batch first."); return; }
+    if (decision === "Rejected" && !corrective.trim()) { toast.error("Corrective action is required when rejecting."); return; }
+    setAccepting(true);
+    try {
+      await recordAcceptance({
+        batchId: acceptBatchId,
+        decision,
+        qcResult,
+        certificateOfAnalysisAvailable: coa,
+        physicalCondition: physical,
+        comments,
+        correctiveActionIfRejected: corrective,
+      });
+      toast.success(`Batch ${decision.toLowerCase()} into the lab by ${user.name}.`);
+      setAcceptOpen(false);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to accept batch.");
+    } finally {
+      setAccepting(false);
+    }
   }
 
   function fallbackLookup(raw: string): ScannerTarget | null {
@@ -170,7 +253,7 @@ export function ScanPage() {
         equalCode(i.itemName, code) ||
         (compact(code).length >= 4 && [i.catalogueNumber, i.manufacturer, i.supplier].some((v) => v && compact(v).includes(compact(code))))
       );
-      if (item) return { kind: "record", type: "item", id: item.id };
+      if (item) return { kind: "receive", scannedCode: code, inventoryItemId: item.id };
 
       const eq = scanEquipment.find((e) =>
         equalCode(e.id, code) || equalCode(e.serialNumber, code) || equalCode(e.assetNumber, code) || equalCode(e.equipmentName, code)
@@ -183,7 +266,7 @@ export function ScanPage() {
 
     const haystack = compact(candidates.join(" "));
     const item = haystack.length >= 6 ? scanItems.find((i) => compact(i.itemName).includes(haystack) || haystack.includes(compact(i.itemName))) : undefined;
-    if (item) return { kind: "record", type: "item", id: item.id };
+    if (item) return { kind: "receive", scannedCode: raw, inventoryItemId: item.id };
     if (purchaseRequests.length > 0 && /\b(pr|purchase\s*request|requested\s*by|approval|procurement)\b/i.test(raw)) return { kind: "purchaseRequests" };
 
     return null;
@@ -199,8 +282,9 @@ export function ScanPage() {
       const fb = fallbackLookup(raw);
       if (fb) return go(fb);
 
-      toast.error("Code not recognised", {
-        description: `Scanned: "${raw.length > 60 ? raw.slice(0, 60) + "…" : raw}". No matching batch, item, equipment, durable or purchase request found.`,
+      openReceipt(raw);
+      toast.message("Barcode captured", {
+        description: "No existing stock record matched, so the receive form is ready for a new lab item batch.",
       });
     } catch {
       toast.error("Could not parse code.");
@@ -278,7 +362,7 @@ export function ScanPage() {
     <div>
       <Header
         title="Scan QR / Barcode"
-        description="Point a phone camera at any AMCE label to open the matching record instantly."
+        description="Scan supplier barcodes or AMCE labels to receive items, accept pending batches, or open existing lab records."
       />
       <div className="p-6 space-y-6 max-w-2xl">
         <section className="bg-card border border-border rounded-md p-4 space-y-3">
@@ -286,15 +370,20 @@ export function ScanPage() {
             <div className="font-semibold text-sm flex items-center gap-2">
               <Camera className="h-4 w-4" /> Camera scanner
             </div>
-            {active ? (
-              <Button size="sm" variant="outline" onClick={stopScanner}>
-                <X className="h-4 w-4 mr-1" /> Stop
+            <div className="flex items-center gap-2">
+              <Button size="sm" variant="outline" onClick={() => openReceipt(lastPayload ?? manual)}>
+                <PackagePlus className="h-4 w-4 mr-1" /> Receive
               </Button>
-            ) : (
-              <Button size="sm" onClick={startScanner}>
-                <ScanLine className="h-4 w-4 mr-1" /> Start camera
-              </Button>
-            )}
+              {active ? (
+                <Button size="sm" variant="outline" onClick={stopScanner}>
+                  <X className="h-4 w-4 mr-1" /> Stop
+                </Button>
+              ) : (
+                <Button size="sm" onClick={startScanner} disabled={!dataReady}>
+                  <ScanLine className="h-4 w-4 mr-1" /> Start camera
+                </Button>
+              )}
+            </div>
           </div>
           <div ref={containerRef} className="rounded-md overflow-hidden bg-muted/40 min-h-[240px]" />
           <p className="text-xs text-muted-foreground">
@@ -303,9 +392,9 @@ export function ScanPage() {
         </section>
 
         <section className="bg-card border border-border rounded-md p-4 space-y-3">
-          <div className="font-semibold text-sm">Enter code manually</div>
+          <div className="font-semibold text-sm">Enter or receive code manually</div>
           <div className="flex flex-col gap-2">
-            <Label htmlFor="manual">Paste a label URL, "type/id", or a batch/lot/serial number</Label>
+            <Label htmlFor="manual">Paste a supplier barcode, label URL, item code, batch, lot, or serial number</Label>
             <div className="flex gap-2">
               <Input
                 id="manual"
@@ -314,7 +403,7 @@ export function ScanPage() {
                 placeholder="e.g. BATCH-001, LOT-2025-04, full URL, or batch/<id>"
               />
               <Button onClick={() => handleResult(manual)} disabled={!manual.trim()}>
-                Open
+                Read
               </Button>
             </div>
             {lastPayload && (
@@ -325,6 +414,78 @@ export function ScanPage() {
           </div>
         </section>
       </div>
+      <ReceiveBatchDialog
+        open={receiveOpen}
+        onOpenChange={setReceiveOpen}
+        defaultInventoryItemId={receiveItemId}
+        scannedCode={receiveCode}
+        onCreated={(batchId) => openAcceptance(batchId)}
+      />
+      <Dialog open={acceptOpen} onOpenChange={setAcceptOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Accept item into lab</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="rounded-md border border-border bg-muted/40 p-3 text-sm">
+              <div className="font-medium">{acceptItem?.itemName ?? "Scanned batch"}</div>
+              <div className="text-xs text-muted-foreground mt-1">
+                Batch {acceptBatch?.batchNumber ?? acceptBatchId} {acceptBatch?.lotNumber ? `• Lot ${acceptBatch.lotNumber}` : ""}
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-xs">Decision</Label>
+                <Select value={decision} onValueChange={(v) => setDecision(v as "Accepted" | "Rejected")}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Accepted">Accepted</SelectItem>
+                    <SelectItem value="Rejected">Rejected</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="text-xs">QC result</Label>
+                <Select value={qcResult} onValueChange={(v) => setQcResult(v as typeof qcResult)}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {(["Pass", "Fail", "Pending", "Not required"] as const).map((v) => <SelectItem key={v} value={v}>{v}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-xs">Physical condition</Label>
+                <Select value={physical} onValueChange={(v) => setPhysical(v as typeof physical)}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {(["Acceptable", "Damaged", "Compromised", "Pending review"] as const).map((v) => <SelectItem key={v} value={v}>{v}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <label className="flex items-end gap-2 text-xs pb-2">
+                <Checkbox checked={coa} onCheckedChange={(v) => setCoa(Boolean(v))} />
+                Certificate of Analysis available
+              </label>
+            </div>
+            <div>
+              <Label className="text-xs">Comments</Label>
+              <Textarea value={comments} onChange={(e) => setComments(e.target.value)} />
+            </div>
+            {decision === "Rejected" && (
+              <div>
+                <Label className="text-xs">Corrective action (required)</Label>
+                <Textarea value={corrective} onChange={(e) => setCorrective(e.target.value)} />
+              </div>
+            )}
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setAcceptOpen(false)}>Cancel</Button>
+              <Button onClick={saveAcceptance} disabled={accepting}>{accepting ? "Saving…" : "Accept into lab"}</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
