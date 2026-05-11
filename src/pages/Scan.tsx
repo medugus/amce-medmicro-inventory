@@ -4,6 +4,10 @@ import { Header } from "@/components/layout/Header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import { ScanLine, Camera, X, PackagePlus } from "lucide-react";
 import { toast } from "sonner";
 import { useBatches, useDataReady, useEquipment, useDurables, useInventory, usePurchaseRequests } from "@/lib/useLiveData";
@@ -12,8 +16,13 @@ import { AMCE_BATCHES } from "@/data/amceBatches";
 import { AMCE_INVENTORY_MASTER } from "@/data/amceInventoryMaster";
 import { AMCE_DURABLES, AMCE_EQUIPMENT } from "@/data/amceAssets";
 import { ReceiveBatchDialog } from "@/components/forms/ReceiveBatchDialog";
+import { recordAcceptance } from "@/lib/actions";
+import { getCurrentUser } from "@/lib/currentUser";
 
-type ScannerTarget = { kind: "record"; type: QrEntityType; id: string } | { kind: "purchaseRequests" };
+type ScannerTarget =
+  | { kind: "record"; type: QrEntityType; id: string }
+  | { kind: "receive"; scannedCode: string; inventoryItemId?: string }
+  | { kind: "purchaseRequests" };
 
 const TYPE_ALIASES: Record<string, QrEntityType | "purchaseRequests"> = {
   batch: "batch",
