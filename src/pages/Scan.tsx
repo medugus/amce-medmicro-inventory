@@ -414,6 +414,78 @@ export function ScanPage() {
           </div>
         </section>
       </div>
+      <ReceiveBatchDialog
+        open={receiveOpen}
+        onOpenChange={setReceiveOpen}
+        defaultInventoryItemId={receiveItemId}
+        scannedCode={receiveCode}
+        onCreated={(batchId) => openAcceptance(batchId)}
+      />
+      <Dialog open={acceptOpen} onOpenChange={setAcceptOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Accept item into lab</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="rounded-md border border-border bg-muted/40 p-3 text-sm">
+              <div className="font-medium">{acceptItem?.itemName ?? "Scanned batch"}</div>
+              <div className="text-xs text-muted-foreground mt-1">
+                Batch {acceptBatch?.batchNumber ?? acceptBatchId} {acceptBatch?.lotNumber ? `• Lot ${acceptBatch.lotNumber}` : ""}
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-xs">Decision</Label>
+                <Select value={decision} onValueChange={(v) => setDecision(v as "Accepted" | "Rejected")}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Accepted">Accepted</SelectItem>
+                    <SelectItem value="Rejected">Rejected</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="text-xs">QC result</Label>
+                <Select value={qcResult} onValueChange={(v) => setQcResult(v as typeof qcResult)}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {(["Pass", "Fail", "Pending", "Not required"] as const).map((v) => <SelectItem key={v} value={v}>{v}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-xs">Physical condition</Label>
+                <Select value={physical} onValueChange={(v) => setPhysical(v as typeof physical)}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {(["Acceptable", "Damaged", "Compromised", "Pending review"] as const).map((v) => <SelectItem key={v} value={v}>{v}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <label className="flex items-end gap-2 text-xs pb-2">
+                <Checkbox checked={coa} onCheckedChange={(v) => setCoa(Boolean(v))} />
+                Certificate of Analysis available
+              </label>
+            </div>
+            <div>
+              <Label className="text-xs">Comments</Label>
+              <Textarea value={comments} onChange={(e) => setComments(e.target.value)} />
+            </div>
+            {decision === "Rejected" && (
+              <div>
+                <Label className="text-xs">Corrective action (required)</Label>
+                <Textarea value={corrective} onChange={(e) => setCorrective(e.target.value)} />
+              </div>
+            )}
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setAcceptOpen(false)}>Cancel</Button>
+              <Button onClick={saveAcceptance} disabled={accepting}>{accepting ? "Saving…" : "Accept into lab"}</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
