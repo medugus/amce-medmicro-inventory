@@ -24,6 +24,7 @@ interface ReceiveBatchDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   defaultInventoryItemId?: string;
+  scannedCode?: string;
   onCreated?: (batchId: string, inventoryItemId: string) => void;
 }
 
@@ -31,6 +32,7 @@ export function ReceiveBatchDialog({
   open,
   onOpenChange,
   defaultInventoryItemId = "",
+  scannedCode = "",
   onCreated,
 }: ReceiveBatchDialogProps) {
   const inventory = useInventory();
@@ -47,8 +49,15 @@ export function ReceiveBatchDialog({
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    if (open) setItemId(defaultInventoryItemId);
-  }, [open, defaultInventoryItemId]);
+    if (!open) return;
+    setItemId(defaultInventoryItemId);
+    if (!scannedCode.trim()) return;
+    const code = scannedCode.trim();
+    const labelValue = code.length > 80 ? code.slice(0, 80) : code;
+    setBatchNumber(labelValue);
+    setLotNumber(labelValue);
+    setNotes(`Scanned barcode: ${code}`);
+  }, [open, defaultInventoryItemId, scannedCode]);
 
   const selected = inventory.find((i) => i.id === itemId);
 
