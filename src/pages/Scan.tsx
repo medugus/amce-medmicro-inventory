@@ -158,6 +158,10 @@ export function ScanPage() {
       navigate({ to: "/purchase-requests" });
       return;
     }
+    if (target.kind === "receive") {
+      openReceipt(target.scannedCode, target.inventoryItemId ?? "");
+      return;
+    }
     navigate({ to: "/r/$type/$id", params: { type: target.type, id: target.id } });
   }
 
