@@ -130,6 +130,15 @@ export function ScanPage() {
   const [receiveOpen, setReceiveOpen] = useState(false);
   const [receiveItemId, setReceiveItemId] = useState("");
   const [receiveCode, setReceiveCode] = useState("");
+  const [acceptOpen, setAcceptOpen] = useState(false);
+  const [acceptBatchId, setAcceptBatchId] = useState("");
+  const [decision, setDecision] = useState<"Accepted" | "Rejected">("Accepted");
+  const [qcResult, setQcResult] = useState<"Pass" | "Fail" | "Pending" | "Not required">("Pass");
+  const [coa, setCoa] = useState(true);
+  const [physical, setPhysical] = useState<"Acceptable" | "Damaged" | "Compromised" | "Pending review">("Acceptable");
+  const [comments, setComments] = useState("");
+  const [corrective, setCorrective] = useState("");
+  const [accepting, setAccepting] = useState(false);
 
   const batches = useBatches();
   const items = useInventory();
@@ -141,6 +150,8 @@ export function ScanPage() {
   const scanItems = items.length ? items : AMCE_INVENTORY_MASTER;
   const scanEquipment = equipment.length ? equipment : AMCE_EQUIPMENT;
   const scanDurables = durables.length ? durables : AMCE_DURABLES;
+  const acceptBatch = scanBatches.find((b) => b.id === acceptBatchId);
+  const acceptItem = acceptBatch ? scanItems.find((i) => i.id === acceptBatch.inventoryItemId) : undefined;
 
   useEffect(() => {
     return () => {
