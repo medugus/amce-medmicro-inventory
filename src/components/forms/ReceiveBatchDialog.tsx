@@ -28,6 +28,19 @@ interface ReceiveBatchDialogProps {
   onCreated?: (batchId: string, inventoryItemId: string) => void;
 }
 
+function receiptSeedFromCode(code: string) {
+  const cleaned = code.normalize("NFKC").replace(/^[\]]\w\d/, "").trim();
+  const lot = cleaned.match(/\(10\)([^()\u001d]+)/)?.[1]?.trim();
+  const batch = cleaned.match(/\(21\)([^()\u001d]+)/)?.[1]?.trim() || lot || cleaned;
+  const expiry = cleaned.match(/\(17\)(\d{6})/)?.[1];
+  const expiryDate = expiry ? `20${expiry.slice(0, 2)}-${expiry.slice(2, 4)}-${expiry.slice(4, 6)}` : "";
+  return {
+    batchNumber: batch.length > 80 ? batch.slice(0, 80) : batch,
+    lotNumber: lot ? (lot.length > 80 ? lot.slice(0, 80) : lot) : batch.length > 80 ? batch.slice(0, 80) : batch,
+    expiryDate,
+  };
+}
+
 export function ReceiveBatchDialog({
   open,
   onOpenChange,
@@ -53,9 +66,10 @@ export function ReceiveBatchDialog({
     setItemId(defaultInventoryItemId);
     if (!scannedCode.trim()) return;
     const code = scannedCode.trim();
-    const labelValue = code.length > 80 ? code.slice(0, 80) : code;
-    setBatchNumber(labelValue);
-    setLotNumber(labelValue);
+    const seed = receiptSeedFromCode(code);
+    setBatchNumber(seed.batchNumber);
+    setLotNumber(seed.lotNumber);
+    if (seed.expiryDate) setExpiryDate(seed.expiryDate);
     setNotes(`Scanned barcode: ${code}`);
   }, [open, defaultInventoryItemId, scannedCode]);
 
