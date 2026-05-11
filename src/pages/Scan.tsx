@@ -181,7 +181,10 @@ export function ScanPage() {
         equalCode(i.itemName, code) ||
         (compact(code).length >= 4 && [i.catalogueNumber, i.manufacturer, i.supplier].some((v) => v && compact(v).includes(compact(code))))
       );
-      if (item) return { kind: "record", type: "item", id: item.id };
+      if (item) {
+        openReceipt(code, item.id);
+        return { kind: "record", type: "item", id: item.id };
+      }
 
       const eq = scanEquipment.find((e) =>
         equalCode(e.id, code) || equalCode(e.serialNumber, code) || equalCode(e.assetNumber, code) || equalCode(e.equipmentName, code)
@@ -194,7 +197,10 @@ export function ScanPage() {
 
     const haystack = compact(candidates.join(" "));
     const item = haystack.length >= 6 ? scanItems.find((i) => compact(i.itemName).includes(haystack) || haystack.includes(compact(i.itemName))) : undefined;
-    if (item) return { kind: "record", type: "item", id: item.id };
+    if (item) {
+      openReceipt(raw, item.id);
+      return { kind: "record", type: "item", id: item.id };
+    }
     if (purchaseRequests.length > 0 && /\b(pr|purchase\s*request|requested\s*by|approval|procurement)\b/i.test(raw)) return { kind: "purchaseRequests" };
 
     return null;
@@ -210,8 +216,9 @@ export function ScanPage() {
       const fb = fallbackLookup(raw);
       if (fb) return go(fb);
 
-      toast.error("Code not recognised", {
-        description: `Scanned: "${raw.length > 60 ? raw.slice(0, 60) + "…" : raw}". No matching batch, item, equipment, durable or purchase request found.`,
+      openReceipt(raw);
+      toast.message("Barcode captured", {
+        description: "No existing stock record matched, so the receive form is ready for a new lab item batch.",
       });
     } catch {
       toast.error("Could not parse code.");
