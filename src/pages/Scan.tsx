@@ -4,13 +4,14 @@ import { Header } from "@/components/layout/Header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ScanLine, Camera, X } from "lucide-react";
+import { ScanLine, Camera, X, PackagePlus } from "lucide-react";
 import { toast } from "sonner";
 import { useBatches, useDataReady, useEquipment, useDurables, useInventory, usePurchaseRequests } from "@/lib/useLiveData";
 import type { QrEntityType } from "@/lib/qrLinks";
 import { AMCE_BATCHES } from "@/data/amceBatches";
 import { AMCE_INVENTORY_MASTER } from "@/data/amceInventoryMaster";
 import { AMCE_DURABLES, AMCE_EQUIPMENT } from "@/data/amceAssets";
+import { ReceiveBatchDialog } from "@/components/forms/ReceiveBatchDialog";
 
 type ScannerTarget = { kind: "record"; type: QrEntityType; id: string } | { kind: "purchaseRequests" };
 
@@ -117,6 +118,9 @@ export function ScanPage() {
   const [active, setActive] = useState(false);
   const [manual, setManual] = useState("");
   const [lastPayload, setLastPayload] = useState<string | null>(null);
+  const [receiveOpen, setReceiveOpen] = useState(false);
+  const [receiveItemId, setReceiveItemId] = useState("");
+  const [receiveCode, setReceiveCode] = useState("");
 
   const batches = useBatches();
   const items = useInventory();
@@ -146,6 +150,13 @@ export function ScanPage() {
       return;
     }
     navigate({ to: "/r/$type/$id", params: { type: target.type, id: target.id } });
+  }
+
+  function openReceipt(scannedCode = "", inventoryItemId = "") {
+    stopScanner();
+    setReceiveCode(scannedCode);
+    setReceiveItemId(inventoryItemId);
+    setReceiveOpen(true);
   }
 
   function fallbackLookup(raw: string): ScannerTarget | null {
