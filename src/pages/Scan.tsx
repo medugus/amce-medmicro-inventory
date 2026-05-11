@@ -183,6 +183,43 @@ export function ScanPage() {
     setReceiveOpen(true);
   }
 
+  function openAcceptance(batchId: string) {
+    stopScanner();
+    setAcceptBatchId(batchId);
+    setDecision("Accepted");
+    setQcResult("Pass");
+    setCoa(true);
+    setPhysical("Acceptable");
+    setComments("");
+    setCorrective("");
+    setAcceptOpen(true);
+  }
+
+  async function saveAcceptance() {
+    const user = getCurrentUser();
+    if (!user) { toast.error("Select a user in the top bar first."); return; }
+    if (!acceptBatchId) { toast.error("Scan or select a batch first."); return; }
+    if (decision === "Rejected" && !corrective.trim()) { toast.error("Corrective action is required when rejecting."); return; }
+    setAccepting(true);
+    try {
+      await recordAcceptance({
+        batchId: acceptBatchId,
+        decision,
+        qcResult,
+        certificateOfAnalysisAvailable: coa,
+        physicalCondition: physical,
+        comments,
+        correctiveActionIfRejected: corrective,
+      });
+      toast.success(`Batch ${decision.toLowerCase()} into the lab by ${user.name}.`);
+      setAcceptOpen(false);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to accept batch.");
+    } finally {
+      setAccepting(false);
+    }
+  }
+
   function fallbackLookup(raw: string): ScannerTarget | null {
     const candidates = candidatePayloads(raw);
     if (candidates.length === 0) return null;
