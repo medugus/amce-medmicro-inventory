@@ -173,6 +173,17 @@ export function ScanPage() {
       openReceipt(target.scannedCode, target.inventoryItemId ?? "");
       return;
     }
+    if (target.type === "item") {
+      openReceipt("", target.id);
+      return;
+    }
+    if (target.type === "batch") {
+      const batch = scanBatches.find((b) => b.id === target.id);
+      if (batch?.acceptanceStatus === "Pending acceptance" || batch?.batchStatus === "Pending acceptance") {
+        openAcceptance(target.id);
+        return;
+      }
+    }
     navigate({ to: "/r/$type/$id", params: { type: target.type, id: target.id } });
   }
 
@@ -242,10 +253,7 @@ export function ScanPage() {
         equalCode(i.itemName, code) ||
         (compact(code).length >= 4 && [i.catalogueNumber, i.manufacturer, i.supplier].some((v) => v && compact(v).includes(compact(code))))
       );
-      if (item) {
-        openReceipt(code, item.id);
-        return { kind: "record", type: "item", id: item.id };
-      }
+      if (item) return { kind: "receive", scannedCode: code, inventoryItemId: item.id };
 
       const eq = scanEquipment.find((e) =>
         equalCode(e.id, code) || equalCode(e.serialNumber, code) || equalCode(e.assetNumber, code) || equalCode(e.equipmentName, code)
@@ -258,10 +266,7 @@ export function ScanPage() {
 
     const haystack = compact(candidates.join(" "));
     const item = haystack.length >= 6 ? scanItems.find((i) => compact(i.itemName).includes(haystack) || haystack.includes(compact(i.itemName))) : undefined;
-    if (item) {
-      openReceipt(raw, item.id);
-      return { kind: "record", type: "item", id: item.id };
-    }
+    if (item) return { kind: "receive", scannedCode: raw, inventoryItemId: item.id };
     if (purchaseRequests.length > 0 && /\b(pr|purchase\s*request|requested\s*by|approval|procurement)\b/i.test(raw)) return { kind: "purchaseRequests" };
 
     return null;
