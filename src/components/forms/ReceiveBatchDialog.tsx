@@ -14,11 +14,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { InventoryItemPicker } from "@/components/forms/InventoryItemPicker";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useInventory } from "@/lib/useLiveData";
-import { createBatch } from "@/lib/actions";
+import { createBatch, updateInventoryItem } from "@/lib/actions";
 import { getCurrentUser } from "@/lib/currentUser";
 import { toast } from "sonner";
 import { InlineWarning } from "@/components/common/InlineWarning";
+import { ScanLine } from "lucide-react";
 
 interface ReceiveBatchDialogProps {
   open: boolean;
