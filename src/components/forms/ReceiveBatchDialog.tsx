@@ -14,11 +14,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { InventoryItemPicker } from "@/components/forms/InventoryItemPicker";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useInventory } from "@/lib/useLiveData";
-import { createBatch } from "@/lib/actions";
+import { createBatch, updateInventoryItem } from "@/lib/actions";
 import { getCurrentUser } from "@/lib/currentUser";
 import { toast } from "sonner";
 import { InlineWarning } from "@/components/common/InlineWarning";
+import { ScanLine } from "lucide-react";
 
 interface ReceiveBatchDialogProps {
   open: boolean;
@@ -60,10 +62,12 @@ export function ReceiveBatchDialog({
   const [storageLocation, setStorageLocation] = useState("");
   const [notes, setNotes] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [rememberBarcode, setRememberBarcode] = useState(true);
 
   useEffect(() => {
     if (!open) return;
     setItemId(defaultInventoryItemId);
+    setRememberBarcode(true);
     if (!scannedCode.trim()) return;
     const code = scannedCode.trim();
     const seed = receiptSeedFromCode(code);
@@ -104,6 +108,25 @@ export function ReceiveBatchDialog({
         storageConditionRequired: selected?.storageCondition ?? "",
         notes,
       });
+      // If the user scanned a barcode and asked to remember it, save it on the
+      // inventory item so future scans of the same code auto-match.
+      if (rememberBarcode && scannedCode.trim() && selected) {
+        const code = scannedCode.trim();
+        const already = (selected.catalogueNumber ?? "").trim() === code;
+        if (!already) {
+          try {
+            await updateInventoryItem(
+              selected.id,
+              selected.catalogueNumber
+                ? { notes: `${selected.notes ?? ""}\nSupplier barcode: ${code}`.trim() }
+                : { catalogueNumber: code },
+              "Linked supplier barcode from scan",
+            );
+          } catch {
+            // non-fatal
+          }
+        }
+      }
       toast.success(
         `Batch ${batch.batchNumber} received — now go to Acceptance Testing to release it.`
       );
@@ -128,6 +151,30 @@ export function ReceiveBatchDialog({
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-3">
+          {scannedCode.trim() && (
+            <div className="rounded-md border border-border bg-muted/40 p-3 text-xs space-y-2">
+              <div className="flex items-center gap-2 font-medium text-foreground">
+                <ScanLine className="h-3.5 w-3.5" /> Scanned barcode
+              </div>
+              <div className="font-mono break-all">{scannedCode.trim()}</div>
+              {selected && (
+                <label className="flex items-start gap-2 cursor-pointer">
+                  <Checkbox
+                    checked={rememberBarcode}
+                    onCheckedChange={(v) => setRememberBarcode(v === true)}
+                  />
+                  <span className="text-muted-foreground leading-snug">
+                    Remember this barcode for <span className="font-medium text-foreground">{selected.itemName}</span> so the next scan auto-fills the product.
+                  </span>
+                </label>
+              )}
+              {!selected && (
+                <div className="text-muted-foreground">
+                  Pick the matching inventory item below — the barcode will be saved against it for next time.
+                </div>
+              )}
+            </div>
+          )}
           <div>
             <Label className="text-xs">Inventory item</Label>
             <InventoryItemPicker
