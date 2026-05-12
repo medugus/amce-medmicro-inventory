@@ -108,6 +108,25 @@ export function ReceiveBatchDialog({
         storageConditionRequired: selected?.storageCondition ?? "",
         notes,
       });
+      // If the user scanned a barcode and asked to remember it, save it on the
+      // inventory item so future scans of the same code auto-match.
+      if (rememberBarcode && scannedCode.trim() && selected) {
+        const code = scannedCode.trim();
+        const already = (selected.catalogueNumber ?? "").trim() === code;
+        if (!already) {
+          try {
+            await updateInventoryItem(
+              selected.id,
+              selected.catalogueNumber
+                ? { notes: `${selected.notes ?? ""}\nSupplier barcode: ${code}`.trim() }
+                : { catalogueNumber: code },
+              "Linked supplier barcode from scan",
+            );
+          } catch {
+            // non-fatal
+          }
+        }
+      }
       toast.success(
         `Batch ${batch.batchNumber} received — now go to Acceptance Testing to release it.`
       );
