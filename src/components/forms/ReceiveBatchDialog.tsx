@@ -151,6 +151,30 @@ export function ReceiveBatchDialog({
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-3">
+          {scannedCode.trim() && (
+            <div className="rounded-md border border-border bg-muted/40 p-3 text-xs space-y-2">
+              <div className="flex items-center gap-2 font-medium text-foreground">
+                <ScanLine className="h-3.5 w-3.5" /> Scanned barcode
+              </div>
+              <div className="font-mono break-all">{scannedCode.trim()}</div>
+              {selected && (
+                <label className="flex items-start gap-2 cursor-pointer">
+                  <Checkbox
+                    checked={rememberBarcode}
+                    onCheckedChange={(v) => setRememberBarcode(v === true)}
+                  />
+                  <span className="text-muted-foreground leading-snug">
+                    Remember this barcode for <span className="font-medium text-foreground">{selected.itemName}</span> so the next scan auto-fills the product.
+                  </span>
+                </label>
+              )}
+              {!selected && (
+                <div className="text-muted-foreground">
+                  Pick the matching inventory item below — the barcode will be saved against it for next time.
+                </div>
+              )}
+            </div>
+          )}
           <div>
             <Label className="text-xs">Inventory item</Label>
             <InventoryItemPicker
