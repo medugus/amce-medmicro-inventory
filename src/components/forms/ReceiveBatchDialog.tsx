@@ -62,10 +62,12 @@ export function ReceiveBatchDialog({
   const [storageLocation, setStorageLocation] = useState("");
   const [notes, setNotes] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [rememberBarcode, setRememberBarcode] = useState(true);
 
   useEffect(() => {
     if (!open) return;
     setItemId(defaultInventoryItemId);
+    setRememberBarcode(true);
     if (!scannedCode.trim()) return;
     const code = scannedCode.trim();
     const seed = receiptSeedFromCode(code);
