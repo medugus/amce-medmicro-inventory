@@ -286,8 +286,12 @@ export function ScanPage() {
       toast.message("Barcode captured", {
         description: "No existing stock record matched, so the receive form is ready for a new lab item batch.",
       });
-    } catch {
-      toast.error("Could not parse code.");
+    } catch (err) {
+      console.error("Scan parse failed", err);
+      openReceipt(raw);
+      toast.message("Barcode captured", {
+        description: "Could not auto-match the code. The receive form is open — pick the item and confirm the details.",
+      });
     }
   }
 
