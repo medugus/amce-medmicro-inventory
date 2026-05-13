@@ -19,6 +19,8 @@ import type {
   DurableAsset,
   SectionForecast,
   PurchaseRequest,
+  GtinCatalogueEntry,
+  ScanHistoryEntry,
 } from "@/types";
 
 import { AMCE_INVENTORY_MASTER } from "@/data/amceInventoryMaster";
@@ -41,6 +43,8 @@ class AMCEDatabase extends Dexie {
   durables!: Table<DurableAsset, string>;
   forecasts!: Table<SectionForecast, string>;
   purchaseRequests!: Table<PurchaseRequest, string>;
+  gtinCatalogue!: Table<GtinCatalogueEntry, string>;
+  scanHistory!: Table<ScanHistoryEntry, string>;
   meta!: Table<{ key: string; value: string }, string>;
 
   constructor() {
@@ -76,6 +80,21 @@ class AMCEDatabase extends Dexie {
       durables: "id, assetName, laboratorySection, assetCategory, condition",
       forecasts: "id, laboratorySection, priority, forecastDate",
       purchaseRequests: "id, requestingSection, approvalStatus, procurementStatus, requestDate",
+      meta: "key",
+    });
+    this.version(4).stores({
+      inventory: "id, itemName, laboratorySection, category, criticality",
+      batches: "id, inventoryItemId, batchNumber, expiryDate, batchStatus, acceptanceStatus",
+      movements: "id, inventoryItemId, batchId, dateTime, movementType, performedBy",
+      acceptance: "id, batchId, dateAccepted, acceptedOrRejected",
+      supply: "id, itemName, laboratorySection, supplyStatus, criticality",
+      audit: "id, dateTime, user, module, entityId",
+      equipment: "id, equipmentName, laboratorySection, equipmentCategory, operationalStatus",
+      durables: "id, assetName, laboratorySection, assetCategory, condition",
+      forecasts: "id, laboratorySection, priority, forecastDate",
+      purchaseRequests: "id, requestingSection, approvalStatus, procurementStatus, requestDate",
+      gtinCatalogue: "gtin, productName, manufacturer, category, lastSeenAt",
+      scanHistory: "id, scannedAt, gtin",
       meta: "key",
     });
   }

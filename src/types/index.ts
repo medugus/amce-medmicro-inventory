@@ -313,6 +313,37 @@ export type PurchaseRequestStatus =
   | "Supplied"
   | "Closed";
 
+export type GtinCategory =
+  | "culture media"
+  | "reagent"
+  | "consumable"
+  | "PPE"
+  | "equipment"
+  | "other";
+
+export interface GtinCatalogueEntry {
+  gtin: string;
+  productName: string;
+  manufacturer: string | null;
+  unit: string | null;
+  category: GtinCategory | null;
+  inventoryItemId: string | null; // optional link to InventoryItem
+  createdAt: string;
+  lastSeenAt: string;
+}
+
+export interface ScanHistoryEntry {
+  id: string;
+  scannedAt: string;
+  scannedBy: string;
+  gtin: string | null;
+  lotNumber: string | null;
+  expiryDate: string | null;
+  productName: string | null;
+  rawCode: string;
+  action: string;
+}
+
 export interface PurchaseRequest {
   id: string;
   requestDate: string;
