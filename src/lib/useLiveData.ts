@@ -15,6 +15,8 @@ import type {
   DurableAsset,
   SectionForecast,
   PurchaseRequest,
+  GtinCatalogueEntry,
+  ScanHistoryEntry,
 } from "@/types";
 
 let ready = false;
@@ -146,6 +148,23 @@ export function usePurchaseRequests(): PurchaseRequest[] {
     db.purchaseRequests.toArray().then((rows) =>
       rows.sort((a, b) => (b.requestDate ?? "").localeCompare(a.requestDate ?? ""))
     )
+  );
+}
+
+export function useGtinCatalogue(): GtinCatalogueEntry[] {
+  return useTable(() =>
+    db.gtinCatalogue.toArray().then((rows) =>
+      rows.sort((a, b) => (b.lastSeenAt ?? "").localeCompare(a.lastSeenAt ?? ""))
+    )
+  );
+}
+
+export function useScanHistory(limit = 10): ScanHistoryEntry[] {
+  return useTable(() =>
+    db.scanHistory.toArray().then((rows) =>
+      rows.sort((a, b) => (b.scannedAt ?? "").localeCompare(a.scannedAt ?? "")).slice(0, limit)
+    ),
+    [limit]
   );
 }
 
