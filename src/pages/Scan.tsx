@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { Header } from "@/components/layout/Header";
 import { Button } from "@/components/ui/button";
@@ -8,16 +8,22 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ScanLine, Camera, X, PackagePlus } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { ScanLine, Camera, X, PackagePlus, CheckCircle2, AlertCircle, ChevronDown, History, Save } from "lucide-react";
 import { toast } from "sonner";
-import { useBatches, useDataReady, useEquipment, useDurables, useInventory, usePurchaseRequests } from "@/lib/useLiveData";
+import { useBatches, useDataReady, useEquipment, useDurables, useInventory, usePurchaseRequests, useScanHistory } from "@/lib/useLiveData";
 import type { QrEntityType } from "@/lib/qrLinks";
 import { AMCE_BATCHES } from "@/data/amceBatches";
 import { AMCE_INVENTORY_MASTER } from "@/data/amceInventoryMaster";
 import { AMCE_DURABLES, AMCE_EQUIPMENT } from "@/data/amceAssets";
+import { AMCE_SECTIONS } from "@/data/amceSections";
 import { ReceiveBatchDialog } from "@/components/forms/ReceiveBatchDialog";
 import { recordAcceptance } from "@/lib/actions";
 import { getCurrentUser } from "@/lib/currentUser";
+import { parseGs1, plainGtin, formatExpiryForDisplay, type Gs1Parsed } from "@/lib/gs1";
+import { getGtinEntry, upsertGtinEntry, touchGtinSeen, recordScan } from "@/lib/gtinActions";
+import type { GtinCatalogueEntry, GtinCategory, LaboratorySectionId } from "@/types";
 
 type ScannerTarget =
   | { kind: "record"; type: QrEntityType; id: string }
@@ -25,26 +31,15 @@ type ScannerTarget =
   | { kind: "purchaseRequests" };
 
 const TYPE_ALIASES: Record<string, QrEntityType | "purchaseRequests"> = {
-  batch: "batch",
-  batches: "batch",
-  lot: "batch",
-  lots: "batch",
-  b: "batch",
-  item: "item",
-  inventory: "item",
-  inv: "item",
-  sku: "item",
-  equipment: "equipment",
-  eq: "equipment",
-  asset: "equipment",
-  durable: "durable",
-  durables: "durable",
-  dur: "durable",
-  pr: "purchaseRequests",
-  purchase: "purchaseRequests",
-  "purchase-request": "purchaseRequests",
-  "purchase-requests": "purchaseRequests",
+  batch: "batch", batches: "batch", lot: "batch", lots: "batch", b: "batch",
+  item: "item", inventory: "item", inv: "item", sku: "item",
+  equipment: "equipment", eq: "equipment", asset: "equipment",
+  durable: "durable", durables: "durable", dur: "durable",
+  pr: "purchaseRequests", purchase: "purchaseRequests",
+  "purchase-request": "purchaseRequests", "purchase-requests": "purchaseRequests",
 };
+
+const GTIN_CATEGORIES: GtinCategory[] = ["culture media", "reagent", "consumable", "PPE", "equipment", "other"];
 
 function cleanCodeValue(value: string): string {
   let text = value.normalize("NFKC").replace(/[\u0000-\u001f\u007f\u200b-\u200d\ufeff]/g, "").trim();
@@ -52,71 +47,34 @@ function cleanCodeValue(value: string): string {
   try { text = decodeURIComponent(text); } catch { /* keep original */ }
   return text.replace(/^['"]+|['"]+$/g, "").trim();
 }
-
 function canonical(value: string): string {
   return cleanCodeValue(value).toLowerCase().replace(/[‐‑‒–—−]/g, "-").replace(/\s+/g, " ").trim();
 }
-
-function compact(value: string): string {
-  return canonical(value).replace(/[^a-z0-9]/g, "");
-}
-
+function compact(value: string): string { return canonical(value).replace(/[^a-z0-9]/g, ""); }
 function equalCode(a: string | null | undefined, b: string): boolean {
   if (!a) return false;
   return canonical(a) === canonical(b) || compact(a) === compact(b);
 }
 
-function addCandidate(set: Set<string>, value: unknown) {
-  if (value == null) return;
-  const text = cleanCodeValue(String(value));
-  if (text) set.add(text);
-}
-
-function collectJsonStrings(value: unknown, set: Set<string>) {
-  if (typeof value === "string" || typeof value === "number") addCandidate(set, value);
-  else if (Array.isArray(value)) value.forEach((v) => collectJsonStrings(v, set));
-  else if (value && typeof value === "object") Object.values(value).forEach((v) => collectJsonStrings(v, set));
-}
-
-function candidatePayloads(raw: string): string[] {
-  const set = new Set<string>();
-  addCandidate(set, raw);
-  const cleaned = cleanCodeValue(raw);
-
-  try {
-    const url = new URL(cleaned);
-    addCandidate(set, url.pathname);
-    addCandidate(set, url.hash.replace(/^#/, ""));
-    url.pathname.split("/").forEach((part) => addCandidate(set, part));
-    url.searchParams.forEach((value) => addCandidate(set, value));
-  } catch { /* not a URL */ }
-
-  if (/^[\[{]/.test(cleaned)) {
-    try { collectJsonStrings(JSON.parse(cleaned), set); } catch { /* not JSON */ }
-  }
-
-  for (const match of cleaned.matchAll(/\((\d{2,4})\)([^()]+)/g)) addCandidate(set, match[2]);
-  cleaned.split(/[\n\r\t|;,]+/).forEach((part) => {
-    addCandidate(set, part);
-    const keyValue = part.match(/^[\w -]{1,32}\s*[:=]\s*(.+)$/);
-    if (keyValue) addCandidate(set, keyValue[1]);
-  });
-
-  return [...set];
-}
-
 function appLinkTarget(raw: string): ScannerTarget | null {
-  for (const candidate of candidatePayloads(raw)) {
-    let path = candidate;
-    try { path = new URL(candidate).pathname; } catch { /* not a URL */ }
-    const match = path.match(/\/?r\/([^/]+)\/(.+)$/i);
-    if (!match) continue;
-    const type = TYPE_ALIASES[canonical(match[1])];
-    if (!type) continue;
-    if (type === "purchaseRequests") return { kind: "purchaseRequests" };
-    return { kind: "record", type, id: cleanCodeValue(match[2]) };
-  }
-  return null;
+  const cleaned = cleanCodeValue(raw);
+  let path = cleaned;
+  try { path = new URL(cleaned).pathname; } catch { /* not a URL */ }
+  const match = path.match(/\/?r\/([^/]+)\/(.+)$/i);
+  if (!match) return null;
+  const type = TYPE_ALIASES[canonical(match[1])];
+  if (!type) return null;
+  if (type === "purchaseRequests") return { kind: "purchaseRequests" };
+  return { kind: "record", type, id: cleanCodeValue(match[2]) };
+}
+
+interface ParsedScan {
+  raw: string;
+  gs1: Gs1Parsed;
+  gtin?: string;
+  catalogue?: GtinCatalogueEntry;
+  matchedBatchId?: string;
+  matchedItemId?: string;
 }
 
 export function ScanPage() {
@@ -126,10 +84,24 @@ export function ScanPage() {
   const scannerRef = useRef<any>(null);
   const [active, setActive] = useState(false);
   const [manual, setManual] = useState("");
-  const [lastPayload, setLastPayload] = useState<string | null>(null);
+
+  const [parsed, setParsed] = useState<ParsedScan | null>(null);
+  // Editable form fields driven from parsed scan
+  const [productName, setProductName] = useState("");
+  const [manufacturer, setManufacturer] = useState("");
+  const [lotNumber, setLotNumber] = useState("");
+  const [expiryDate, setExpiryDate] = useState(""); // ISO YYYY-MM-DD
+  const [serialNumber, setSerialNumber] = useState("");
+  const [unit, setUnit] = useState("");
+  const [category, setCategory] = useState<GtinCategory>("reagent");
+  const [quantity, setQuantity] = useState("1");
+  const [section, setSection] = useState<LaboratorySectionId>("stores");
+
   const [receiveOpen, setReceiveOpen] = useState(false);
   const [receiveItemId, setReceiveItemId] = useState("");
   const [receiveCode, setReceiveCode] = useState("");
+  const [historyOpen, setHistoryOpen] = useState(false);
+
   const [acceptOpen, setAcceptOpen] = useState(false);
   const [acceptBatchId, setAcceptBatchId] = useState("");
   const [decision, setDecision] = useState<"Accepted" | "Rejected">("Accepted");
@@ -146,12 +118,16 @@ export function ScanPage() {
   const durables = useDurables();
   const purchaseRequests = usePurchaseRequests();
   const dataReady = useDataReady();
+  const recentScans = useScanHistory(10);
   const scanBatches = batches.length ? batches : AMCE_BATCHES;
   const scanItems = items.length ? items : AMCE_INVENTORY_MASTER;
   const scanEquipment = equipment.length ? equipment : AMCE_EQUIPMENT;
   const scanDurables = durables.length ? durables : AMCE_DURABLES;
   const acceptBatch = scanBatches.find((b) => b.id === acceptBatchId);
   const acceptItem = acceptBatch ? scanItems.find((i) => i.id === acceptBatch.inventoryItemId) : undefined;
+
+  const sections = useMemo(() => AMCE_SECTIONS.filter((s) => s.active), []);
+  const isKnown = !!parsed?.catalogue;
 
   useEffect(() => {
     return () => {
@@ -165,23 +141,13 @@ export function ScanPage() {
 
   function go(target: ScannerTarget) {
     stopScanner();
-    if (target.kind === "purchaseRequests") {
-      navigate({ to: "/purchase-requests" });
-      return;
-    }
-    if (target.kind === "receive") {
-      openReceipt(target.scannedCode, target.inventoryItemId ?? "");
-      return;
-    }
-    if (target.type === "item") {
-      openReceipt("", target.id);
-      return;
-    }
+    if (target.kind === "purchaseRequests") return navigate({ to: "/purchase-requests" });
+    if (target.kind === "receive") return openReceipt(target.scannedCode, target.inventoryItemId ?? "");
+    if (target.type === "item") return openReceipt("", target.id);
     if (target.type === "batch") {
       const batch = scanBatches.find((b) => b.id === target.id);
       if (batch?.acceptanceStatus === "Pending acceptance" || batch?.batchStatus === "Pending acceptance") {
-        openAcceptance(target.id);
-        return;
+        return openAcceptance(target.id);
       }
     }
     navigate({ to: "/r/$type/$id", params: { type: target.type, id: target.id } });
@@ -193,16 +159,11 @@ export function ScanPage() {
     setReceiveItemId(inventoryItemId);
     setReceiveOpen(true);
   }
-
   function openAcceptance(batchId: string) {
     stopScanner();
     setAcceptBatchId(batchId);
-    setDecision("Accepted");
-    setQcResult("Pass");
-    setCoa(true);
-    setPhysical("Acceptable");
-    setComments("");
-    setCorrective("");
+    setDecision("Accepted"); setQcResult("Pass"); setCoa(true);
+    setPhysical("Acceptable"); setComments(""); setCorrective("");
     setAcceptOpen(true);
   }
 
@@ -214,13 +175,9 @@ export function ScanPage() {
     setAccepting(true);
     try {
       await recordAcceptance({
-        batchId: acceptBatchId,
-        decision,
-        qcResult,
-        certificateOfAnalysisAvailable: coa,
-        physicalCondition: physical,
-        comments,
-        correctiveActionIfRejected: corrective,
+        batchId: acceptBatchId, decision, qcResult,
+        certificateOfAnalysisAvailable: coa, physicalCondition: physical,
+        comments, correctiveActionIfRejected: corrective,
       });
       toast.success(`Batch ${decision.toLowerCase()} into the lab by ${user.name}.`);
       setAcceptOpen(false);
@@ -231,68 +188,144 @@ export function ScanPage() {
     }
   }
 
-  function fallbackLookup(raw: string): ScannerTarget | null {
-    const candidates = candidatePayloads(raw);
-    if (candidates.length === 0) return null;
-
-    for (const code of candidates) {
-      const typeId = code.match(/^([a-z][a-z -]{0,24})\s*[:/#|]\s*(.+)$/i);
-      if (typeId) {
-        const type = TYPE_ALIASES[canonical(typeId[1])];
-        if (type === "purchaseRequests") return { kind: "purchaseRequests" };
-        if (type) return { kind: "record", type, id: cleanCodeValue(typeId[2]) };
-      }
-
-      if (/^(pr|purchase request|purchase-request)\b/i.test(code)) return { kind: "purchaseRequests" };
-      const batch = scanBatches.find((b) => equalCode(b.id, code) || equalCode(b.batchNumber, code) || equalCode(b.lotNumber, code));
-      if (batch) return { kind: "record", type: "batch", id: batch.id };
-
-      const item = scanItems.find((i) =>
-        equalCode(i.id, code) ||
-        equalCode(i.catalogueNumber, code) ||
-        equalCode(i.itemName, code) ||
-        (compact(code).length >= 4 && [i.catalogueNumber, i.manufacturer, i.supplier].some((v) => v && compact(v).includes(compact(code))))
+  function findExistingMatches(raw: string, gs1: Gs1Parsed) {
+    let matchedBatchId: string | undefined;
+    let matchedItemId: string | undefined;
+    const codes = [raw, gs1.lotNumber, gs1.serialNumber, gs1.gtin].filter((v): v is string => !!v);
+    for (const code of codes) {
+      const batch = scanBatches.find(
+        (b) => equalCode(b.id, code) || equalCode(b.batchNumber, code) || equalCode(b.lotNumber, code)
       );
-      if (item) return { kind: "receive", scannedCode: code, inventoryItemId: item.id };
-
-      const eq = scanEquipment.find((e) =>
-        equalCode(e.id, code) || equalCode(e.serialNumber, code) || equalCode(e.assetNumber, code) || equalCode(e.equipmentName, code)
-      );
-      if (eq) return { kind: "record", type: "equipment", id: eq.id };
-
-      const durable = scanDurables.find((d) => equalCode(d.id, code) || equalCode(d.assetName, code));
-      if (durable) return { kind: "record", type: "durable", id: durable.id };
+      if (batch) { matchedBatchId = batch.id; break; }
     }
-
-    const haystack = compact(candidates.join(" "));
-    const item = haystack.length >= 6 ? scanItems.find((i) => compact(i.itemName).includes(haystack) || haystack.includes(compact(i.itemName))) : undefined;
-    if (item) return { kind: "receive", scannedCode: raw, inventoryItemId: item.id };
-    if (purchaseRequests.length > 0 && /\b(pr|purchase\s*request|requested\s*by|approval|procurement)\b/i.test(raw)) return { kind: "purchaseRequests" };
-
-    return null;
+    for (const code of codes) {
+      const item = scanItems.find(
+        (i) => equalCode(i.id, code) || equalCode(i.catalogueNumber, code) || equalCode(i.itemName, code)
+      );
+      if (item) { matchedItemId = item.id; break; }
+    }
+    return { matchedBatchId, matchedItemId };
   }
 
-  function handleResult(text: string) {
+  async function handleResult(text: string) {
     const raw = cleanCodeValue(text);
-    setLastPayload(raw);
-    try {
-      const linkTarget = appLinkTarget(raw);
-      if (linkTarget) return go(linkTarget);
+    if (!raw) return;
+    setManual(raw);
 
-      const fb = fallbackLookup(raw);
-      if (fb) return go(fb);
-
-      openReceipt(raw);
-      toast.message("Barcode captured", {
-        description: "No existing stock record matched, so the receive form is ready for a new lab item batch.",
+    // App link short-circuit (existing /r/<type>/<id> deep links)
+    const link = appLinkTarget(raw);
+    if (link) {
+      void recordScan({
+        gtin: null, lotNumber: null, expiryDate: null, productName: null,
+        rawCode: raw, action: "Opened deep link",
       });
-    } catch (err) {
-      console.error("Scan parse failed", err);
-      openReceipt(raw);
+      return go(link);
+    }
+
+    const gs1 = parseGs1(raw);
+    const gtin = gs1.gtin ?? plainGtin(raw);
+    let catalogue: GtinCatalogueEntry | undefined;
+    if (gtin) catalogue = await getGtinEntry(gtin);
+    const matches = findExistingMatches(raw, gs1);
+
+    const next: ParsedScan = { raw, gs1, gtin, catalogue, ...matches };
+    setParsed(next);
+
+    // Populate form fields
+    setProductName(catalogue?.productName ?? "");
+    setManufacturer(catalogue?.manufacturer ?? "");
+    setLotNumber(gs1.lotNumber ?? "");
+    setExpiryDate(gs1.expiryDate ?? "");
+    setSerialNumber(gs1.serialNumber ?? "");
+    setUnit(catalogue?.unit ?? "");
+    setCategory((catalogue?.category as GtinCategory | undefined) ?? "reagent");
+    setQuantity("1");
+
+    if (gtin && catalogue) {
+      void touchGtinSeen(gtin);
+      toast.success(`Recognised: ${catalogue.productName}`);
+    } else if (gtin) {
+      toast.message("New product — please name it below to save it to the catalogue.");
+    } else if (matches.matchedBatchId || matches.matchedItemId) {
+      toast.success("Matched an existing record.");
+    } else {
       toast.message("Barcode captured", {
-        description: "Could not auto-match the code. The receive form is open — pick the item and confirm the details.",
+        description: "No GTIN found and no record matched — fill in the details below.",
       });
     }
+
+    stopScanner();
+  }
+
+  async function persistGtinIfNeeded(): Promise<string | undefined> {
+    if (!parsed?.gtin) return undefined;
+    if (!productName.trim()) {
+      toast.error("Enter a product name before saving.");
+      return undefined;
+    }
+    await upsertGtinEntry({
+      gtin: parsed.gtin,
+      productName: productName.trim(),
+      manufacturer: manufacturer.trim() || null,
+      unit: unit.trim() || null,
+      category,
+      inventoryItemId: parsed.catalogue?.inventoryItemId ?? null,
+    });
+    return parsed.gtin;
+  }
+
+  async function onReceiveIntoInventory() {
+    if (!parsed) return;
+    if (parsed.matchedBatchId) return openAcceptance(parsed.matchedBatchId);
+    await persistGtinIfNeeded();
+    void recordScan({
+      gtin: parsed.gtin ?? null,
+      lotNumber: lotNumber || null,
+      expiryDate: expiryDate || null,
+      productName: productName || null,
+      rawCode: parsed.raw,
+      action: "Receive into inventory",
+    });
+    // Hand off to existing receive dialog (it parses GS1 string for lot/expiry)
+    openReceipt(parsed.raw, parsed.matchedItemId ?? parsed.catalogue?.inventoryItemId ?? "");
+  }
+
+  function onOpenExisting() {
+    if (!parsed) return;
+    if (parsed.matchedBatchId) {
+      void recordScan({
+        gtin: parsed.gtin ?? null,
+        lotNumber: lotNumber || null, expiryDate: expiryDate || null,
+        productName: productName || null, rawCode: parsed.raw,
+        action: "Opened existing batch",
+      });
+      return navigate({ to: "/r/$type/$id", params: { type: "batch", id: parsed.matchedBatchId } });
+    }
+    if (parsed.matchedItemId) {
+      void recordScan({
+        gtin: parsed.gtin ?? null,
+        lotNumber: lotNumber || null, expiryDate: expiryDate || null,
+        productName: productName || null, rawCode: parsed.raw,
+        action: "Opened existing item",
+      });
+      return navigate({ to: "/r/$type/$id", params: { type: "item", id: parsed.matchedItemId } });
+    }
+    toast.message("No existing batch or item matched this scan.");
+  }
+
+  async function onSaveCatalogueOnly() {
+    if (!parsed?.gtin) {
+      toast.error("This scan has no GTIN to save.");
+      return;
+    }
+    const gtin = await persistGtinIfNeeded();
+    if (!gtin) return;
+    void recordScan({
+      gtin, lotNumber: null, expiryDate: null,
+      productName: productName || null, rawCode: parsed.raw,
+      action: "Saved GTIN to catalogue",
+    });
+    toast.success("Saved to GTIN catalogue.");
   }
 
   async function startScanner() {
@@ -330,7 +363,7 @@ export function ScanPage() {
           },
           aspectRatio: 1.7777778,
         },
-        (decoded) => handleResult(decoded),
+        (decoded) => { void handleResult(decoded); },
         () => undefined,
       );
     } catch (err) {
@@ -362,20 +395,24 @@ export function ScanPage() {
     setActive(false);
   }
 
+  // void these to silence unused-var without removing the data subscriptions
+  void purchaseRequests; void scanEquipment; void scanDurables;
+
   return (
     <div>
       <Header
         title="Scan QR / Barcode"
-        description="Scan supplier barcodes or AMCE labels to receive items, accept pending batches, or open existing lab records."
+        description="Scan supplier barcodes or AMCE labels. GS1 codes auto-parse GTIN, lot, expiry and serial."
       />
       <div className="p-6 space-y-6 max-w-2xl">
+        {/* Section A — Scanner */}
         <section className="bg-card border border-border rounded-md p-4 space-y-3">
           <div className="flex items-center justify-between">
             <div className="font-semibold text-sm flex items-center gap-2">
               <Camera className="h-4 w-4" /> Camera scanner
             </div>
             <div className="flex items-center gap-2">
-              <Button size="sm" variant="outline" onClick={() => openReceipt(lastPayload ?? manual)}>
+              <Button size="sm" variant="outline" onClick={() => openReceipt(manual)}>
                 <PackagePlus className="h-4 w-4 mr-1" /> Receive
               </Button>
               {active ? (
@@ -390,34 +427,184 @@ export function ScanPage() {
             </div>
           </div>
           <div ref={containerRef} className="rounded-md overflow-hidden bg-muted/40 min-h-[240px]" />
-          <p className="text-xs text-muted-foreground">
-            Use Chrome or Safari on a phone for best results. The browser will prompt for camera permission once.
-          </p>
-        </section>
-
-        <section className="bg-card border border-border rounded-md p-4 space-y-3">
-          <div className="font-semibold text-sm">Enter or receive code manually</div>
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="manual">Paste a supplier barcode, label URL, item code, batch, lot, or serial number</Label>
+          <div className="space-y-2">
+            <Label htmlFor="manual" className="text-xs">Or paste a barcode / GS1 string / link</Label>
             <div className="flex gap-2">
               <Input
                 id="manual"
                 value={manual}
                 onChange={(e) => setManual(e.target.value)}
-                placeholder="e.g. BATCH-001, LOT-2025-04, full URL, or batch/<id>"
+                placeholder="(01)04150753412345(17)251031(10)LOT123"
               />
-              <Button onClick={() => handleResult(manual)} disabled={!manual.trim()}>
+              <Button onClick={() => void handleResult(manual)} disabled={!manual.trim()}>
                 Read
               </Button>
             </div>
-            {lastPayload && (
-              <div className="text-[11px] text-muted-foreground font-mono break-all">
-                Last scan: {lastPayload}
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Use Chrome or Safari on a phone for best results. The browser will prompt for camera permission once.
+          </p>
+        </section>
+
+        {/* Section B — Parsed fields */}
+        {parsed && (
+          <section className="bg-card border border-border rounded-md p-4 space-y-4">
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <div className="font-semibold text-sm">Parsed details</div>
+              {parsed.gtin ? (
+                isKnown ? (
+                  <Badge className="bg-emerald-600 hover:bg-emerald-600 text-white gap-1">
+                    <CheckCircle2 className="h-3.5 w-3.5" /> Known item
+                  </Badge>
+                ) : (
+                  <Badge className="bg-amber-500 hover:bg-amber-500 text-white gap-1">
+                    <AlertCircle className="h-3.5 w-3.5" /> New item — please name this product
+                  </Badge>
+                )
+              ) : (
+                <Badge variant="outline">No GTIN detected</Badge>
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="sm:col-span-2">
+                <Label className="text-xs">Product name</Label>
+                <Input
+                  value={productName}
+                  onChange={(e) => setProductName(e.target.value)}
+                  placeholder="e.g. Mueller Hinton Agar"
+                  readOnly={isKnown}
+                />
+              </div>
+              <div>
+                <Label className="text-xs">Manufacturer</Label>
+                <Input
+                  value={manufacturer}
+                  onChange={(e) => setManufacturer(e.target.value)}
+                  readOnly={isKnown}
+                />
+              </div>
+              <div>
+                <Label className="text-xs">GTIN</Label>
+                <Input value={parsed.gtin ?? ""} readOnly placeholder="—" />
+              </div>
+              <div>
+                <Label className="text-xs">Lot / Batch number</Label>
+                <Input value={lotNumber} onChange={(e) => setLotNumber(e.target.value)} />
+              </div>
+              <div>
+                <Label className="text-xs">
+                  Expiry date {expiryDate && <span className="text-muted-foreground">({formatExpiryForDisplay(expiryDate)})</span>}
+                </Label>
+                <Input type="date" value={expiryDate} onChange={(e) => setExpiryDate(e.target.value)} />
+              </div>
+              <div>
+                <Label className="text-xs">Serial number</Label>
+                <Input value={serialNumber} onChange={(e) => setSerialNumber(e.target.value)} />
+              </div>
+              <div>
+                <Label className="text-xs">Unit</Label>
+                <Input
+                  value={unit}
+                  onChange={(e) => setUnit(e.target.value)}
+                  placeholder="e.g. box of 10 plates"
+                />
+              </div>
+              <div>
+                <Label className="text-xs">Category</Label>
+                <Select value={category} onValueChange={(v) => setCategory(v as GtinCategory)}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {GTIN_CATEGORIES.map((c) => (
+                      <SelectItem key={c} value={c}>{c}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="text-xs">Quantity received</Label>
+                <Input type="number" min={1} value={quantity} onChange={(e) => setQuantity(e.target.value)} />
+              </div>
+              <div>
+                <Label className="text-xs">Section / bench</Label>
+                <Select value={section} onValueChange={(v) => setSection(v as LaboratorySectionId)}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {sections.map((s) => (
+                      <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {parsed.matchedBatchId && (
+              <div className="text-xs rounded-md bg-muted/40 p-2">
+                Matched existing batch — open it to confirm or run acceptance testing.
               </div>
             )}
-          </div>
-        </section>
+
+            {/* Section C — Actions */}
+            <div className="flex flex-wrap gap-2 pt-1">
+              <Button onClick={() => void onReceiveIntoInventory()}>
+                <PackagePlus className="h-4 w-4 mr-1" /> Receive into inventory
+              </Button>
+              {(parsed.matchedBatchId || parsed.matchedItemId) && (
+                <Button variant="outline" onClick={onOpenExisting}>
+                  Open existing record
+                </Button>
+              )}
+              {parsed.gtin && (
+                <Button size="sm" variant="ghost" onClick={() => void onSaveCatalogueOnly()}>
+                  <Save className="h-4 w-4 mr-1" /> Save GTIN to catalogue only
+                </Button>
+              )}
+            </div>
+
+            <div className="text-[11px] text-muted-foreground font-mono break-all border-t border-border pt-2">
+              {parsed.raw}
+            </div>
+          </section>
+        )}
+
+        {/* Recent scans */}
+        <Collapsible open={historyOpen} onOpenChange={setHistoryOpen}>
+          <section className="bg-card border border-border rounded-md">
+            <CollapsibleTrigger className="w-full flex items-center justify-between p-4 text-sm font-semibold">
+              <span className="flex items-center gap-2">
+                <History className="h-4 w-4" /> Recent scans ({recentScans.length})
+              </span>
+              <ChevronDown className={`h-4 w-4 transition-transform ${historyOpen ? "rotate-180" : ""}`} />
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <div className="px-4 pb-4">
+                {recentScans.length === 0 ? (
+                  <div className="text-xs text-muted-foreground py-4">No scans yet.</div>
+                ) : (
+                  <ul className="divide-y divide-border text-xs">
+                    {recentScans.map((s) => (
+                      <li key={s.id} className="py-2 flex flex-col gap-0.5">
+                        <div className="flex justify-between gap-2">
+                          <span className="font-medium text-foreground truncate">
+                            {s.productName ?? s.gtin ?? s.rawCode.slice(0, 24)}
+                          </span>
+                          <span className="text-muted-foreground shrink-0">
+                            {new Date(s.scannedAt).toLocaleString()}
+                          </span>
+                        </div>
+                        <div className="text-muted-foreground">
+                          {s.lotNumber ? `Lot ${s.lotNumber} · ` : ""}{s.action}
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </CollapsibleContent>
+          </section>
+        </Collapsible>
       </div>
+
       <ReceiveBatchDialog
         open={receiveOpen}
         onOpenChange={setReceiveOpen}
@@ -453,23 +640,27 @@ export function ScanPage() {
                 <Select value={qcResult} onValueChange={(v) => setQcResult(v as typeof qcResult)}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    {(["Pass", "Fail", "Pending", "Not required"] as const).map((v) => <SelectItem key={v} value={v}>{v}</SelectItem>)}
+                    <SelectItem value="Pass">Pass</SelectItem>
+                    <SelectItem value="Fail">Fail</SelectItem>
+                    <SelectItem value="Pending">Pending</SelectItem>
+                    <SelectItem value="Not required">Not required</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label className="text-xs">Physical condition</Label>
                 <Select value={physical} onValueChange={(v) => setPhysical(v as typeof physical)}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    {(["Acceptable", "Damaged", "Compromised", "Pending review"] as const).map((v) => <SelectItem key={v} value={v}>{v}</SelectItem>)}
+                    <SelectItem value="Acceptable">Acceptable</SelectItem>
+                    <SelectItem value="Damaged">Damaged</SelectItem>
+                    <SelectItem value="Compromised">Compromised</SelectItem>
+                    <SelectItem value="Pending review">Pending review</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
-              <label className="flex items-end gap-2 text-xs pb-2">
-                <Checkbox checked={coa} onCheckedChange={(v) => setCoa(Boolean(v))} />
+              <label className="flex items-center gap-2 text-xs mt-6">
+                <Checkbox checked={coa} onCheckedChange={(v) => setCoa(v === true)} />
                 Certificate of Analysis available
               </label>
             </div>
@@ -479,13 +670,15 @@ export function ScanPage() {
             </div>
             {decision === "Rejected" && (
               <div>
-                <Label className="text-xs">Corrective action (required)</Label>
+                <Label className="text-xs">Corrective action</Label>
                 <Textarea value={corrective} onChange={(e) => setCorrective(e.target.value)} />
               </div>
             )}
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => setAcceptOpen(false)}>Cancel</Button>
-              <Button onClick={saveAcceptance} disabled={accepting}>{accepting ? "Saving…" : "Accept into lab"}</Button>
+              <Button onClick={() => void saveAcceptance()} disabled={accepting}>
+                {accepting ? "Saving…" : "Save acceptance"}
+              </Button>
             </div>
           </div>
         </DialogContent>
