@@ -106,13 +106,27 @@ export const db = new AMCEDatabase();
 // you want each lab PC to re-seed missing rows from the new baseline. Seeded
 // durables are refreshed by stable ID; user-added rows use different IDs and
 // are never overwritten.
-const SEED_VERSION = "2026-05-06.9-forecasts-prs";
+const SEED_VERSION = "2026-05-15.10-remove-unreceived-equipment";
+
+// Equipment ids that were previously seeded but should NOT exist in the
+// equipment register because the items were never received. They live in
+// Purchase Requests instead. Removed on every ensureSeeded() run.
+const REMOVED_EQUIPMENT_IDS = [
+  "eq-seed-anaerobic-workstation",
+  "eq-seed-digital-thermometer",
+  "eq-seed-atp-luminometer",
+  "eq-seed-air-sampler",
+];
 
 let seedPromise: Promise<void> | null = null;
 
 export function ensureSeeded(): Promise<void> {
   if (seedPromise) return seedPromise;
   seedPromise = (async () => {
+    // Always strip out equipment rows that should no longer exist, even on
+    // already-seeded installs.
+    await db.equipment.bulkDelete(REMOVED_EQUIPMENT_IDS);
+
     const meta = await db.meta.get("seedVersion");
     if (meta?.value === SEED_VERSION) {
       const durableKeys = new Set((await db.durables.toCollection().primaryKeys()) as string[]);
@@ -185,6 +199,7 @@ export async function ensureDurablesSeeded(): Promise<void> {
 export async function ensureEquipmentSeeded(): Promise<void> {
   if (!AMCE_EQUIPMENT.length) return;
   await db.transaction("rw", [db.equipment, db.meta], async () => {
+    await db.equipment.bulkDelete(REMOVED_EQUIPMENT_IDS);
     // Always refresh the bundled seed rows. bulkPut is id-based, so it updates
     // only these stable `eq-seed-*` records and leaves user-added rows intact.
     await db.equipment.bulkPut(AMCE_EQUIPMENT);
