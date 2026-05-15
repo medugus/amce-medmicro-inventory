@@ -45,12 +45,11 @@ function useReady(): boolean {
     const fn = () => setR(true);
     readyListeners.add(fn);
     ensureSeeded()
-      .then(() => {
-        ready = true;
-        fn();
-      })
+      .then(() => import("@/lib/cloudSync").then((m) => m.startCloudSync()))
       .catch((err) => {
-        console.error("Failed to seed local database:", err);
+        console.error("Failed to initialise data layer:", err);
+      })
+      .finally(() => {
         ready = true;
         fn();
       });
