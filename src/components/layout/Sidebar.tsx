@@ -45,7 +45,7 @@ const NAV: { to: string; label: string; group: string; icon: React.ComponentType
 
   { to: "/inventory-master", label: "Inventory Master", group: "Inventory Control", icon: Boxes },
   { to: "/batch-register", label: "Batch / Lot Register", group: "Inventory Control", icon: Layers },
-  { to: "/stock-movements", label: "Stock Movements", group: "Inventory Control", icon: ArrowLeftRight },
+  { to: "/stock-movements", label: "Receive / Stock Movements", group: "Inventory Control", icon: ArrowLeftRight },
   { to: "/expiry-fefo", label: "Expiry and FEFO", group: "Inventory Control", icon: Hourglass },
   { to: "/low-stock-reorder", label: "Low Stock and Reorder", group: "Inventory Control", icon: TrendingDown },
 
