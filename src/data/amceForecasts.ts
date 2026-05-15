@@ -92,7 +92,7 @@ export const AMCE_PURCHASE_REQUESTS: PurchaseRequest[] = [
     estimatedCost: null,
     approvalStatus: "Submitted",
     approvedBy: null,
-    procurementStatus: "Awaiting quote",
+    procurementStatus: "Awaiting quotation",
     dateSupplied: null,
   },
   {
@@ -110,7 +110,7 @@ export const AMCE_PURCHASE_REQUESTS: PurchaseRequest[] = [
     estimatedCost: null,
     approvalStatus: "Submitted",
     approvedBy: null,
-    procurementStatus: "Awaiting quote",
+    procurementStatus: "Awaiting quotation",
     dateSupplied: null,
   },
   {
@@ -128,7 +128,7 @@ export const AMCE_PURCHASE_REQUESTS: PurchaseRequest[] = [
     estimatedCost: null,
     approvalStatus: "Submitted",
     approvedBy: null,
-    procurementStatus: "Awaiting quote",
+    procurementStatus: "Awaiting quotation",
     dateSupplied: null,
   },
   {
@@ -146,7 +146,7 @@ export const AMCE_PURCHASE_REQUESTS: PurchaseRequest[] = [
     estimatedCost: null,
     approvalStatus: "Submitted",
     approvedBy: null,
-    procurementStatus: "Awaiting quote",
+    procurementStatus: "Awaiting quotation",
     dateSupplied: null,
   },
 ];
