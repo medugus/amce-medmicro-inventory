@@ -164,7 +164,7 @@ function installLocalToCloudHooks(): void {
       supabase
         .from(m.cloudTable)
         .upsert({ id, data: row }, { onConflict: "id" })
-        .then(({ error }) => {
+        .then(({ error }: { error: unknown }) => {
           if (error) console.warn(`[cloudSync] upsert ${m.cloudTable}/${id} failed:`, error);
         });
     };
@@ -187,7 +187,7 @@ function installLocalToCloudHooks(): void {
         .from(m.cloudTable)
         .delete()
         .eq("id", id)
-        .then(({ error }) => {
+        .then(({ error }: { error: unknown }) => {
           if (error) console.warn(`[cloudSync] delete ${m.cloudTable}/${id} failed:`, error);
         });
     });
@@ -201,7 +201,7 @@ function installRealtime(): void {
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: m.cloudTable },
-        async (payload) => {
+        async (payload: any) => {
           try {
             const evt = payload.eventType;
             if (evt === "DELETE") {
