@@ -236,7 +236,7 @@ export interface RecordAcceptanceInput {
 export async function recordAcceptance(input: RecordAcceptanceInput): Promise<AcceptanceTest> {
   const acceptedBy = requireUser();
 
-  return db.transaction("rw", [db.batches, db.inventory, db.acceptance, db.audit], async () => {
+  return db.transaction("rw", [db.batches, db.inventory, db.acceptance, db.audit, db.movements], async () => {
     const batch = await db.batches.get(input.batchId);
     if (!batch) throw new Error("Batch not found.");
     const item = await db.inventory.get(batch.inventoryItemId);
