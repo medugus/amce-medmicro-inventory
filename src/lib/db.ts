@@ -174,10 +174,11 @@ export function ensureSeeded(): Promise<void> {
         const newFc = AMCE_FORECASTS.filter((f) => !existingFc.has(f.id));
         if (newFc.length) await db.forecasts.bulkAdd(newFc);
 
-        // Purchase requests: seed only if empty (currently no baseline rows).
-        if ((await db.purchaseRequests.count()) === 0 && AMCE_PURCHASE_REQUESTS.length) {
-          await db.purchaseRequests.bulkAdd(AMCE_PURCHASE_REQUESTS);
-        }
+        // Purchase requests: fill in missing seed rows by stable ID so the
+        // un-received equipment items appear on every PC.
+        const existingPr = new Set((await db.purchaseRequests.toCollection().primaryKeys()) as string[]);
+        const newPr = AMCE_PURCHASE_REQUESTS.filter((p) => !existingPr.has(p.id));
+        if (newPr.length) await db.purchaseRequests.bulkAdd(newPr);
 
         await db.meta.put({ key: "seedVersion", value: SEED_VERSION });
       }
