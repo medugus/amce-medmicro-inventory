@@ -24,6 +24,11 @@ import type { Table } from "dexie";
 const supabase = typedSupabase as any;
 
 type AnyRow = { id?: string; gtin?: string } & Record<string, unknown>;
+type RealtimePayload = {
+  eventType: "INSERT" | "UPDATE" | "DELETE" | string;
+  old?: { id?: string };
+  new?: { id?: string; data?: AnyRow };
+};
 
 interface Mapping {
   /** Supabase table name */
@@ -35,18 +40,66 @@ interface Mapping {
 }
 
 const MAPPINGS: Mapping[] = [
-  { cloudTable: "inventory_items",  local: db.inventory as unknown as Table<AnyRow, string>, pk: (r) => String(r.id) },
-  { cloudTable: "batches",          local: db.batches as unknown as Table<AnyRow, string>, pk: (r) => String(r.id) },
-  { cloudTable: "supply_status",    local: db.supply as unknown as Table<AnyRow, string>, pk: (r) => String(r.id) },
-  { cloudTable: "stock_movements",  local: db.movements as unknown as Table<AnyRow, string>, pk: (r) => String(r.id) },
-  { cloudTable: "acceptance_tests", local: db.acceptance as unknown as Table<AnyRow, string>, pk: (r) => String(r.id) },
-  { cloudTable: "equipment",        local: db.equipment as unknown as Table<AnyRow, string>, pk: (r) => String(r.id) },
-  { cloudTable: "durables",         local: db.durables as unknown as Table<AnyRow, string>, pk: (r) => String(r.id) },
-  { cloudTable: "forecasts",        local: db.forecasts as unknown as Table<AnyRow, string>, pk: (r) => String(r.id) },
-  { cloudTable: "purchase_requests",local: db.purchaseRequests as unknown as Table<AnyRow, string>, pk: (r) => String(r.id) },
-  { cloudTable: "audit_trail",      local: db.audit as unknown as Table<AnyRow, string>, pk: (r) => String(r.id) },
-  { cloudTable: "gtin_catalogue",   local: db.gtinCatalogue as unknown as Table<AnyRow, string>, pk: (r) => String(r.gtin) },
-  { cloudTable: "scan_history",     local: db.scanHistory as unknown as Table<AnyRow, string>, pk: (r) => String(r.id) },
+  {
+    cloudTable: "inventory_items",
+    local: db.inventory as unknown as Table<AnyRow, string>,
+    pk: (r) => String(r.id),
+  },
+  {
+    cloudTable: "batches",
+    local: db.batches as unknown as Table<AnyRow, string>,
+    pk: (r) => String(r.id),
+  },
+  {
+    cloudTable: "supply_status",
+    local: db.supply as unknown as Table<AnyRow, string>,
+    pk: (r) => String(r.id),
+  },
+  {
+    cloudTable: "stock_movements",
+    local: db.movements as unknown as Table<AnyRow, string>,
+    pk: (r) => String(r.id),
+  },
+  {
+    cloudTable: "acceptance_tests",
+    local: db.acceptance as unknown as Table<AnyRow, string>,
+    pk: (r) => String(r.id),
+  },
+  {
+    cloudTable: "equipment",
+    local: db.equipment as unknown as Table<AnyRow, string>,
+    pk: (r) => String(r.id),
+  },
+  {
+    cloudTable: "durables",
+    local: db.durables as unknown as Table<AnyRow, string>,
+    pk: (r) => String(r.id),
+  },
+  {
+    cloudTable: "forecasts",
+    local: db.forecasts as unknown as Table<AnyRow, string>,
+    pk: (r) => String(r.id),
+  },
+  {
+    cloudTable: "purchase_requests",
+    local: db.purchaseRequests as unknown as Table<AnyRow, string>,
+    pk: (r) => String(r.id),
+  },
+  {
+    cloudTable: "audit_trail",
+    local: db.audit as unknown as Table<AnyRow, string>,
+    pk: (r) => String(r.id),
+  },
+  {
+    cloudTable: "gtin_catalogue",
+    local: db.gtinCatalogue as unknown as Table<AnyRow, string>,
+    pk: (r) => String(r.gtin),
+  },
+  {
+    cloudTable: "scan_history",
+    local: db.scanHistory as unknown as Table<AnyRow, string>,
+    pk: (r) => String(r.id),
+  },
 ];
 
 // Track keys we've just written to Cloud so the realtime echo doesn't loop.
@@ -76,45 +129,50 @@ function dispatchChanged() {
 // Track whether a write originated from a remote realtime event so we don't
 // echo it back up to the cloud and create a loop.
 let applyingRemote = 0;
+let pulling = false;
 
 async function pullAll(): Promise<void> {
-  await Promise.all(
-    MAPPINGS.map(async (m) => {
-      try {
-        // Page through to bypass the 1000-row default limit.
-        const all: AnyRow[] = [];
-        const PAGE = 1000;
-        let from = 0;
-        // Bound the loop so a misbehaving table can't spin forever.
-        for (let i = 0; i < 50; i++) {
-          const { data, error } = await supabase
-            .from(m.cloudTable)
-            .select("data")
-            .range(from, from + PAGE - 1);
-          if (error) throw error;
-          if (!data || data.length === 0) break;
-          for (const row of data as Array<{ data: AnyRow }>) {
-            if (row.data) all.push(row.data);
+  if (pulling) return;
+  pulling = true;
+  try {
+    await Promise.all(
+      MAPPINGS.map(async (m) => {
+        try {
+          // Page through to bypass the 1000-row default limit.
+          const all: AnyRow[] = [];
+          const PAGE = 1000;
+          let from = 0;
+          // Bound the loop so a misbehaving table can't spin forever.
+          for (let i = 0; i < 50; i++) {
+            const { data, error } = await supabase
+              .from(m.cloudTable)
+              .select("data")
+              .range(from, from + PAGE - 1);
+            if (error) throw error;
+            if (!data || data.length === 0) break;
+            for (const row of data as Array<{ data: AnyRow }>) {
+              if (row.data) all.push(row.data);
+            }
+            if (data.length < PAGE) break;
+            from += PAGE;
           }
-          if (data.length < PAGE) break;
-          from += PAGE;
-        }
 
-        if (all.length > 0) {
           applyingRemote++;
           try {
             await m.local.clear();
-            await m.local.bulkPut(all);
+            if (all.length > 0) await m.local.bulkPut(all);
           } finally {
             applyingRemote--;
           }
+        } catch (err) {
+          console.warn(`[cloudSync] pull failed for ${m.cloudTable}:`, err);
         }
-      } catch (err) {
-        console.warn(`[cloudSync] pull failed for ${m.cloudTable}:`, err);
-      }
-    })
-  );
-  dispatchChanged();
+      }),
+    );
+    dispatchChanged();
+  } finally {
+    pulling = false;
+  }
 }
 
 async function pushSeedIfEmpty(): Promise<void> {
@@ -147,7 +205,7 @@ async function pushSeedIfEmpty(): Promise<void> {
       } catch (err) {
         console.warn(`[cloudSync] seed upload failed for ${m.cloudTable}:`, err);
       }
-    })
+    }),
   );
 }
 
@@ -201,7 +259,7 @@ function installRealtime(): void {
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: m.cloudTable },
-        async (payload: any) => {
+        async (payload: RealtimePayload) => {
           try {
             const evt = payload.eventType;
             if (evt === "DELETE") {
@@ -209,7 +267,11 @@ function installRealtime(): void {
               if (!id) return;
               if (wasJustMirroredUp(m.cloudTable, id)) return;
               applyingRemote++;
-              try { await m.local.delete(id); } finally { applyingRemote--; }
+              try {
+                await m.local.delete(id);
+              } finally {
+                applyingRemote--;
+              }
               dispatchChanged();
               return;
             }
@@ -218,18 +280,40 @@ function installRealtime(): void {
             const id = String(rec.id ?? m.pk(rec.data));
             if (wasJustMirroredUp(m.cloudTable, id)) return;
             applyingRemote++;
-            try { await m.local.put(rec.data); } finally { applyingRemote--; }
+            try {
+              await m.local.put(rec.data);
+            } finally {
+              applyingRemote--;
+            }
             dispatchChanged();
           } catch (err) {
             console.warn(`[cloudSync] realtime apply failed for ${m.cloudTable}:`, err);
           }
-        }
+        },
       )
       .subscribe();
   }
 }
 
+function installResyncFallback(): void {
+  const resync = () => {
+    if (document.visibilityState === "visible" && navigator.onLine !== false) {
+      void pullAll();
+    }
+  };
+
+  document.addEventListener("visibilitychange", resync);
+  window.addEventListener("focus", resync);
+  window.addEventListener("online", resync);
+
+  // Mobile browsers can suspend websocket subscriptions while the app is in
+  // the background or installed as a home-screen app. Poll lightly so phones
+  // still catch up even if realtime is paused by the OS.
+  window.setInterval(resync, 15000);
+}
+
 let started: Promise<void> | null = null;
+let fallbackInstalled = false;
 
 /**
  * Initialise cloud sync. Safe to call many times — only runs once.
@@ -249,6 +333,10 @@ export function startCloudSync(): Promise<void> {
       await pushSeedIfEmpty();
       await pullAll();
       installRealtime();
+      if (!fallbackInstalled) {
+        fallbackInstalled = true;
+        installResyncFallback();
+      }
     } catch (err) {
       console.error("[cloudSync] initialisation failed:", err);
     }
