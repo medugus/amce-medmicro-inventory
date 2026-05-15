@@ -272,6 +272,20 @@ export async function recordAcceptance(input: RecordAcceptanceInput): Promise<Ac
       qcResult: input.qcResult,
     });
 
+    // Update the original Receive movement's reason so the Stock Movements
+    // table no longer shows "pending acceptance testing" once a decision is made.
+    const receiveMovements = await db.movements
+      .where("batchId")
+      .equals(batch.id)
+      .toArray();
+    const receiveMv = receiveMovements.find((m) => m.movementType === "Receive");
+    if (receiveMv) {
+      const newReason = input.decision === "Accepted"
+        ? `Initial receipt — accepted ${today} by ${acceptedBy}`
+        : `Initial receipt — rejected ${today} by ${acceptedBy}`;
+      await db.movements.update(receiveMv.id, { reason: newReason });
+    }
+
     await appendAudit({
       user: acceptedBy,
       action: input.decision === "Accepted" ? "Accept batch" : "Reject batch",
