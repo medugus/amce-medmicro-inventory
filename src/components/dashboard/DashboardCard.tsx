@@ -7,12 +7,15 @@ export function DashboardCard({
   hint,
   tone = "default",
   to,
+  explain,
 }: {
   label: string;
   value: number | string;
   hint?: string;
   tone?: "default" | "warning" | "destructive" | "success" | "info";
   to?: string;
+  /** Plain-language tooltip explaining what this card means and what to do. */
+  explain?: string;
 }) {
   const accent =
     tone === "destructive" ? "border-l-destructive"
