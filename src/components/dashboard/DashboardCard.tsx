@@ -36,15 +36,16 @@ export function DashboardCard({
     to && "hover:shadow-md hover:bg-accent/30 transition-all cursor-pointer"
   );
   const ariaLabel = `${label}: ${value}${hint ? `. ${hint}` : ""}`;
+  const titleAttr = explain ? `${label} — ${explain}` : undefined;
   if (to) {
     return (
-      <Link to={to} className={base} aria-label={ariaLabel}>
+      <Link to={to} className={base} aria-label={ariaLabel} title={titleAttr}>
         {content}
       </Link>
     );
   }
   return (
-    <div className={base} role="group" aria-label={ariaLabel}>
+    <div className={base} role="group" aria-label={ariaLabel} title={titleAttr}>
       {content}
     </div>
   );
