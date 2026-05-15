@@ -111,7 +111,9 @@ export function TrainingPage() {
           <p className="text-sm mt-2 leading-relaxed">
             This guide walks you through every part of the system in plain language.
             Take 15 minutes to read it once and you'll know exactly what to do at the bench every day.
-            If you ever get stuck on a page, click the <span className="font-mono px-1 rounded bg-background border">?</span> icon at the top right — it has the same instructions for that screen.
+            The app is a <span className="font-medium">shared live document</span> — every phone and PC sees
+            the same data and updates within about a second of any change.
+            If you ever get stuck on a page, click the <span className="font-mono px-1 rounded bg-background border">?</span> icon at the top right, or hover over any tile or sidebar link to see a one-line explanation.
           </p>
         </div>
 
@@ -141,6 +143,16 @@ export function TrainingPage() {
               title="Expired = quarantine, then discard"
               body="If something is past its expiry date, move it to Quarantined Stock immediately, then record the discard in Expired/Wasted Stock. Don't leave it on the shelf."
             />
+            <Rule
+              emoji="☁️"
+              title="It's a shared live document"
+              body="Every phone and PC with the app sees the same data. Receive a batch on your phone and it appears on the supervisor's PC dashboard within a second. No need to email spreadsheets."
+            />
+            <Rule
+              emoji="🖱️"
+              title="Hover to learn what anything is"
+              body="Every dashboard tile and sidebar link has a plain-English tooltip. Rest your mouse on it (long-press on mobile) and a one-line explanation appears."
+            />
           </div>
         </section>
 
@@ -149,9 +161,9 @@ export function TrainingPage() {
           <h2 className="text-sm font-bold uppercase tracking-wider text-foreground mb-3">A typical day</h2>
           <div className="bg-card border border-border rounded-lg p-4 text-sm">
             <ol className="space-y-2 list-decimal list-inside">
-              <li><span className="font-medium">Open the Dashboard</span> — see what needs attention today (critical risks, expired items, low stock).</li>
+              <li><span className="font-medium">Open the Dashboard</span> — see what needs attention today (critical risks, expired items, low stock). It refreshes live as colleagues work.</li>
               <li><span className="font-medium">Click Critical Actions</span> — the system tells you exactly what to do, in priority order.</li>
-              <li><span className="font-medium">Receive any new deliveries</span> — register the batch on Batch Register.</li>
+              <li><span className="font-medium">Receive any new deliveries</span> — go to <span className="font-medium">Receive / Stock Movements</span> and click "Receive new batch". The batch then appears in Acceptance Testing.</li>
               <li><span className="font-medium">Send pending batches for QC</span> — mark accepted or rejected on Acceptance Testing.</li>
               <li><span className="font-medium">Issue stock to benches</span> — record on Receive / Stock Movements (FEFO order).</li>
               <li><span className="font-medium">Raise reorders</span> — anything red on Low Stock & Reorder needs a Purchase Request.</li>
@@ -384,9 +396,10 @@ export function TrainingPage() {
           <div className="bg-card border border-border rounded-lg p-4 text-sm space-y-2">
             <p>📱 <span className="font-medium">Use it on your phone.</span> Open the published link and 'Add to Home Screen' for a one-tap app icon.</p>
             <p>❓ <span className="font-medium">Stuck? Hit the ? icon.</span> Every page has its own quick-help panel.</p>
+            <p>🖱️ <span className="font-medium">Hover for hints.</span> Every dashboard tile and sidebar link explains itself in one line on hover.</p>
+            <p>☁️ <span className="font-medium">It updates live.</span> No refresh button needed — when a colleague accepts a batch or issues stock, your screen catches up on its own.</p>
             <p>⚠️ <span className="font-medium">Read the inline warnings.</span> If a yellow box appears in a dialog, slow down — it's flagging something risky.</p>
             <p>🤝 <span className="font-medium">If unsure, ask the bench lead.</span> The dashboard shows the lead for every section in colour.</p>
-            <p>🔁 <span className="font-medium">Pull-to-refresh on mobile</span> if a screen looks stale.</p>
           </div>
         </section>
 
