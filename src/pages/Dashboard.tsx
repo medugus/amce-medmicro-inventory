@@ -140,6 +140,10 @@ export function DashboardPage() {
               const sectionSupplies = supplies.filter((x) => x.laboratorySection === s.id);
               const open = sectionSupplies.filter((x) => x.supplyStatus !== "Supplied" && x.supplyStatus !== "Cancelled").length;
               const critical = sectionSupplies.filter((x) => x.criticality === "Critical").length;
+              const sectionPurchaseRequests = purchaseRequests.filter((p) =>
+                p.requestingSection === s.id && p.approvalStatus !== "Rejected" && p.procurementStatus !== "Received"
+              ).length;
+              const sectionForecasts = forecasts.filter((f) => f.laboratorySection === s.id).length;
               const sectionItems = items.filter((i) => i.laboratorySection === s.id);
               const sectionLow = sectionItems.filter((i) => totalAvailableForItem(batches, i.id) <= i.reorderLevel).length;
               const sectionPendingAcc = batches.filter((b) => {
@@ -156,6 +160,7 @@ export function DashboardPage() {
                 sectionExpired > 0 ? "Quarantine and discard expired batches" :
                 sectionLow > 0 ? "Raise reorder for low-stock items" :
                 sectionPendingAcc > 0 ? "Complete acceptance testing" :
+                sectionPurchaseRequests > 0 ? "Follow up pending purchase requests" :
                 open > 0 ? "Follow up open supply records" :
                 "Bench head: review and clear any outstanding matters";
 
@@ -201,6 +206,8 @@ export function DashboardPage() {
                     <div className="flex justify-between"><span className="text-muted-foreground">Critical risks</span><span className="tabular-nums">{critical}</span></div>
                     <div className="flex justify-between"><span className="text-muted-foreground">Low stock</span><span className="tabular-nums">{sectionLow}</span></div>
                     <div className="flex justify-between"><span className="text-muted-foreground">Pending acceptance</span><span className="tabular-nums">{sectionPendingAcc}</span></div>
+                    <div className="flex justify-between"><span className="text-muted-foreground">Open purchase reqs</span><span className="tabular-nums">{sectionPurchaseRequests}</span></div>
+                    <div className="flex justify-between"><span className="text-muted-foreground">Section forecasts</span><span className="tabular-nums">{sectionForecasts}</span></div>
                     <div className="flex justify-between col-span-2"><span className="text-muted-foreground">Expired batches</span><span className="tabular-nums">{sectionExpired}</span></div>
                   </div>
                   <div className="mt-2 pt-2 border-t border-border text-xs">
