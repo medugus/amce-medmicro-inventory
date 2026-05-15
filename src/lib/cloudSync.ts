@@ -167,6 +167,7 @@ async function pullAll(): Promise<void> {
   if (pulling) return;
   pulling = true;
   try {
+    let anyChanged = false;
     await Promise.all(
       MAPPINGS.map(async (m) => {
         try {
@@ -216,6 +217,7 @@ async function pullAll(): Promise<void> {
 
           if (toPut.length === 0 && toDelete.length === 0) return;
 
+          anyChanged = true;
           applyingRemote++;
           try {
             if (toDelete.length > 0) await m.local.bulkDelete(toDelete);
@@ -228,7 +230,7 @@ async function pullAll(): Promise<void> {
         }
       }),
     );
-    dispatchChanged();
+    if (anyChanged) dispatchChanged();
   } finally {
     pulling = false;
   }
