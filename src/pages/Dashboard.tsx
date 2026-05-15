@@ -126,16 +126,16 @@ export function DashboardPage() {
         <section>
           <h2 className="text-sm font-semibold text-foreground mb-2">Operational summaries</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
-            <DashboardCard label="Supply requests" value={supplies.length} to="/supply-status" />
-            <DashboardCard label="Inventory items" value={items.length} to="/inventory-master" />
-            <DashboardCard label="Low-stock items" value={lowStock} tone={lowStock ? "warning" : "default"} to="/low-stock-reorder" />
-            <DashboardCard label="Batch / lot records" value={batches.length} to="/batch-register" />
-            <DashboardCard label="Stock movements" value={movements.length} to="/stock-movements" />
-            <DashboardCard label="Purchase requests" value={purchaseRequests.length} to="/purchase-requests" />
-            <DashboardCard label="Section forecasts" value={forecasts.length} to="/section-forecasting" />
-            <DashboardCard label="Equipment assets" value={equipment.length} hint={equipment.length === 0 ? "Pending import" : undefined} to="/equipment-register" />
-            <DashboardCard label="Durable assets" value={durables.length} hint={durables.length === 0 ? "Pending import" : undefined} to="/durables-register" />
-            <DashboardCard label="Expiring within 30 days" value={expBuckets["30"] ?? 0} tone="warning" to="/expiry-fefo" />
+          <DashboardCard label="Supply requests" value={supplies.length} tone="success" to="/supply-status" />
+            <DashboardCard label="Inventory items" value={items.length} tone="success" to="/inventory-master" />
+            <DashboardCard label="Low-stock items" value={lowStock} tone={lowStock > 0 ? "warning" : "success"} to="/low-stock-reorder" />
+            <DashboardCard label="Batch / lot records" value={batches.length} tone="success" to="/batch-register" />
+            <DashboardCard label="Stock movements" value={movements.length} tone="success" to="/stock-movements" />
+            <DashboardCard label="Purchase requests" value={purchaseRequests.length} tone="success" to="/purchase-requests" />
+            <DashboardCard label="Section forecasts" value={forecasts.length} tone="success" to="/section-forecasting" />
+            <DashboardCard label="Equipment assets" value={equipment.length} tone={equipment.length > 0 ? "success" : "default"} hint={equipment.length === 0 ? "Pending import" : undefined} to="/equipment-register" />
+            <DashboardCard label="Durable assets" value={durables.length} tone={durables.length > 0 ? "success" : "default"} hint={durables.length === 0 ? "Pending import" : undefined} to="/durables-register" />
+            <DashboardCard label="Expiring within 30 days" value={expBuckets["30"] ?? 0} tone={(expBuckets["30"] ?? 0) > 0 ? "warning" : "success"} to="/expiry-fefo" />
           </div>
         </section>
 
