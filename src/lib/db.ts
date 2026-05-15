@@ -102,6 +102,28 @@ class AMCEDatabase extends Dexie {
 
 export const db = new AMCEDatabase();
 
+const DELETED_META_PREFIX = "deleted";
+
+function deletedRecordKey(table: string, id: string): string {
+  return `${DELETED_META_PREFIX}:${table}:${id}`;
+}
+
+export async function rememberDeletedRecord(table: string, id: string): Promise<void> {
+  if (!table || !id || id === "undefined" || id === "null") return;
+  await Dexie.ignoreTransaction(() => db.meta.put({ key: deletedRecordKey(table, id), value: new Date().toISOString() }));
+}
+
+export async function forgetDeletedRecord(table: string, id: string): Promise<void> {
+  if (!table || !id || id === "undefined" || id === "null") return;
+  await Dexie.ignoreTransaction(() => db.meta.delete(deletedRecordKey(table, id)));
+}
+
+export async function deletedRecordIdsForTable(table: string): Promise<Set<string>> {
+  const prefix = `${DELETED_META_PREFIX}:${table}:`;
+  const rows = await db.meta.where("key").startsWith(prefix).toArray();
+  return new Set(rows.map((row) => row.key.slice(prefix.length)));
+}
+
 // Bump this string whenever the bundled seed data changes meaningfully and
 // you want each lab PC to re-seed missing rows from the new baseline. Seeded
 // durables are refreshed by stable ID; user-added rows use different IDs and
@@ -129,17 +151,21 @@ export function ensureSeeded(): Promise<void> {
       "rw",
       [db.inventory, db.batches, db.supply, db.movements, db.acceptance, db.audit, db.equipment, db.durables, db.forecasts, db.purchaseRequests, db.meta],
       async () => {
-        // Catalogue + supply backlog: keep current entries, fill in any missing.
+        // Catalogue + supply backlog: keep current entries, fill in any missing,
+        // but never restore seed rows the lab has explicitly deleted.
         const existingInv = new Set((await db.inventory.toCollection().primaryKeys()) as string[]);
-        const newInv = AMCE_INVENTORY_MASTER.filter((i) => !existingInv.has(i.id));
+        const deletedInventory = await deletedRecordIdsForTable("inventory");
+        const newInv = AMCE_INVENTORY_MASTER.filter((i) => !existingInv.has(i.id) && !deletedInventory.has(i.id));
         if (newInv.length) await db.inventory.bulkAdd(newInv);
 
         const existingBatches = new Set((await db.batches.toCollection().primaryKeys()) as string[]);
-        const newBatches = AMCE_BATCHES.filter((b) => !existingBatches.has(b.id));
+        const deletedBatches = await deletedRecordIdsForTable("batches");
+        const newBatches = AMCE_BATCHES.filter((b) => !existingBatches.has(b.id) && !deletedBatches.has(b.id));
         if (newBatches.length) await db.batches.bulkAdd(newBatches);
 
         const existingSupply = new Set((await db.supply.toCollection().primaryKeys()) as string[]);
-        const newSupply = AMCE_SUPPLY_STATUS.filter((s) => !existingSupply.has(s.id));
+        const deletedSupply = await deletedRecordIdsForTable("supply");
+        const newSupply = AMCE_SUPPLY_STATUS.filter((s) => !existingSupply.has(s.id) && !deletedSupply.has(s.id));
         if (newSupply.length) await db.supply.bulkAdd(newSupply);
 
         // Movements / acceptance / audit: only seed if completely empty.

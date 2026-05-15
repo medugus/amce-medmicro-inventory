@@ -13,7 +13,7 @@
 // need to change at all. Dexie remains the source the UI reads from; Cloud
 // keeps it in lock-step across every device.
 
-import { db } from "@/lib/db";
+import { db, deletedRecordIdsForTable, forgetDeletedRecord, rememberDeletedRecord } from "@/lib/db";
 import { supabase as typedSupabase } from "@/integrations/supabase/client";
 import type { Table } from "dexie";
 
@@ -33,6 +33,8 @@ type RealtimePayload = {
 interface Mapping {
   /** Supabase table name */
   cloudTable: string;
+  /** Local Dexie table name */
+  localTable: string;
   /** Dexie table reference */
   local: Table<AnyRow, string>;
   /** Function that returns the primary key of a record */
@@ -42,61 +44,73 @@ interface Mapping {
 const MAPPINGS: Mapping[] = [
   {
     cloudTable: "inventory_items",
+    localTable: "inventory",
     local: db.inventory as unknown as Table<AnyRow, string>,
     pk: (r) => String(r.id),
   },
   {
     cloudTable: "batches",
+    localTable: "batches",
     local: db.batches as unknown as Table<AnyRow, string>,
     pk: (r) => String(r.id),
   },
   {
     cloudTable: "supply_status",
+    localTable: "supply",
     local: db.supply as unknown as Table<AnyRow, string>,
     pk: (r) => String(r.id),
   },
   {
     cloudTable: "stock_movements",
+    localTable: "movements",
     local: db.movements as unknown as Table<AnyRow, string>,
     pk: (r) => String(r.id),
   },
   {
     cloudTable: "acceptance_tests",
+    localTable: "acceptance",
     local: db.acceptance as unknown as Table<AnyRow, string>,
     pk: (r) => String(r.id),
   },
   {
     cloudTable: "equipment",
+    localTable: "equipment",
     local: db.equipment as unknown as Table<AnyRow, string>,
     pk: (r) => String(r.id),
   },
   {
     cloudTable: "durables",
+    localTable: "durables",
     local: db.durables as unknown as Table<AnyRow, string>,
     pk: (r) => String(r.id),
   },
   {
     cloudTable: "forecasts",
+    localTable: "forecasts",
     local: db.forecasts as unknown as Table<AnyRow, string>,
     pk: (r) => String(r.id),
   },
   {
     cloudTable: "purchase_requests",
+    localTable: "purchaseRequests",
     local: db.purchaseRequests as unknown as Table<AnyRow, string>,
     pk: (r) => String(r.id),
   },
   {
     cloudTable: "audit_trail",
+    localTable: "audit",
     local: db.audit as unknown as Table<AnyRow, string>,
     pk: (r) => String(r.id),
   },
   {
     cloudTable: "gtin_catalogue",
+    localTable: "gtinCatalogue",
     local: db.gtinCatalogue as unknown as Table<AnyRow, string>,
     pk: (r) => String(r.gtin),
   },
   {
     cloudTable: "scan_history",
+    localTable: "scanHistory",
     local: db.scanHistory as unknown as Table<AnyRow, string>,
     pk: (r) => String(r.id),
   },
@@ -158,6 +172,7 @@ async function pullAll(): Promise<void> {
         try {
           // Page through to bypass the 1000-row default limit.
           const all: AnyRow[] = [];
+          const deletedIds = await deletedRecordIdsForTable(m.localTable);
           const PAGE = 1000;
           let from = 0;
           // Bound the loop so a misbehaving table can't spin forever.
@@ -170,7 +185,7 @@ async function pullAll(): Promise<void> {
             if (!data || data.length === 0) break;
             for (const row of data as Array<{ data: AnyRow }>) {
               const id = row.data ? m.pk(row.data) : "";
-              if (row.data && !isPendingDelete(m.cloudTable, id)) all.push(row.data);
+              if (row.data && !isPendingDelete(m.cloudTable, id) && !deletedIds.has(id)) all.push(row.data);
             }
             if (data.length < PAGE) break;
             from += PAGE;
@@ -236,6 +251,9 @@ function installLocalToCloudHooks(): void {
       const id = m.pk(row);
       if (!id || id === "undefined" || id === "null") return;
       markUp(m.cloudTable, id);
+      void forgetDeletedRecord(m.localTable, id).catch((err) => {
+        console.warn(`[cloudSync] clear delete marker failed for ${m.localTable}/${id}:`, err);
+      });
       // Fire-and-forget. Errors are surfaced to console only — UI already
       // shows the local change.
       supabase
@@ -261,6 +279,9 @@ function installLocalToCloudHooks(): void {
       const id = String(pk);
       markUp(m.cloudTable, id);
       markPendingDelete(m.cloudTable, id);
+      void rememberDeletedRecord(m.localTable, id).catch((err) => {
+        console.warn(`[cloudSync] delete marker failed for ${m.localTable}/${id}:`, err);
+      });
       supabase
         .from(m.cloudTable)
         .delete()
@@ -289,6 +310,7 @@ function installRealtime(): void {
               const id = String((payload.old as { id?: string })?.id ?? "");
               if (!id) return;
               clearPendingDelete(m.cloudTable, id);
+              await rememberDeletedRecord(m.localTable, id);
               if (wasJustMirroredUp(m.cloudTable, id)) return;
               applyingRemote++;
               try {
@@ -304,6 +326,7 @@ function installRealtime(): void {
             const id = String(rec.id ?? m.pk(rec.data));
             if (isPendingDelete(m.cloudTable, id)) return;
             if (wasJustMirroredUp(m.cloudTable, id)) return;
+            await forgetDeletedRecord(m.localTable, id);
             applyingRemote++;
             try {
               await m.local.put(rec.data);
