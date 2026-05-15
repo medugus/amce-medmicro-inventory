@@ -172,6 +172,7 @@ async function pullAll(): Promise<void> {
         try {
           // Page through to bypass the 1000-row default limit.
           const all: AnyRow[] = [];
+          const deletedIds = await deletedRecordIdsForTable(m.localTable);
           const PAGE = 1000;
           let from = 0;
           // Bound the loop so a misbehaving table can't spin forever.
@@ -184,7 +185,7 @@ async function pullAll(): Promise<void> {
             if (!data || data.length === 0) break;
             for (const row of data as Array<{ data: AnyRow }>) {
               const id = row.data ? m.pk(row.data) : "";
-              if (row.data && !isPendingDelete(m.cloudTable, id)) all.push(row.data);
+              if (row.data && !isPendingDelete(m.cloudTable, id) && !deletedIds.has(id)) all.push(row.data);
             }
             if (data.length < PAGE) break;
             from += PAGE;
