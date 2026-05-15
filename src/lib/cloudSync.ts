@@ -251,6 +251,7 @@ function installLocalToCloudHooks(): void {
       const id = m.pk(row);
       if (!id || id === "undefined" || id === "null") return;
       markUp(m.cloudTable, id);
+      void forgetDeletedRecord(m.localTable, id);
       // Fire-and-forget. Errors are surfaced to console only — UI already
       // shows the local change.
       supabase
@@ -276,6 +277,7 @@ function installLocalToCloudHooks(): void {
       const id = String(pk);
       markUp(m.cloudTable, id);
       markPendingDelete(m.cloudTable, id);
+      void rememberDeletedRecord(m.localTable, id);
       supabase
         .from(m.cloudTable)
         .delete()
