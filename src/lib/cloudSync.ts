@@ -105,6 +105,8 @@ const MAPPINGS: Mapping[] = [
 // Track keys we've just written to Cloud so the realtime echo doesn't loop.
 const recentlyMirroredUp = new Map<string, number>(); // key -> timestamp ms
 const MIRROR_DEBOUNCE_MS = 2500;
+const pendingLocalDeletes = new Map<string, number>(); // key -> timestamp ms
+const PENDING_DELETE_MS = 30000;
 
 function markUp(table: string, id: string) {
   recentlyMirroredUp.set(`${table}:${id}`, Date.now());
@@ -115,6 +117,22 @@ function wasJustMirroredUp(table: string, id: string): boolean {
   if (!ts) return false;
   if (Date.now() - ts > MIRROR_DEBOUNCE_MS) {
     recentlyMirroredUp.delete(k);
+    return false;
+  }
+  return true;
+}
+function markPendingDelete(table: string, id: string) {
+  pendingLocalDeletes.set(`${table}:${id}`, Date.now());
+}
+function clearPendingDelete(table: string, id: string) {
+  pendingLocalDeletes.delete(`${table}:${id}`);
+}
+function isPendingDelete(table: string, id: string): boolean {
+  const k = `${table}:${id}`;
+  const ts = pendingLocalDeletes.get(k);
+  if (!ts) return false;
+  if (Date.now() - ts > PENDING_DELETE_MS) {
+    pendingLocalDeletes.delete(k);
     return false;
   }
   return true;
