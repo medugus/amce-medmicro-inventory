@@ -161,9 +161,9 @@ export function TrainingPage() {
           <h2 className="text-sm font-bold uppercase tracking-wider text-foreground mb-3">A typical day</h2>
           <div className="bg-card border border-border rounded-lg p-4 text-sm">
             <ol className="space-y-2 list-decimal list-inside">
-              <li><span className="font-medium">Open the Dashboard</span> — see what needs attention today (critical risks, expired items, low stock).</li>
+              <li><span className="font-medium">Open the Dashboard</span> — see what needs attention today (critical risks, expired items, low stock). It refreshes live as colleagues work.</li>
               <li><span className="font-medium">Click Critical Actions</span> — the system tells you exactly what to do, in priority order.</li>
-              <li><span className="font-medium">Receive any new deliveries</span> — register the batch on Batch Register.</li>
+              <li><span className="font-medium">Receive any new deliveries</span> — go to <span className="font-medium">Receive / Stock Movements</span> and click "Receive new batch". The batch then appears in Acceptance Testing.</li>
               <li><span className="font-medium">Send pending batches for QC</span> — mark accepted or rejected on Acceptance Testing.</li>
               <li><span className="font-medium">Issue stock to benches</span> — record on Receive / Stock Movements (FEFO order).</li>
               <li><span className="font-medium">Raise reorders</span> — anything red on Low Stock & Reorder needs a Purchase Request.</li>
