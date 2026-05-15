@@ -176,9 +176,9 @@ const STEPS: Step[] = [
     body: (
       <div className="space-y-3 text-sm leading-relaxed">
         <p>
-          The <span className="font-medium">Dashboard</span> shows everything at a glance.
-          The <span className="font-medium">Critical Actions</span> page is a single, prioritised
-          to-do list pulled from every module — work it top to bottom.
+          The <span className="font-medium">Dashboard</span> shows everything at a glance and
+          updates live as you and your colleagues work. The <span className="font-medium">Critical Actions</span> page
+          is a single, prioritised to-do list pulled from every module — work it top to bottom.
         </p>
         <p>
           Stuck on any page? Click the <span className="font-mono px-1 rounded bg-muted border">?</span> at
@@ -188,9 +188,39 @@ const STEPS: Step[] = [
     ),
   },
   {
-    icon: BookOpen,
+    icon: MousePointer2,
+    title: "Step 7 — Hover over anything to learn what it is",
+    body: (
+      <div className="space-y-3 text-sm leading-relaxed">
+        <p>
+          Every dashboard tile and every sidebar link has a <span className="font-medium">hover tooltip</span>.
+          Rest your mouse on it (or long-press on mobile) and a one-line plain-English explanation
+          appears — no need to guess what "Pending acceptance" or "Quarantined / rejected" means.
+        </p>
+        <p className="text-xs text-muted-foreground">
+          Pair this with the <span className="font-mono px-1 rounded bg-muted border">?</span> button on each page for the
+          full how-to.
+        </p>
+      </div>
+    ),
+  },
+  {
+    icon: Cloud,
     title: "You're ready",
     body: (
+      <div className="space-y-3 text-sm leading-relaxed">
+        <p>
+          That's the full daily loop. Your changes sync to every other device on the team
+          automatically — open the app on your phone and your PC, and you'll see the same
+          live data on both.
+        </p>
+        <p className="text-xs text-muted-foreground">
+          Want the full reference? Open <span className="font-medium">Training</span> in the sidebar
+          for the long-form SOP walkthrough of all 15 modules.
+        </p>
+      </div>
+    ),
+  },
       <div className="space-y-3 text-sm leading-relaxed">
         <p>
           That's the full daily loop. The sidebar has every module —
