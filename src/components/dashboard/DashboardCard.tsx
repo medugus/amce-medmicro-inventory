@@ -23,6 +23,12 @@ export function DashboardCard({
     : tone === "success" ? "border-l-success"
     : tone === "info" ? "border-l-info"
     : "border-l-primary";
+  const tint =
+    tone === "destructive" ? "bg-destructive/8 dark:bg-destructive/12"
+    : tone === "warning" ? "bg-warning/8 dark:bg-warning/12"
+    : tone === "success" ? "bg-success/8 dark:bg-success/12"
+    : tone === "info" ? "bg-info/8 dark:bg-info/12"
+    : "";
   const content = (
     <>
       <div className="text-[11px] uppercase tracking-wider text-muted-foreground">{label}</div>
@@ -31,7 +37,8 @@ export function DashboardCard({
     </>
   );
   const base = cn(
-    "bg-card border border-border border-l-4 rounded-md px-4 py-3 shadow-sm block",
+    "border border-border border-l-4 rounded-md px-4 py-3 shadow-sm block",
+    tint || "bg-card",
     accent,
     to && "hover:shadow-md hover:bg-accent/30 transition-all cursor-pointer"
   );
