@@ -2,6 +2,7 @@
 // after seeding has completed.
 
 import { useEffect, useState } from "react";
+import { liveQuery } from "dexie";
 import { db, ensureDurablesSeeded, ensureEquipmentSeeded, ensureSeeded } from "@/lib/db";
 import { AMCE_DURABLES, AMCE_EQUIPMENT } from "@/data/amceAssets";
 import type {
@@ -88,11 +89,20 @@ function useTable<T>(loader: () => Promise<T[]>, deps: unknown[] = [], initialRo
       const data = await loader();
       if (!cancelled) setRows(data);
     }
-    refresh();
+    const subscription = liveQuery(loader).subscribe({
+      next: (data) => {
+        if (!cancelled) setRows(data);
+      },
+      error: (err) => {
+        console.error("Live data refresh failed:", err);
+        void refresh();
+      },
+    });
     const onChange = () => refresh();
     window.addEventListener("amce:db-changed", onChange);
     return () => {
       cancelled = true;
+      subscription.unsubscribe();
       window.removeEventListener("amce:db-changed", onChange);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
