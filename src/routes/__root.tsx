@@ -3,6 +3,7 @@ import { Outlet, Link, createRootRoute, HeadContent, Scripts, useRouter } from "
 import appCss from "../styles.css?url";
 import { AppShell } from "@/components/layout/AppShell";
 import { registerOfflineServiceWorker } from "@/lib/registerSW";
+import { initializeDataLayer } from "@/lib/useLiveData";
 import { Toaster } from "@/components/ui/sonner";
 
 function NotFoundComponent() {
@@ -91,6 +92,7 @@ function RootShell({ children }: { children: React.ReactNode }) {
 function RootComponent() {
   useEffect(() => {
     registerOfflineServiceWorker();
+    void initializeDataLayer();
   }, []);
   return (
     <>
