@@ -169,7 +169,8 @@ async function pullAll(): Promise<void> {
             if (error) throw error;
             if (!data || data.length === 0) break;
             for (const row of data as Array<{ data: AnyRow }>) {
-              if (row.data) all.push(row.data);
+              const id = row.data ? m.pk(row.data) : "";
+              if (row.data && !isPendingDelete(m.cloudTable, id)) all.push(row.data);
             }
             if (data.length < PAGE) break;
             from += PAGE;
@@ -259,12 +260,16 @@ function installLocalToCloudHooks(): void {
       if (applyingRemote > 0) return;
       const id = String(pk);
       markUp(m.cloudTable, id);
+      markPendingDelete(m.cloudTable, id);
       supabase
         .from(m.cloudTable)
         .delete()
         .eq("id", id)
         .then(({ error }: { error: unknown }) => {
-          if (error) console.warn(`[cloudSync] delete ${m.cloudTable}/${id} failed:`, error);
+          if (error) {
+            clearPendingDelete(m.cloudTable, id);
+            console.warn(`[cloudSync] delete ${m.cloudTable}/${id} failed:`, error);
+          }
         });
     });
   }
