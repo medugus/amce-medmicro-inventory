@@ -306,6 +306,7 @@ function installRealtime(): void {
               const id = String((payload.old as { id?: string })?.id ?? "");
               if (!id) return;
               clearPendingDelete(m.cloudTable, id);
+              await rememberDeletedRecord(m.localTable, id);
               if (wasJustMirroredUp(m.cloudTable, id)) return;
               applyingRemote++;
               try {
@@ -321,6 +322,7 @@ function installRealtime(): void {
             const id = String(rec.id ?? m.pk(rec.data));
             if (isPendingDelete(m.cloudTable, id)) return;
             if (wasJustMirroredUp(m.cloudTable, id)) return;
+            await forgetDeletedRecord(m.localTable, id);
             applyingRemote++;
             try {
               await m.local.put(rec.data);
