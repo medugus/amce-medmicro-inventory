@@ -213,7 +213,7 @@ export function DashboardPage() {
                     <span className="text-muted-foreground">Next action: </span>
                     <span className="font-medium">{nextAction}</span>
                   </div>
-                </div>
+                </Link>
               );
             })}
           </div>
