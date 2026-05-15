@@ -205,6 +205,10 @@ async function pullAll(): Promise<void> {
           for (const row of all) {
             const id = m.pk(row);
             remoteIds.add(id);
+            // A local create/update is mirrored to Cloud asynchronously. If the
+            // dashboard mounts and pulls before that write is visible remotely,
+            // do not roll the local edit back to the older cloud row.
+            if (wasJustMirroredUp(m.cloudTable, id)) continue;
             const prev = existingById.get(id);
             if (!prev || JSON.stringify(prev) !== JSON.stringify(row)) {
               toPut.push(row);
@@ -212,7 +216,9 @@ async function pullAll(): Promise<void> {
           }
           const toDelete: string[] = [];
           for (const id of existingById.keys()) {
-            if (!remoteIds.has(id)) toDelete.push(id);
+            // Likewise, never delete a freshly-created local row just because a
+            // pull beat its fire-and-forget upsert to Cloud.
+            if (!remoteIds.has(id) && !wasJustMirroredUp(m.cloudTable, id)) toDelete.push(id);
           }
 
           if (toPut.length === 0 && toDelete.length === 0) return;
