@@ -35,6 +35,7 @@ import { Route as BatchRegisterRouteImport } from './routes/batch-register'
 import { Route as AuditTrailRouteImport } from './routes/audit-trail'
 import { Route as AcceptanceTestingRouteImport } from './routes/acceptance-testing'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as SectionSectionIdRouteImport } from './routes/section.$sectionId'
 import { Route as RTypeIdRouteImport } from './routes/r.$type.$id'
 
 const WelcomeRoute = WelcomeRouteImport.update({
@@ -167,6 +168,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SectionSectionIdRoute = SectionSectionIdRouteImport.update({
+  id: '/section/$sectionId',
+  path: '/section/$sectionId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RTypeIdRoute = RTypeIdRouteImport.update({
   id: '/r/$type/$id',
   path: '/r/$type/$id',
@@ -200,6 +206,7 @@ export interface FileRoutesByFullPath {
   '/supply-status': typeof SupplyStatusRoute
   '/training': typeof TrainingRoute
   '/welcome': typeof WelcomeRoute
+  '/section/$sectionId': typeof SectionSectionIdRoute
   '/r/$type/$id': typeof RTypeIdRoute
 }
 export interface FileRoutesByTo {
@@ -229,6 +236,7 @@ export interface FileRoutesByTo {
   '/supply-status': typeof SupplyStatusRoute
   '/training': typeof TrainingRoute
   '/welcome': typeof WelcomeRoute
+  '/section/$sectionId': typeof SectionSectionIdRoute
   '/r/$type/$id': typeof RTypeIdRoute
 }
 export interface FileRoutesById {
@@ -259,6 +267,7 @@ export interface FileRoutesById {
   '/supply-status': typeof SupplyStatusRoute
   '/training': typeof TrainingRoute
   '/welcome': typeof WelcomeRoute
+  '/section/$sectionId': typeof SectionSectionIdRoute
   '/r/$type/$id': typeof RTypeIdRoute
 }
 export interface FileRouteTypes {
@@ -290,6 +299,7 @@ export interface FileRouteTypes {
     | '/supply-status'
     | '/training'
     | '/welcome'
+    | '/section/$sectionId'
     | '/r/$type/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -319,6 +329,7 @@ export interface FileRouteTypes {
     | '/supply-status'
     | '/training'
     | '/welcome'
+    | '/section/$sectionId'
     | '/r/$type/$id'
   id:
     | '__root__'
@@ -348,6 +359,7 @@ export interface FileRouteTypes {
     | '/supply-status'
     | '/training'
     | '/welcome'
+    | '/section/$sectionId'
     | '/r/$type/$id'
   fileRoutesById: FileRoutesById
 }
@@ -378,6 +390,7 @@ export interface RootRouteChildren {
   SupplyStatusRoute: typeof SupplyStatusRoute
   TrainingRoute: typeof TrainingRoute
   WelcomeRoute: typeof WelcomeRoute
+  SectionSectionIdRoute: typeof SectionSectionIdRoute
   RTypeIdRoute: typeof RTypeIdRoute
 }
 
@@ -565,6 +578,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/section/$sectionId': {
+      id: '/section/$sectionId'
+      path: '/section/$sectionId'
+      fullPath: '/section/$sectionId'
+      preLoaderRoute: typeof SectionSectionIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/r/$type/$id': {
       id: '/r/$type/$id'
       path: '/r/$type/$id'
@@ -602,17 +622,9 @@ const rootRouteChildren: RootRouteChildren = {
   SupplyStatusRoute: SupplyStatusRoute,
   TrainingRoute: TrainingRoute,
   WelcomeRoute: WelcomeRoute,
+  SectionSectionIdRoute: SectionSectionIdRoute,
   RTypeIdRoute: RTypeIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}
