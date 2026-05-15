@@ -105,6 +105,8 @@ const MAPPINGS: Mapping[] = [
 // Track keys we've just written to Cloud so the realtime echo doesn't loop.
 const recentlyMirroredUp = new Map<string, number>(); // key -> timestamp ms
 const MIRROR_DEBOUNCE_MS = 2500;
+const pendingLocalDeletes = new Map<string, number>(); // key -> timestamp ms
+const PENDING_DELETE_MS = 30000;
 
 function markUp(table: string, id: string) {
   recentlyMirroredUp.set(`${table}:${id}`, Date.now());
@@ -115,6 +117,22 @@ function wasJustMirroredUp(table: string, id: string): boolean {
   if (!ts) return false;
   if (Date.now() - ts > MIRROR_DEBOUNCE_MS) {
     recentlyMirroredUp.delete(k);
+    return false;
+  }
+  return true;
+}
+function markPendingDelete(table: string, id: string) {
+  pendingLocalDeletes.set(`${table}:${id}`, Date.now());
+}
+function clearPendingDelete(table: string, id: string) {
+  pendingLocalDeletes.delete(`${table}:${id}`);
+}
+function isPendingDelete(table: string, id: string): boolean {
+  const k = `${table}:${id}`;
+  const ts = pendingLocalDeletes.get(k);
+  if (!ts) return false;
+  if (Date.now() - ts > PENDING_DELETE_MS) {
+    pendingLocalDeletes.delete(k);
     return false;
   }
   return true;
@@ -151,7 +169,8 @@ async function pullAll(): Promise<void> {
             if (error) throw error;
             if (!data || data.length === 0) break;
             for (const row of data as Array<{ data: AnyRow }>) {
-              if (row.data) all.push(row.data);
+              const id = row.data ? m.pk(row.data) : "";
+              if (row.data && !isPendingDelete(m.cloudTable, id)) all.push(row.data);
             }
             if (data.length < PAGE) break;
             from += PAGE;
@@ -241,12 +260,16 @@ function installLocalToCloudHooks(): void {
       if (applyingRemote > 0) return;
       const id = String(pk);
       markUp(m.cloudTable, id);
+      markPendingDelete(m.cloudTable, id);
       supabase
         .from(m.cloudTable)
         .delete()
         .eq("id", id)
         .then(({ error }: { error: unknown }) => {
-          if (error) console.warn(`[cloudSync] delete ${m.cloudTable}/${id} failed:`, error);
+          if (error) {
+            clearPendingDelete(m.cloudTable, id);
+            console.warn(`[cloudSync] delete ${m.cloudTable}/${id} failed:`, error);
+          }
         });
     });
   }
@@ -265,6 +288,7 @@ function installRealtime(): void {
             if (evt === "DELETE") {
               const id = String((payload.old as { id?: string })?.id ?? "");
               if (!id) return;
+              clearPendingDelete(m.cloudTable, id);
               if (wasJustMirroredUp(m.cloudTable, id)) return;
               applyingRemote++;
               try {
@@ -278,6 +302,7 @@ function installRealtime(): void {
             const rec = payload.new as { id?: string; data?: AnyRow };
             if (!rec || !rec.data) return;
             const id = String(rec.id ?? m.pk(rec.data));
+            if (isPendingDelete(m.cloudTable, id)) return;
             if (wasJustMirroredUp(m.cloudTable, id)) return;
             applyingRemote++;
             try {
