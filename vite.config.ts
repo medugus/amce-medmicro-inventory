@@ -15,9 +15,6 @@ export default defineConfig(({ command }) => ({
   ],
   resolve: {
     dedupe: ["react", "react-dom", "@tanstack/react-router", "@tanstack/react-start"],
-    alias: {
-      "h3-v2": "h3-v2",
-    },
   },
   ssr: {
     noExternal: ["h3-v2", /^@tanstack\//],
