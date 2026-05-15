@@ -141,16 +141,16 @@ export function DashboardPage() {
         <section>
           <h2 className="text-sm font-semibold text-foreground mb-2">Operational summaries</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
-            <DashboardCard label="Supply requests" value={supplies.length} to="/supply-status" />
-            <DashboardCard label="Inventory items" value={items.length} to="/inventory-master" />
-            <DashboardCard label="Low-stock items" value={lowStock} tone={lowStock ? "warning" : "default"} to="/low-stock-reorder" />
-            <DashboardCard label="Batch / lot records" value={batches.length} to="/batch-register" />
-            <DashboardCard label="Stock movements" value={movements.length} to="/stock-movements" />
-            <DashboardCard label="Purchase requests" value={purchaseRequests.length} to="/purchase-requests" />
-            <DashboardCard label="Section forecasts" value={forecasts.length} to="/section-forecasting" />
-            <DashboardCard label="Equipment assets" value={equipment.length} hint={equipment.length === 0 ? "Pending import" : undefined} to="/equipment-register" />
-            <DashboardCard label="Durable assets" value={durables.length} hint={durables.length === 0 ? "Pending import" : undefined} to="/durables-register" />
-            <DashboardCard label="Expiring within 30 days" value={expBuckets["30"] ?? 0} tone="warning" to="/expiry-fefo" />
+            <DashboardCard label="Supply requests" value={supplies.length} to="/supply-status" explain="All supply requests raised by sections to stores/procurement." />
+            <DashboardCard label="Inventory items" value={items.length} to="/inventory-master" explain="Catalogue of every reagent, consumable and supply item the lab uses." />
+            <DashboardCard label="Low-stock items" value={lowStock} tone={lowStock ? "warning" : "default"} to="/low-stock-reorder" explain="Items at or below their reorder level. Raise a Purchase Request from here." />
+            <DashboardCard label="Batch / lot records" value={batches.length} to="/batch-register" explain="Every physical batch received, with lot number, expiry and quantity." />
+            <DashboardCard label="Stock movements" value={movements.length} to="/stock-movements" explain="All recorded receipts, issues, returns, transfers and adjustments." />
+            <DashboardCard label="Purchase requests" value={purchaseRequests.length} to="/purchase-requests" explain="Formal procurement requests raised to finance / supply chain." />
+            <DashboardCard label="Section forecasts" value={forecasts.length} to="/section-forecasting" explain="Projected consumption per section based on usage history." />
+            <DashboardCard label="Equipment assets" value={equipment.length} hint={equipment.length === 0 ? "Pending import" : undefined} to="/equipment-register" explain="Capital equipment such as analysers and incubators with serial and location." />
+            <DashboardCard label="Durable assets" value={durables.length} hint={durables.length === 0 ? "Pending import" : undefined} to="/durables-register" explain="Reusable durables such as glassware and instruments tracked by location." />
+            <DashboardCard label="Expiring within 30 days" value={expBuckets["30"] ?? 0} tone="warning" to="/expiry-fefo" explain="Batches expiring in the next 30 days. Use FEFO to issue these first." />
           </div>
         </section>
 
