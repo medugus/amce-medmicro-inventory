@@ -120,7 +120,7 @@ export async function forgetDeletedRecord(table: string, id: string): Promise<vo
 
 export async function deletedRecordIdsForTable(table: string): Promise<Set<string>> {
   const prefix = `${DELETED_META_PREFIX}:${table}:`;
-  const rows = await Dexie.ignoreTransaction(() => db.meta.where("key").startsWith(prefix).toArray());
+  const rows = await db.meta.where("key").startsWith(prefix).toArray();
   return new Set(rows.map((row) => row.key.slice(prefix.length)));
 }
 
