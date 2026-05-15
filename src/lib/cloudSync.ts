@@ -234,7 +234,25 @@ function installRealtime(): void {
   }
 }
 
+function installResyncFallback(): void {
+  const resync = () => {
+    if (document.visibilityState === "visible" && navigator.onLine !== false) {
+      void pullAll();
+    }
+  };
+
+  document.addEventListener("visibilitychange", resync);
+  window.addEventListener("focus", resync);
+  window.addEventListener("online", resync);
+
+  // Mobile browsers can suspend websocket subscriptions while the app is in
+  // the background or installed as a home-screen app. Poll lightly so phones
+  // still catch up even if realtime is paused by the OS.
+  window.setInterval(resync, 15000);
+}
+
 let started: Promise<void> | null = null;
+let fallbackInstalled = false;
 
 /**
  * Initialise cloud sync. Safe to call many times — only runs once.
@@ -254,6 +272,10 @@ export function startCloudSync(): Promise<void> {
       await pushSeedIfEmpty();
       await pullAll();
       installRealtime();
+      if (!fallbackInstalled) {
+        fallbackInstalled = true;
+        installResyncFallback();
+      }
     } catch (err) {
       console.error("[cloudSync] initialisation failed:", err);
     }
