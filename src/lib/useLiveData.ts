@@ -20,12 +20,21 @@ import type {
 } from "@/types";
 
 let ready = false;
+let dataLayerPromise: Promise<void> | null = null;
 const readyListeners = new Set<() => void>();
-if (typeof window !== "undefined" && typeof indexedDB !== "undefined") {
+
+export function initializeDataLayer(): Promise<void> {
+  if (ready) return Promise.resolve();
+  if (typeof window === "undefined" || typeof indexedDB === "undefined") {
+    ready = true;
+    return Promise.resolve();
+  }
+  if (dataLayerPromise) return dataLayerPromise;
+
   // Seed local Dexie first (so the device has the bundled baseline if cloud is
   // empty), then start cloud sync (push seed up if cloud is empty, then pull
   // cloud → local, then open realtime).
-  ensureSeeded()
+  dataLayerPromise = ensureSeeded()
     .then(() => import("@/lib/cloudSync").then((m) => m.startCloudSync()))
     .catch((err) => {
       console.error("Failed to initialise data layer:", err);
@@ -35,6 +44,11 @@ if (typeof window !== "undefined" && typeof indexedDB !== "undefined") {
       readyListeners.forEach((l) => l());
       readyListeners.clear();
     });
+  return dataLayerPromise;
+}
+
+if (typeof window !== "undefined" && typeof indexedDB !== "undefined") {
+  void initializeDataLayer();
 }
 
 function useReady(): boolean {
@@ -44,15 +58,7 @@ function useReady(): boolean {
     if (typeof indexedDB === "undefined") { setR(true); return; }
     const fn = () => setR(true);
     readyListeners.add(fn);
-    ensureSeeded()
-      .then(() => import("@/lib/cloudSync").then((m) => m.startCloudSync()))
-      .catch((err) => {
-        console.error("Failed to initialise data layer:", err);
-      })
-      .finally(() => {
-        ready = true;
-        fn();
-      });
+    void initializeDataLayer().finally(fn);
     if (ready) {
       readyListeners.delete(fn);
       setR(true);
