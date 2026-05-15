@@ -21,11 +21,14 @@ import { Button } from "@/components/ui/button";
 export function UserPicker() {
   const { user, setUser, users } = useCurrentUser();
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => { setMounted(true); }, []);
 
   // Force-pick on first load if no user is selected.
   useEffect(() => {
-    if (!user) setPickerOpen(true);
-  }, [user]);
+    if (mounted && !user) setPickerOpen(true);
+  }, [user, mounted]);
 
   // Listen for action layers requesting the picker (AuthRequiredError).
   useEffect(() => {
