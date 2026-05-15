@@ -13,6 +13,8 @@ import {
   QrCode,
   BookOpen,
   Sparkles,
+  Cloud,
+  MousePointer2,
 } from "lucide-react";
 import { useCurrentUser } from "@/lib/currentUser";
 import { AMCE_USERS } from "@/data/amceUsers";
