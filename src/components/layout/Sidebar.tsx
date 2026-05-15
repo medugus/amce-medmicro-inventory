@@ -28,9 +28,9 @@ import {
   X,
   ScanLine,
   QrCode,
-  Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { AiSparkle } from "@/components/icons/AiSparkle";
 
 const NAV: { to: string; label: string; group: string; icon: React.ComponentType<{ className?: string }>; explain: string }[] = [
   { to: "/", label: "Dashboard", group: "AMCE Microbiology", icon: LayoutDashboard, explain: "Live operational view across supply, inventory, quality and equipment." },
@@ -61,7 +61,7 @@ const NAV: { to: string; label: string; group: string; icon: React.ComponentType
 
   { to: "/reports", label: "Reports", group: "Oversight", icon: FileBarChart2, explain: "Exportable summaries for management, finance and regulators." },
   { to: "/readiness-audit", label: "Readiness Audit", group: "Oversight", icon: ShieldCheck, explain: "Pre-inspection checklist showing whether the lab is audit-ready." },
-  { to: "/welcome", label: "Welcome / Quick Tour", group: "Oversight", icon: Sparkles, explain: "Quick 2-minute walkthrough of the daily workflow." },
+  { to: "/welcome", label: "Welcome / Quick Tour", group: "Oversight", icon: AiSparkle, explain: "Quick 2-minute walkthrough of the daily workflow." },
   { to: "/training", label: "Training Guide", group: "Oversight", icon: BookOpen, explain: "Step-by-step training guide for each module." },
   { to: "/settings", label: "Settings", group: "Oversight", icon: SettingsIcon, explain: "User identity, app preferences, and data management." },
 ];

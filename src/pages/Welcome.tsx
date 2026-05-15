@@ -12,10 +12,10 @@ import {
   AlertTriangle,
   QrCode,
   BookOpen,
-  Sparkles,
   Cloud,
   MousePointer2,
 } from "lucide-react";
+import { AiSparkle } from "@/components/icons/AiSparkle";
 import { useCurrentUser } from "@/lib/currentUser";
 import { AMCE_USERS } from "@/data/amceUsers";
 import {
@@ -73,7 +73,7 @@ function StepIdentify() {
 
 const STEPS: Step[] = [
   {
-    icon: Sparkles,
+    icon: AiSparkle,
     title: "Welcome to the AMCE Lab Inventory",
     body: (
       <div className="space-y-3 text-sm leading-relaxed">
