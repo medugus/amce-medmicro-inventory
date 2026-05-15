@@ -120,19 +120,20 @@ export function DashboardPage() {
         <section>
           <h2 className="text-sm font-semibold text-foreground mb-2">Critical actions</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-            <DashboardCard label="Critical stock risks" value={criticalRisks} tone="destructive" to="/critical-actions" />
-            <DashboardCard label="Pending procurement" value={pendingProcurement} tone="warning" to="/procurement-followup" />
-            <DashboardCard label="Partially supplied" value={partial} tone="warning" to="/supply-status" />
-            <DashboardCard label="Expired batches" value={expBuckets.expired ?? 0} tone="destructive" to="/expired-wasted-stock" />
-            <DashboardCard label="Pending acceptance" value={pendingAcceptance} tone="info" to="/acceptance-testing" />
-            <DashboardCard label="Quarantined / rejected" value={quarantinedRejected} tone="destructive" to="/quarantined-stock" />
-            <DashboardCard label="Records with missing docs" value={missingDocs} tone="warning" to="/data-quality-review" />
+            <DashboardCard label="Critical stock risks" value={criticalRisks} tone="destructive" to="/critical-actions" explain="Supply requests flagged as critical risk to lab operations. Click to triage and escalate." />
+            <DashboardCard label="Pending procurement" value={pendingProcurement} tone="warning" to="/procurement-followup" explain="Approved requests not yet delivered. Click to chase suppliers and log follow-up." />
+            <DashboardCard label="Partially supplied" value={partial} tone="warning" to="/supply-status" explain="Requests where only some of the ordered quantity arrived. Click to update status." />
+            <DashboardCard label="Expired batches" value={expBuckets.expired ?? 0} tone="destructive" to="/expired-wasted-stock" explain="Batches past their expiry date. Move them to Expired/Wasted to dispose and record." />
+            <DashboardCard label="Pending acceptance" value={pendingAcceptance} tone="info" to="/acceptance-testing" explain="Newly received batches awaiting QC sign-off. Click to accept or reject so stock can be issued." />
+            <DashboardCard label="Quarantined / rejected" value={quarantinedRejected} tone="destructive" to="/quarantined-stock" explain="Batches blocked from use after failed QC or recall. Click to dispose, return or release." />
+            <DashboardCard label="Records with missing docs" value={missingDocs} tone="warning" to="/data-quality-review" explain="Records missing critical fields like expiry, lot or supplier. Fill these for clean audits." />
             <DashboardCard
               label="Equipment maintenance / calibration"
               value={maintDue + calDue}
               hint={equipment.length === 0 ? "Equipment register empty" : `${maintDue} maintenance, ${calDue} calibration`}
               tone={maintDue + calDue > 0 ? "warning" : "default"}
               to="/maintenance-calibration"
+              explain="Instruments with overdue or upcoming maintenance or calibration. Click to schedule and log."
             />
           </div>
         </section>
