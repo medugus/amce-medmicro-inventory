@@ -147,7 +147,7 @@ export function DashboardPage() {
               const open = sectionSupplies.filter((x) => x.supplyStatus !== "Supplied" && x.supplyStatus !== "Cancelled").length;
               const critical = sectionSupplies.filter((x) => x.criticality === "Critical").length;
               const sectionPurchaseRequests = purchaseRequests.filter((p) =>
-                toDashboardSection(p.requestingSection) === s.id && p.approvalStatus !== "Rejected" && p.procurementStatus !== "Received"
+                toDashboardSection(p.requestingSection) === s.id && p.approvalStatus !== "Rejected" && p.procurementStatus !== "Delivered"
               ).length;
               const sectionForecasts = forecasts.filter((f) => toDashboardSection(f.laboratorySection) === s.id).length;
               const sectionItems = items.filter((i) => toDashboardSection(i.laboratorySection) === s.id);
