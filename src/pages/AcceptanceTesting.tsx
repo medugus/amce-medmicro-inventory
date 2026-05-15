@@ -128,6 +128,32 @@ export function AcceptanceTestingPage() {
   };
   for (const t of tests) groups[classify(t)].push(t);
 
+  // Synthesize Pending rows for received batches that don't yet have an
+  // AcceptanceTest record, so freshly received batches always appear here.
+  const testedBatchIds = new Set(tests.map((t) => t.batchId));
+  for (const b of pendingBatches) {
+    if (testedBatchIds.has(b.id)) continue;
+    const item = itemsById[b.inventoryItemId];
+    groups["Pending acceptance"].push({
+      id: `pending-${b.id}`,
+      batchId: b.id,
+      itemName: item?.itemName ?? b.inventoryItemId,
+      lotNumber: b.lotNumber,
+      dateReceived: b.dateReceived,
+      expiryDate: b.expiryDate,
+      storageConditionOnReceipt: b.storageLocation || b.storageConditionRequired,
+      physicalCondition: "Pending review",
+      certificateOfAnalysisAvailable: b.certificateOfAnalysisAvailable,
+      qcPerformed: false,
+      qcResult: "Pending",
+      acceptedOrRejected: "Pending",
+      acceptedBy: null,
+      dateAccepted: null,
+      correctiveActionIfRejected: "",
+      comments: `Awaiting first acceptance decision — batch ${b.batchNumber}.`,
+    });
+  }
+
   return (
     <div>
       <Header
