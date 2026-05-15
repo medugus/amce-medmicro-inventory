@@ -12,10 +12,10 @@ import {
   AlertTriangle,
   QrCode,
   BookOpen,
-  Sparkles,
   Cloud,
   MousePointer2,
 } from "lucide-react";
+import { AiSparkle } from "@/components/icons/AiSparkle";
 import { useCurrentUser } from "@/lib/currentUser";
 import { AMCE_USERS } from "@/data/amceUsers";
 import {
