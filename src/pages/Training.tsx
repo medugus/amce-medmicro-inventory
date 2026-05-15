@@ -396,9 +396,10 @@ export function TrainingPage() {
           <div className="bg-card border border-border rounded-lg p-4 text-sm space-y-2">
             <p>📱 <span className="font-medium">Use it on your phone.</span> Open the published link and 'Add to Home Screen' for a one-tap app icon.</p>
             <p>❓ <span className="font-medium">Stuck? Hit the ? icon.</span> Every page has its own quick-help panel.</p>
+            <p>🖱️ <span className="font-medium">Hover for hints.</span> Every dashboard tile and sidebar link explains itself in one line on hover.</p>
+            <p>☁️ <span className="font-medium">It updates live.</span> No refresh button needed — when a colleague accepts a batch or issues stock, your screen catches up on its own.</p>
             <p>⚠️ <span className="font-medium">Read the inline warnings.</span> If a yellow box appears in a dialog, slow down — it's flagging something risky.</p>
             <p>🤝 <span className="font-medium">If unsure, ask the bench lead.</span> The dashboard shows the lead for every section in colour.</p>
-            <p>🔁 <span className="font-medium">Pull-to-refresh on mobile</span> if a screen looks stale.</p>
           </div>
         </section>
 
