@@ -151,6 +151,13 @@ export function ReceiveBatchDialog({
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-3">
+          <div className="rounded-md border border-info/40 bg-info/10 p-3 text-xs text-foreground">
+            <div className="font-medium mb-1">Next step after saving: Acceptance Testing</div>
+            <div className="text-muted-foreground leading-snug">
+              The batch is created as <span className="font-medium text-foreground">Pending acceptance</span> and cannot be issued yet.
+              Open <span className="font-medium text-foreground">Acceptance Testing</span> from the sidebar and record the QC decision to release it for issue.
+            </div>
+          </div>
           {scannedCode.trim() && (
             <div className="rounded-md border border-border bg-muted/40 p-3 text-xs space-y-2">
               <div className="flex items-center gap-2 font-medium text-foreground">
