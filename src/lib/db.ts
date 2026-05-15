@@ -110,17 +110,17 @@ function deletedRecordKey(table: string, id: string): string {
 
 export async function rememberDeletedRecord(table: string, id: string): Promise<void> {
   if (!table || !id || id === "undefined" || id === "null") return;
-  await db.meta.put({ key: deletedRecordKey(table, id), value: new Date().toISOString() });
+  await Dexie.ignoreTransaction(() => db.meta.put({ key: deletedRecordKey(table, id), value: new Date().toISOString() }));
 }
 
 export async function forgetDeletedRecord(table: string, id: string): Promise<void> {
   if (!table || !id || id === "undefined" || id === "null") return;
-  await db.meta.delete(deletedRecordKey(table, id));
+  await Dexie.ignoreTransaction(() => db.meta.delete(deletedRecordKey(table, id)));
 }
 
 export async function deletedRecordIdsForTable(table: string): Promise<Set<string>> {
   const prefix = `${DELETED_META_PREFIX}:${table}:`;
-  const rows = await db.meta.where("key").startsWith(prefix).toArray();
+  const rows = await Dexie.ignoreTransaction(() => db.meta.where("key").startsWith(prefix).toArray());
   return new Set(rows.map((row) => row.key.slice(prefix.length)));
 }
 
