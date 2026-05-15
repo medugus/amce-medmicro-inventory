@@ -76,45 +76,50 @@ function dispatchChanged() {
 // Track whether a write originated from a remote realtime event so we don't
 // echo it back up to the cloud and create a loop.
 let applyingRemote = 0;
+let pulling = false;
 
 async function pullAll(): Promise<void> {
-  await Promise.all(
-    MAPPINGS.map(async (m) => {
-      try {
-        // Page through to bypass the 1000-row default limit.
-        const all: AnyRow[] = [];
-        const PAGE = 1000;
-        let from = 0;
-        // Bound the loop so a misbehaving table can't spin forever.
-        for (let i = 0; i < 50; i++) {
-          const { data, error } = await supabase
-            .from(m.cloudTable)
-            .select("data")
-            .range(from, from + PAGE - 1);
-          if (error) throw error;
-          if (!data || data.length === 0) break;
-          for (const row of data as Array<{ data: AnyRow }>) {
-            if (row.data) all.push(row.data);
+  if (pulling) return;
+  pulling = true;
+  try {
+    await Promise.all(
+      MAPPINGS.map(async (m) => {
+        try {
+          // Page through to bypass the 1000-row default limit.
+          const all: AnyRow[] = [];
+          const PAGE = 1000;
+          let from = 0;
+          // Bound the loop so a misbehaving table can't spin forever.
+          for (let i = 0; i < 50; i++) {
+            const { data, error } = await supabase
+              .from(m.cloudTable)
+              .select("data")
+              .range(from, from + PAGE - 1);
+            if (error) throw error;
+            if (!data || data.length === 0) break;
+            for (const row of data as Array<{ data: AnyRow }>) {
+              if (row.data) all.push(row.data);
+            }
+            if (data.length < PAGE) break;
+            from += PAGE;
           }
-          if (data.length < PAGE) break;
-          from += PAGE;
-        }
 
-        if (all.length > 0) {
           applyingRemote++;
           try {
             await m.local.clear();
-            await m.local.bulkPut(all);
+            if (all.length > 0) await m.local.bulkPut(all);
           } finally {
             applyingRemote--;
           }
+        } catch (err) {
+          console.warn(`[cloudSync] pull failed for ${m.cloudTable}:`, err);
         }
-      } catch (err) {
-        console.warn(`[cloudSync] pull failed for ${m.cloudTable}:`, err);
-      }
-    })
-  );
-  dispatchChanged();
+      })
+    );
+    dispatchChanged();
+  } finally {
+    pulling = false;
+  }
 }
 
 async function pushSeedIfEmpty(): Promise<void> {
