@@ -28,9 +28,9 @@ import {
   X,
   ScanLine,
   QrCode,
-  Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { AiSparkle } from "@/components/icons/AiSparkle";
 
 const NAV: { to: string; label: string; group: string; icon: React.ComponentType<{ className?: string }>; explain: string }[] = [
   { to: "/", label: "Dashboard", group: "AMCE Microbiology", icon: LayoutDashboard, explain: "Live operational view across supply, inventory, quality and equipment." },
