@@ -167,6 +167,7 @@ async function pullAll(): Promise<void> {
   if (pulling) return;
   pulling = true;
   try {
+    let anyChanged = false;
     await Promise.all(
       MAPPINGS.map(async (m) => {
         try {
@@ -191,10 +192,36 @@ async function pullAll(): Promise<void> {
             from += PAGE;
           }
 
+          // Diff against the local copy so we only write rows that actually
+          // changed. Blindly clear()+bulkPut() on every poll re-fires every
+          // liveQuery subscriber, which makes the UI visibly blink and resets
+          // scroll position every 15 seconds.
+          const existing = (await m.local.toArray()) as AnyRow[];
+          const existingById = new Map<string, AnyRow>();
+          for (const row of existing) existingById.set(m.pk(row), row);
+
+          const remoteIds = new Set<string>();
+          const toPut: AnyRow[] = [];
+          for (const row of all) {
+            const id = m.pk(row);
+            remoteIds.add(id);
+            const prev = existingById.get(id);
+            if (!prev || JSON.stringify(prev) !== JSON.stringify(row)) {
+              toPut.push(row);
+            }
+          }
+          const toDelete: string[] = [];
+          for (const id of existingById.keys()) {
+            if (!remoteIds.has(id)) toDelete.push(id);
+          }
+
+          if (toPut.length === 0 && toDelete.length === 0) return;
+
+          anyChanged = true;
           applyingRemote++;
           try {
-            await m.local.clear();
-            if (all.length > 0) await m.local.bulkPut(all);
+            if (toDelete.length > 0) await m.local.bulkDelete(toDelete);
+            if (toPut.length > 0) await m.local.bulkPut(toPut);
           } finally {
             applyingRemote--;
           }
@@ -203,7 +230,7 @@ async function pullAll(): Promise<void> {
         }
       }),
     );
-    dispatchChanged();
+    if (anyChanged) dispatchChanged();
   } finally {
     pulling = false;
   }
