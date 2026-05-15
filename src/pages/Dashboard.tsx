@@ -170,8 +170,15 @@ export function DashboardPage() {
                 open > 0 ? "Follow up open supply records" :
                 "Bench head: review and clear any outstanding matters";
 
+              const sectionToneClass =
+                critical > 0
+                  ? "bg-red-100 border-red-300 dark:bg-red-500/15 dark:border-red-500/40"
+                  : sectionLow > 0
+                    ? "bg-orange-100 border-orange-300 dark:bg-orange-500/15 dark:border-orange-500/40"
+                    : "bg-green-100 border-green-300 dark:bg-green-500/15 dark:border-green-500/40";
+
               return (
-                <div key={s.id} className="bg-card border border-border rounded-md p-3 hover:shadow-md transition-shadow">
+                <div key={s.id} className={`border rounded-md p-3 hover:shadow-md transition-shadow ${sectionToneClass}`}>
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0 flex items-start gap-2">
                       <span className="text-2xl leading-none shrink-0" aria-hidden>{SECTION_EMOJI[s.id] ?? "🧪"}</span>
