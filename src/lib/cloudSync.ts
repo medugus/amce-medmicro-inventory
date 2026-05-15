@@ -348,6 +348,14 @@ let fallbackInstalled = false;
  *   3. pull cloud → Dexie (cloud is authoritative thereafter)
  *   4. open realtime subscriptions
  */
+export async function refreshFromCloud(): Promise<void> {
+  try {
+    await pullAll();
+  } catch (err) {
+    console.warn("[cloudSync] manual refresh failed:", err);
+  }
+}
+
 export function startCloudSync(): Promise<void> {
   if (started) return started;
   if (typeof window === "undefined") return Promise.resolve();
