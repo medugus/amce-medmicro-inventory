@@ -73,7 +73,7 @@ function StepIdentify() {
 
 const STEPS: Step[] = [
   {
-    icon: Sparkles,
+    icon: AiSparkle,
     title: "Welcome to the AMCE Lab Inventory",
     body: (
       <div className="space-y-3 text-sm leading-relaxed">
