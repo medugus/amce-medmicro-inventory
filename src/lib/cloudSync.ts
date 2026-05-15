@@ -251,7 +251,9 @@ function installLocalToCloudHooks(): void {
       const id = m.pk(row);
       if (!id || id === "undefined" || id === "null") return;
       markUp(m.cloudTable, id);
-      void forgetDeletedRecord(m.localTable, id);
+      void forgetDeletedRecord(m.localTable, id).catch((err) => {
+        console.warn(`[cloudSync] clear delete marker failed for ${m.localTable}/${id}:`, err);
+      });
       // Fire-and-forget. Errors are surfaced to console only — UI already
       // shows the local change.
       supabase
@@ -277,7 +279,9 @@ function installLocalToCloudHooks(): void {
       const id = String(pk);
       markUp(m.cloudTable, id);
       markPendingDelete(m.cloudTable, id);
-      void rememberDeletedRecord(m.localTable, id);
+      void rememberDeletedRecord(m.localTable, id).catch((err) => {
+        console.warn(`[cloudSync] delete marker failed for ${m.localTable}/${id}:`, err);
+      });
       supabase
         .from(m.cloudTable)
         .delete()
