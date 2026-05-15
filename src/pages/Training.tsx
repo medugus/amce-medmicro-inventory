@@ -143,6 +143,16 @@ export function TrainingPage() {
               title="Expired = quarantine, then discard"
               body="If something is past its expiry date, move it to Quarantined Stock immediately, then record the discard in Expired/Wasted Stock. Don't leave it on the shelf."
             />
+            <Rule
+              emoji="☁️"
+              title="It's a shared live document"
+              body="Every phone and PC with the app sees the same data. Receive a batch on your phone and it appears on the supervisor's PC dashboard within a second. No need to email spreadsheets."
+            />
+            <Rule
+              emoji="🖱️"
+              title="Hover to learn what anything is"
+              body="Every dashboard tile and sidebar link has a plain-English tooltip. Rest your mouse on it (long-press on mobile) and a one-line explanation appears."
+            />
           </div>
         </section>
 
