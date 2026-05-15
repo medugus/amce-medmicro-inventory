@@ -32,38 +32,38 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const NAV: { to: string; label: string; group: string; icon: React.ComponentType<{ className?: string }> }[] = [
-  { to: "/", label: "Dashboard", group: "AMCE Microbiology", icon: LayoutDashboard },
-  { to: "/critical-actions", label: "Critical Actions", group: "AMCE Microbiology", icon: AlertTriangle },
-  { to: "/scan", label: "Scan QR / Barcode", group: "AMCE Microbiology", icon: ScanLine },
-  { to: "/qr-labels", label: "QR Labels (Print)", group: "AMCE Microbiology", icon: QrCode },
+const NAV: { to: string; label: string; group: string; icon: React.ComponentType<{ className?: string }>; explain: string }[] = [
+  { to: "/", label: "Dashboard", group: "AMCE Microbiology", icon: LayoutDashboard, explain: "Live operational view across supply, inventory, quality and equipment." },
+  { to: "/critical-actions", label: "Critical Actions", group: "AMCE Microbiology", icon: AlertTriangle, explain: "One triage list of everything across the system that needs attention now." },
+  { to: "/scan", label: "Scan QR / Barcode", group: "AMCE Microbiology", icon: ScanLine, explain: "Scan an item, batch or asset QR/barcode to jump straight to its record." },
+  { to: "/qr-labels", label: "QR Labels (Print)", group: "AMCE Microbiology", icon: QrCode, explain: "Print QR labels for items, batches and equipment for shelf and bench tagging." },
 
-  { to: "/supply-status", label: "Supply Status", group: "Supply and Procurement", icon: PackageSearch },
-  { to: "/purchase-requests", label: "Purchase Requests", group: "Supply and Procurement", icon: ShoppingCart },
-  { to: "/section-forecasting", label: "Section Forecasting", group: "Supply and Procurement", icon: TrendingUp },
-  { to: "/procurement-followup", label: "Procurement Follow-up", group: "Supply and Procurement", icon: PhoneCall },
+  { to: "/supply-status", label: "Supply Status", group: "Supply and Procurement", icon: PackageSearch, explain: "Track open supply requests from sections to stores / procurement." },
+  { to: "/purchase-requests", label: "Purchase Requests", group: "Supply and Procurement", icon: ShoppingCart, explain: "Raise and track formal procurement requests to finance / supply chain." },
+  { to: "/section-forecasting", label: "Section Forecasting", group: "Supply and Procurement", icon: TrendingUp, explain: "Projected consumption per section to plan quarterly procurement." },
+  { to: "/procurement-followup", label: "Procurement Follow-up", group: "Supply and Procurement", icon: PhoneCall, explain: "Chase-list for approved requests not yet delivered." },
 
-  { to: "/inventory-master", label: "Inventory Master", group: "Inventory Control", icon: Boxes },
-  { to: "/batch-register", label: "Batch / Lot Register", group: "Inventory Control", icon: Layers },
-  { to: "/stock-movements", label: "Receive / Stock Movements", group: "Inventory Control", icon: ArrowLeftRight },
-  { to: "/expiry-fefo", label: "Expiry and FEFO", group: "Inventory Control", icon: Hourglass },
-  { to: "/low-stock-reorder", label: "Low Stock and Reorder", group: "Inventory Control", icon: TrendingDown },
+  { to: "/inventory-master", label: "Inventory Master", group: "Inventory Control", icon: Boxes, explain: "Catalogue of every reagent, consumable and supply item. Add items here first." },
+  { to: "/batch-register", label: "Batch / Lot Register", group: "Inventory Control", icon: Layers, explain: "Every physical batch received, with lot number, expiry and quantity." },
+  { to: "/stock-movements", label: "Receive / Stock Movements", group: "Inventory Control", icon: ArrowLeftRight, explain: "Receive new stock and record every issue, return, transfer or adjustment." },
+  { to: "/expiry-fefo", label: "Expiry and FEFO", group: "Inventory Control", icon: Hourglass, explain: "First-Expire-First-Out view so soonest-to-expire batches get used first." },
+  { to: "/low-stock-reorder", label: "Low Stock and Reorder", group: "Inventory Control", icon: TrendingDown, explain: "Items at or below their reorder level. Raise a Purchase Request from here." },
 
-  { to: "/acceptance-testing", label: "Acceptance Testing", group: "Quality and Compliance", icon: ClipboardCheck },
-  { to: "/data-quality-review", label: "Data Quality Review", group: "Quality and Compliance", icon: ClipboardList },
-  { to: "/audit-trail", label: "Audit Trail", group: "Quality and Compliance", icon: ScrollText },
-  { to: "/quarantined-stock", label: "Rejected / Quarantined Stock", group: "Quality and Compliance", icon: ShieldAlert },
-  { to: "/expired-wasted-stock", label: "Expired / Wasted Stock", group: "Quality and Compliance", icon: Trash2 },
+  { to: "/acceptance-testing", label: "Acceptance Testing", group: "Quality and Compliance", icon: ClipboardCheck, explain: "QC step that releases a received batch into usable stock, or quarantines it." },
+  { to: "/data-quality-review", label: "Data Quality Review", group: "Quality and Compliance", icon: ClipboardList, explain: "Records with missing critical fields. Fix them for clean dashboards and audits." },
+  { to: "/audit-trail", label: "Audit Trail", group: "Quality and Compliance", icon: ScrollText, explain: "Immutable log of every create / update / delete across the system." },
+  { to: "/quarantined-stock", label: "Rejected / Quarantined Stock", group: "Quality and Compliance", icon: ShieldAlert, explain: "Batches blocked from use after failed QC or recall. Decide dispose / return / release." },
+  { to: "/expired-wasted-stock", label: "Expired / Wasted Stock", group: "Quality and Compliance", icon: Trash2, explain: "Disposal record for stock that expired, was damaged or was wasted." },
 
-  { to: "/equipment-register", label: "Equipment Register", group: "Equipment and Assets", icon: Cpu },
-  { to: "/durables-register", label: "Durables Register", group: "Equipment and Assets", icon: Hammer },
-  { to: "/maintenance-calibration", label: "Maintenance and Calibration", group: "Equipment and Assets", icon: Wrench },
+  { to: "/equipment-register", label: "Equipment Register", group: "Equipment and Assets", icon: Cpu, explain: "Capital equipment such as analysers and incubators with serial and location." },
+  { to: "/durables-register", label: "Durables Register", group: "Equipment and Assets", icon: Hammer, explain: "Reusable durables such as glassware and instruments tracked by location." },
+  { to: "/maintenance-calibration", label: "Maintenance and Calibration", group: "Equipment and Assets", icon: Wrench, explain: "Schedule and log maintenance and calibration on each instrument." },
 
-  { to: "/reports", label: "Reports", group: "Oversight", icon: FileBarChart2 },
-  { to: "/readiness-audit", label: "Readiness Audit", group: "Oversight", icon: ShieldCheck },
-  { to: "/welcome", label: "Welcome / Quick Tour", group: "Oversight", icon: Sparkles },
-  { to: "/training", label: "Training Guide", group: "Oversight", icon: BookOpen },
-  { to: "/settings", label: "Settings", group: "Oversight", icon: SettingsIcon },
+  { to: "/reports", label: "Reports", group: "Oversight", icon: FileBarChart2, explain: "Exportable summaries for management, finance and regulators." },
+  { to: "/readiness-audit", label: "Readiness Audit", group: "Oversight", icon: ShieldCheck, explain: "Pre-inspection checklist showing whether the lab is audit-ready." },
+  { to: "/welcome", label: "Welcome / Quick Tour", group: "Oversight", icon: Sparkles, explain: "Quick 2-minute walkthrough of the daily workflow." },
+  { to: "/training", label: "Training Guide", group: "Oversight", icon: BookOpen, explain: "Step-by-step training guide for each module." },
+  { to: "/settings", label: "Settings", group: "Oversight", icon: SettingsIcon, explain: "User identity, app preferences, and data management." },
 ];
 
 function NavList({ onNavigate }: { onNavigate?: () => void }) {
