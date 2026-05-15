@@ -236,7 +236,7 @@ export interface RecordAcceptanceInput {
 export async function recordAcceptance(input: RecordAcceptanceInput): Promise<AcceptanceTest> {
   const acceptedBy = requireUser();
 
-  return db.transaction("rw", [db.batches, db.inventory, db.acceptance, db.audit], async () => {
+  return db.transaction("rw", [db.batches, db.inventory, db.acceptance, db.audit, db.movements], async () => {
     const batch = await db.batches.get(input.batchId);
     if (!batch) throw new Error("Batch not found.");
     const item = await db.inventory.get(batch.inventoryItemId);
@@ -271,6 +271,20 @@ export async function recordAcceptance(input: RecordAcceptanceInput): Promise<Ac
       certificateOfAnalysisAvailable: input.certificateOfAnalysisAvailable,
       qcResult: input.qcResult,
     });
+
+    // Update the original Receive movement's reason so the Stock Movements
+    // table no longer shows "pending acceptance testing" once a decision is made.
+    const receiveMovements = await db.movements
+      .where("batchId")
+      .equals(batch.id)
+      .toArray();
+    const receiveMv = receiveMovements.find((m) => m.movementType === "Receive");
+    if (receiveMv) {
+      const newReason = input.decision === "Accepted"
+        ? `Initial receipt — accepted ${today} by ${acceptedBy}`
+        : `Initial receipt — rejected ${today} by ${acceptedBy}`;
+      await db.movements.update(receiveMv.id, { reason: newReason });
+    }
 
     await appendAudit({
       user: acceptedBy,
