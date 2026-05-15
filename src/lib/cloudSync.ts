@@ -13,7 +13,7 @@
 // need to change at all. Dexie remains the source the UI reads from; Cloud
 // keeps it in lock-step across every device.
 
-import { db } from "@/lib/db";
+import { db, forgetDeletedRecord, rememberDeletedRecord } from "@/lib/db";
 import { supabase as typedSupabase } from "@/integrations/supabase/client";
 import type { Table } from "dexie";
 
@@ -33,6 +33,8 @@ type RealtimePayload = {
 interface Mapping {
   /** Supabase table name */
   cloudTable: string;
+  /** Local Dexie table name */
+  localTable: string;
   /** Dexie table reference */
   local: Table<AnyRow, string>;
   /** Function that returns the primary key of a record */
@@ -42,21 +44,25 @@ interface Mapping {
 const MAPPINGS: Mapping[] = [
   {
     cloudTable: "inventory_items",
+    localTable: "inventory",
     local: db.inventory as unknown as Table<AnyRow, string>,
     pk: (r) => String(r.id),
   },
   {
     cloudTable: "batches",
+    localTable: "batches",
     local: db.batches as unknown as Table<AnyRow, string>,
     pk: (r) => String(r.id),
   },
   {
     cloudTable: "supply_status",
+    localTable: "supply",
     local: db.supply as unknown as Table<AnyRow, string>,
     pk: (r) => String(r.id),
   },
   {
     cloudTable: "stock_movements",
+    localTable: "movements",
     local: db.movements as unknown as Table<AnyRow, string>,
     pk: (r) => String(r.id),
   },
