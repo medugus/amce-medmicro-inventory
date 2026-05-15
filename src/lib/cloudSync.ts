@@ -24,6 +24,11 @@ import type { Table } from "dexie";
 const supabase = typedSupabase as any;
 
 type AnyRow = { id?: string; gtin?: string } & Record<string, unknown>;
+type RealtimePayload = {
+  eventType: "INSERT" | "UPDATE" | "DELETE" | string;
+  old?: { id?: string };
+  new?: { id?: string; data?: AnyRow };
+};
 
 interface Mapping {
   /** Supabase table name */
@@ -254,7 +259,7 @@ function installRealtime(): void {
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: m.cloudTable },
-        async (payload: any) => {
+        async (payload: RealtimePayload) => {
           try {
             const evt = payload.eventType;
             if (evt === "DELETE") {
