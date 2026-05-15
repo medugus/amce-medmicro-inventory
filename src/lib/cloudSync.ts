@@ -13,7 +13,7 @@
 // need to change at all. Dexie remains the source the UI reads from; Cloud
 // keeps it in lock-step across every device.
 
-import { db, forgetDeletedRecord, rememberDeletedRecord } from "@/lib/db";
+import { db, deletedRecordIdsForTable, forgetDeletedRecord, rememberDeletedRecord } from "@/lib/db";
 import { supabase as typedSupabase } from "@/integrations/supabase/client";
 import type { Table } from "dexie";
 
@@ -68,41 +68,49 @@ const MAPPINGS: Mapping[] = [
   },
   {
     cloudTable: "acceptance_tests",
+    localTable: "acceptance",
     local: db.acceptance as unknown as Table<AnyRow, string>,
     pk: (r) => String(r.id),
   },
   {
     cloudTable: "equipment",
+    localTable: "equipment",
     local: db.equipment as unknown as Table<AnyRow, string>,
     pk: (r) => String(r.id),
   },
   {
     cloudTable: "durables",
+    localTable: "durables",
     local: db.durables as unknown as Table<AnyRow, string>,
     pk: (r) => String(r.id),
   },
   {
     cloudTable: "forecasts",
+    localTable: "forecasts",
     local: db.forecasts as unknown as Table<AnyRow, string>,
     pk: (r) => String(r.id),
   },
   {
     cloudTable: "purchase_requests",
+    localTable: "purchaseRequests",
     local: db.purchaseRequests as unknown as Table<AnyRow, string>,
     pk: (r) => String(r.id),
   },
   {
     cloudTable: "audit_trail",
+    localTable: "audit",
     local: db.audit as unknown as Table<AnyRow, string>,
     pk: (r) => String(r.id),
   },
   {
     cloudTable: "gtin_catalogue",
+    localTable: "gtinCatalogue",
     local: db.gtinCatalogue as unknown as Table<AnyRow, string>,
     pk: (r) => String(r.gtin),
   },
   {
     cloudTable: "scan_history",
+    localTable: "scanHistory",
     local: db.scanHistory as unknown as Table<AnyRow, string>,
     pk: (r) => String(r.id),
   },
