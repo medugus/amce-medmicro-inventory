@@ -22,6 +22,8 @@ import type {
 
 let ready = false;
 let dataLayerPromise: Promise<void> | null = null;
+let equipmentSeedPromise: Promise<void> | null = null;
+let durablesSeedPromise: Promise<void> | null = null;
 const readyListeners = new Set<() => void>();
 
 export function initializeDataLayer(): Promise<void> {
@@ -150,7 +152,8 @@ export function useAuditTrail(): AuditTrailEntry[] {
 export function useEquipment(): EquipmentAsset[] {
   return useTable(
     async () => {
-      await ensureEquipmentSeeded();
+      equipmentSeedPromise ??= ensureEquipmentSeeded();
+      await equipmentSeedPromise;
       const rows = await db.equipment.toArray();
       return rows.length ? rows : AMCE_EQUIPMENT;
     },
@@ -162,7 +165,8 @@ export function useEquipment(): EquipmentAsset[] {
 export function useDurables(): DurableAsset[] {
   return useTable(
     async () => {
-      await ensureDurablesSeeded();
+      durablesSeedPromise ??= ensureDurablesSeeded();
+      await durablesSeedPromise;
       const rows = await db.durables.toArray();
       return rows.length ? rows : AMCE_DURABLES;
     },
