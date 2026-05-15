@@ -21,11 +21,14 @@ import { Button } from "@/components/ui/button";
 export function UserPicker() {
   const { user, setUser, users } = useCurrentUser();
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => { setMounted(true); }, []);
 
   // Force-pick on first load if no user is selected.
   useEffect(() => {
-    if (!user) setPickerOpen(true);
-  }, [user]);
+    if (mounted && !user) setPickerOpen(true);
+  }, [user, mounted]);
 
   // Listen for action layers requesting the picker (AuthRequiredError).
   useEffect(() => {
@@ -43,8 +46,8 @@ export function UserPicker() {
             className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-3 py-1.5 text-sm font-medium text-foreground hover:bg-accent"
           >
             <UserCircle2 className="h-4 w-4 text-muted-foreground" />
-            <span className="max-w-[10rem] truncate">
-              {user ? user.name : "Select user…"}
+            <span className="max-w-[10rem] truncate" suppressHydrationWarning>
+              {mounted && user ? user.name : "Select user…"}
             </span>
             <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
           </button>
