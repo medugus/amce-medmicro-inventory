@@ -47,7 +47,7 @@ export const HELP: Record<string, HelpEntry> = {
     emptyTip: "No batches yet. Receive your first batch here once stock physically arrives. Make sure the item exists in Inventory Master first.",
   },
   stockMovements: {
-    title: "Stock Movements",
+    title: "Receive / Stock Movements",
     purpose: "Record every issue, return, transfer or adjustment of stock against a specific batch.",
     steps: [
       "Pick the inventory item, then the batch you are moving from.",

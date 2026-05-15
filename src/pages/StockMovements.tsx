@@ -98,8 +98,8 @@ export function StockMovementsPage() {
     <div>
       <Header
         helpTopic="stockMovements"
-        title="Stock Movements"
-        description="Receipt, issue, transfer, adjustment, discard, quarantine, and release. FEFO is recommended on issue and negative balances are blocked."
+        title="Receive / Stock Movements"
+        description="Receive new deliveries and record issue, transfer, adjustment, discard, quarantine, and release. FEFO is recommended on issue and negative balances are blocked."
         actions={
           <div className="flex items-center gap-2">
             <ExportButton />

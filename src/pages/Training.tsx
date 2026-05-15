@@ -153,7 +153,7 @@ export function TrainingPage() {
               <li><span className="font-medium">Click Critical Actions</span> — the system tells you exactly what to do, in priority order.</li>
               <li><span className="font-medium">Receive any new deliveries</span> — register the batch on Batch Register.</li>
               <li><span className="font-medium">Send pending batches for QC</span> — mark accepted or rejected on Acceptance Testing.</li>
-              <li><span className="font-medium">Issue stock to benches</span> — record on Stock Movements (FEFO order).</li>
+              <li><span className="font-medium">Issue stock to benches</span> — record on Receive / Stock Movements (FEFO order).</li>
               <li><span className="font-medium">Raise reorders</span> — anything red on Low Stock & Reorder needs a Purchase Request.</li>
             </ol>
           </div>
@@ -220,16 +220,17 @@ export function TrainingPage() {
             <Section
               num={5}
               icon={ArrowLeftRight}
-              title="Stock Movements"
+              title="Receive / Stock Movements"
               what="The log of everything coming in, going out, transferring between benches, or being adjusted."
-              when="Every time stock physically moves — issue to a bench, return, transfer, count adjustment."
+              when="Every time stock physically moves — receive new deliveries, issue to a bench, return, transfer, adjustment."
               how={[
-                "Click 'New movement' and pick the type (Issue, Return, Transfer, Adjustment).",
+                "Click 'Receive new batch' to register a delivery.",
+                "Or click 'New movement' and pick the type (Issue, Return, Transfer, Adjustment).",
                 "Pick the batch — the system will warn you if you skip FEFO order or pick an expired one.",
                 "Enter quantity and reason, then save.",
               ]}
               link="/stock-movements"
-              linkLabel="Stock Movements"
+              linkLabel="Receive / Stock Movements"
             />
             <Section
               num={6}
