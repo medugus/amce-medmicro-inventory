@@ -83,6 +83,7 @@ function NavList({ onNavigate }: { onNavigate?: () => void }) {
                   <Link
                     to={n.to}
                     onClick={onNavigate}
+                    title={`${n.label} — ${n.explain}`}
                     className={cn(
                       "flex items-center gap-2 px-2 py-2 rounded-md text-sm transition-colors",
                       active
