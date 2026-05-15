@@ -96,7 +96,7 @@ export function SectionDetailPage() {
             <SimpleTable
               headers={["Item", "Status", "Criticality"]}
               rows={criticalRisks.map((r) => [
-                r.itemDescription ?? r.id,
+                r.itemName,
                 r.supplyStatus,
                 <StatusBadge key="c" label={r.criticality} tone={toneForCriticality(r.criticality)} />,
               ])}
@@ -211,7 +211,7 @@ export function SectionDetailPage() {
             <SimpleTable
               headers={["Item", "Status", "Criticality"]}
               rows={openSupply.map((r) => [
-                r.itemDescription ?? r.id,
+                r.itemName,
                 r.supplyStatus,
                 <StatusBadge key="c" label={r.criticality} tone={toneForCriticality(r.criticality)} />,
               ])}
