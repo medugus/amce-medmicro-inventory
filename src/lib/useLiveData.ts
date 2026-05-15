@@ -2,6 +2,7 @@
 // after seeding has completed.
 
 import { useEffect, useState } from "react";
+import { liveQuery } from "dexie";
 import { db, ensureDurablesSeeded, ensureEquipmentSeeded, ensureSeeded } from "@/lib/db";
 import { AMCE_DURABLES, AMCE_EQUIPMENT } from "@/data/amceAssets";
 import type {
@@ -21,6 +22,8 @@ import type {
 
 let ready = false;
 let dataLayerPromise: Promise<void> | null = null;
+let equipmentSeedPromise: Promise<void> | null = null;
+let durablesSeedPromise: Promise<void> | null = null;
 const readyListeners = new Set<() => void>();
 
 export function initializeDataLayer(): Promise<void> {
@@ -88,11 +91,20 @@ function useTable<T>(loader: () => Promise<T[]>, deps: unknown[] = [], initialRo
       const data = await loader();
       if (!cancelled) setRows(data);
     }
-    refresh();
+    const subscription = liveQuery(loader).subscribe({
+      next: (data) => {
+        if (!cancelled) setRows(data);
+      },
+      error: (err) => {
+        console.error("Live data refresh failed:", err);
+        void refresh();
+      },
+    });
     const onChange = () => refresh();
     window.addEventListener("amce:db-changed", onChange);
     return () => {
       cancelled = true;
+      subscription.unsubscribe();
       window.removeEventListener("amce:db-changed", onChange);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -140,7 +152,8 @@ export function useAuditTrail(): AuditTrailEntry[] {
 export function useEquipment(): EquipmentAsset[] {
   return useTable(
     async () => {
-      await ensureEquipmentSeeded();
+      equipmentSeedPromise ??= ensureEquipmentSeeded();
+      await equipmentSeedPromise;
       const rows = await db.equipment.toArray();
       return rows.length ? rows : AMCE_EQUIPMENT;
     },
@@ -152,7 +165,8 @@ export function useEquipment(): EquipmentAsset[] {
 export function useDurables(): DurableAsset[] {
   return useTable(
     async () => {
-      await ensureDurablesSeeded();
+      durablesSeedPromise ??= ensureDurablesSeeded();
+      await durablesSeedPromise;
       const rows = await db.durables.toArray();
       return rows.length ? rows : AMCE_DURABLES;
     },
