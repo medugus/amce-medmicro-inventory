@@ -58,7 +58,7 @@ function useReady(): boolean {
     if (typeof indexedDB === "undefined") { setR(true); return; }
     const fn = () => setR(true);
     readyListeners.add(fn);
-    void initializeDataLayer().finally(fn);
+    void initializeDataLayer();
     if (ready) {
       readyListeners.delete(fn);
       setR(true);
