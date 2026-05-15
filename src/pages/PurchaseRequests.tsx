@@ -131,6 +131,20 @@ export function PurchaseRequestsPage() {
     }
   }
 
+  async function closeRequest(r: PurchaseRequest) {
+    if (r.procurementStatus === "Closed") return;
+    try {
+      await updatePurchaseRequest(r.id, {
+        procurementStatus: "Closed",
+        approvalStatus: "Closed",
+        dateSupplied: r.dateSupplied ?? new Date().toISOString().slice(0, 10),
+      });
+      toast.success("Request closed.");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Unable to close request.");
+    }
+  }
+
   async function onDelete(id: string) {
     if (!confirm("Delete this purchase request? This cannot be undone.")) return;
     try {
@@ -157,7 +171,7 @@ export function PurchaseRequestsPage() {
                 <tr>
                   <th className="p-2">Date</th><th className="p-2">Section</th><th className="p-2">Requested by</th><th className="p-2">Item</th>
                   <th className="p-2 text-right">Qty</th><th className="p-2 text-right">Current</th><th className="p-2 text-right">Avg/mo</th>
-                  <th className="p-2">Urgency</th><th className="p-2">Approval</th><th className="p-2">Procurement</th><th className="p-2">Justification</th><th className="p-2">Actions</th>
+                  <th className="p-2">Urgency</th><th className="p-2">Approval</th><th className="p-2">Procurement</th><th className="p-2">Date supplied</th><th className="p-2">Justification</th><th className="p-2">Close</th><th className="p-2">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -168,7 +182,18 @@ export function PurchaseRequestsPage() {
                     <td className="p-2 text-right tabular-nums">{r.averageMonthlyUsage}</td><td className="p-2"><StatusBadge label={r.urgency} tone={toneForCriticality(r.urgency)} /></td>
                     <td className="p-2"><StatusBadge label={r.approvalStatus} tone={r.approvalStatus === "Approved" ? "success" : r.approvalStatus === "Rejected" ? "destructive" : "info"} /></td>
                     <td className="p-2"><StatusBadge label={r.procurementStatus} tone={toneForProcurementStatus(r.procurementStatus)} /></td>
+                    <td className="p-2 text-xs">{r.dateSupplied ?? NOT_DOCUMENTED}</td>
                     <td className="p-2 text-xs">{r.justification || NOT_DOCUMENTED}</td>
+                    <td className="p-2">
+                      <Button
+                        size="sm"
+                        variant={r.procurementStatus === "Closed" ? "secondary" : "default"}
+                        disabled={r.procurementStatus === "Closed"}
+                        onClick={() => closeRequest(r)}
+                      >
+                        {r.procurementStatus === "Closed" ? "Closed" : "Close"}
+                      </Button>
+                    </td>
                     <td className="p-2"><div className="flex gap-2"><Button size="sm" variant="outline" onClick={() => openEdit(r)}>Edit</Button><Button size="sm" variant="destructive" onClick={() => onDelete(r.id)}>Delete</Button></div></td>
                   </tr>
                 ))}
