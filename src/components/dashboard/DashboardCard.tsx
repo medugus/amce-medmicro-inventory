@@ -24,10 +24,10 @@ export function DashboardCard({
     : tone === "info" ? "border-l-info"
     : "border-l-primary";
   const tint =
-    tone === "destructive" ? "bg-destructive/8 dark:bg-destructive/12"
-    : tone === "warning" ? "bg-warning/8 dark:bg-warning/12"
-    : tone === "success" ? "bg-success/8 dark:bg-success/12"
-    : tone === "info" ? "bg-info/8 dark:bg-info/12"
+    tone === "destructive" ? "bg-destructive/10 dark:bg-destructive/20"
+    : tone === "warning" ? "bg-warning/10 dark:bg-warning/20"
+    : tone === "success" ? "bg-success/10 dark:bg-success/20"
+    : tone === "info" ? "bg-info/10 dark:bg-info/20"
     : "";
   const content = (
     <>
