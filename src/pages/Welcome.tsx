@@ -221,18 +221,6 @@ const STEPS: Step[] = [
       </div>
     ),
   },
-      <div className="space-y-3 text-sm leading-relaxed">
-        <p>
-          That's the full daily loop. The sidebar has every module —
-          start with the Dashboard.
-        </p>
-        <p className="text-xs text-muted-foreground">
-          Want the full reference? Open <span className="font-medium">Training</span> in the sidebar
-          for the long-form SOP walkthrough of all 15 modules.
-        </p>
-      </div>
-    ),
-  },
 ];
 
 function markWelcomeSeen() {
