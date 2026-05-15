@@ -82,7 +82,12 @@ const STEPS: Step[] = [
           request across the Department of Medical Microbiology and Immunology.
         </p>
         <p>
-          The next 6 screens take about 2 minutes and show you the daily workflow.
+          It's a <span className="font-medium">shared live document</span> — every phone
+          and PC with the app sees the same data, and any change you make appears
+          on every other device within about a second.
+        </p>
+        <p>
+          The next 7 screens take about 2 minutes and show you the daily workflow.
           You can skip and come back later — the full guide lives under{" "}
           <span className="font-medium">Training</span> in the sidebar.
         </p>
@@ -99,15 +104,14 @@ const STEPS: Step[] = [
     title: "Step 2 — Receive a delivery",
     body: (
       <div className="space-y-3 text-sm leading-relaxed">
-        <p>When a delivery arrives:</p>
+        <p>When a delivery arrives, open <span className="font-medium">Receive / Stock Movements</span> (or Batch Register) and click <span className="font-medium">Receive new batch</span>:</p>
         <ol className="list-decimal list-inside space-y-1.5 ml-1">
-          <li>Open <span className="font-medium">Batch Register</span>.</li>
-          <li>Click <span className="font-medium">Receive batch</span>.</li>
           <li>Pick the item, enter the lot number, expiry date and quantity.</li>
+          <li>Save — the new batch goes straight to <span className="font-medium">Acceptance Testing</span>.</li>
         </ol>
         <p className="text-xs text-muted-foreground">
-          The new batch starts in <span className="font-medium">Pending acceptance</span> — it can't
-          be issued until QC clears it.
+          The batch starts in <span className="font-medium">Pending acceptance</span> — it can't
+          be issued until QC clears it. The receive dialog reminds you of this on save.
         </p>
       </div>
     ),
