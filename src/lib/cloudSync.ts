@@ -14,8 +14,14 @@
 // keeps it in lock-step across every device.
 
 import { db } from "@/lib/db";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase as typedSupabase } from "@/integrations/supabase/client";
 import type { Table } from "dexie";
+
+// The generated Supabase typings encode the strict per-table column shape, but
+// our 12 tables share the same `(id text, data jsonb)` shape and we operate
+// on them generically by name. Cast to a loose client for these calls.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const supabase = typedSupabase as any;
 
 type AnyRow = { id?: string; gtin?: string } & Record<string, unknown>;
 
