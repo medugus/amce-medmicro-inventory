@@ -151,17 +151,21 @@ export function ensureSeeded(): Promise<void> {
       "rw",
       [db.inventory, db.batches, db.supply, db.movements, db.acceptance, db.audit, db.equipment, db.durables, db.forecasts, db.purchaseRequests, db.meta],
       async () => {
-        // Catalogue + supply backlog: keep current entries, fill in any missing.
+        // Catalogue + supply backlog: keep current entries, fill in any missing,
+        // but never restore seed rows the lab has explicitly deleted.
         const existingInv = new Set((await db.inventory.toCollection().primaryKeys()) as string[]);
-        const newInv = AMCE_INVENTORY_MASTER.filter((i) => !existingInv.has(i.id));
+        const deletedInventory = await deletedRecordIdsForTable("inventory");
+        const newInv = AMCE_INVENTORY_MASTER.filter((i) => !existingInv.has(i.id) && !deletedInventory.has(i.id));
         if (newInv.length) await db.inventory.bulkAdd(newInv);
 
         const existingBatches = new Set((await db.batches.toCollection().primaryKeys()) as string[]);
-        const newBatches = AMCE_BATCHES.filter((b) => !existingBatches.has(b.id));
+        const deletedBatches = await deletedRecordIdsForTable("batches");
+        const newBatches = AMCE_BATCHES.filter((b) => !existingBatches.has(b.id) && !deletedBatches.has(b.id));
         if (newBatches.length) await db.batches.bulkAdd(newBatches);
 
         const existingSupply = new Set((await db.supply.toCollection().primaryKeys()) as string[]);
-        const newSupply = AMCE_SUPPLY_STATUS.filter((s) => !existingSupply.has(s.id));
+        const deletedSupply = await deletedRecordIdsForTable("supply");
+        const newSupply = AMCE_SUPPLY_STATUS.filter((s) => !existingSupply.has(s.id) && !deletedSupply.has(s.id));
         if (newSupply.length) await db.supply.bulkAdd(newSupply);
 
         // Movements / acceptance / audit: only seed if completely empty.
