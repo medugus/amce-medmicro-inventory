@@ -1,3 +1,4 @@
+import { useEffect, useReducer } from "react";
 import { Link } from "@tanstack/react-router";
 
 import { AMCE_SECTIONS } from "@/data/amceSections";
@@ -8,6 +9,7 @@ import { expiryBucket, isLowStock, totalAvailableForItem } from "@/logic/invento
 import { isCriticalRisk, supplyStatusFlags } from "@/logic/supplyStatus";
 import { isCalibrationDue, isMaintenanceDue } from "@/logic/equipment";
 import { buildCriticalActions } from "@/logic/criticalActions";
+import { refreshFromCloud } from "@/lib/cloudSync";
 import {
   useInventory,
   useBatches,
