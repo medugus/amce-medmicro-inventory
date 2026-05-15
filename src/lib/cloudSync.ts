@@ -35,18 +35,66 @@ interface Mapping {
 }
 
 const MAPPINGS: Mapping[] = [
-  { cloudTable: "inventory_items",  local: db.inventory as unknown as Table<AnyRow, string>, pk: (r) => String(r.id) },
-  { cloudTable: "batches",          local: db.batches as unknown as Table<AnyRow, string>, pk: (r) => String(r.id) },
-  { cloudTable: "supply_status",    local: db.supply as unknown as Table<AnyRow, string>, pk: (r) => String(r.id) },
-  { cloudTable: "stock_movements",  local: db.movements as unknown as Table<AnyRow, string>, pk: (r) => String(r.id) },
-  { cloudTable: "acceptance_tests", local: db.acceptance as unknown as Table<AnyRow, string>, pk: (r) => String(r.id) },
-  { cloudTable: "equipment",        local: db.equipment as unknown as Table<AnyRow, string>, pk: (r) => String(r.id) },
-  { cloudTable: "durables",         local: db.durables as unknown as Table<AnyRow, string>, pk: (r) => String(r.id) },
-  { cloudTable: "forecasts",        local: db.forecasts as unknown as Table<AnyRow, string>, pk: (r) => String(r.id) },
-  { cloudTable: "purchase_requests",local: db.purchaseRequests as unknown as Table<AnyRow, string>, pk: (r) => String(r.id) },
-  { cloudTable: "audit_trail",      local: db.audit as unknown as Table<AnyRow, string>, pk: (r) => String(r.id) },
-  { cloudTable: "gtin_catalogue",   local: db.gtinCatalogue as unknown as Table<AnyRow, string>, pk: (r) => String(r.gtin) },
-  { cloudTable: "scan_history",     local: db.scanHistory as unknown as Table<AnyRow, string>, pk: (r) => String(r.id) },
+  {
+    cloudTable: "inventory_items",
+    local: db.inventory as unknown as Table<AnyRow, string>,
+    pk: (r) => String(r.id),
+  },
+  {
+    cloudTable: "batches",
+    local: db.batches as unknown as Table<AnyRow, string>,
+    pk: (r) => String(r.id),
+  },
+  {
+    cloudTable: "supply_status",
+    local: db.supply as unknown as Table<AnyRow, string>,
+    pk: (r) => String(r.id),
+  },
+  {
+    cloudTable: "stock_movements",
+    local: db.movements as unknown as Table<AnyRow, string>,
+    pk: (r) => String(r.id),
+  },
+  {
+    cloudTable: "acceptance_tests",
+    local: db.acceptance as unknown as Table<AnyRow, string>,
+    pk: (r) => String(r.id),
+  },
+  {
+    cloudTable: "equipment",
+    local: db.equipment as unknown as Table<AnyRow, string>,
+    pk: (r) => String(r.id),
+  },
+  {
+    cloudTable: "durables",
+    local: db.durables as unknown as Table<AnyRow, string>,
+    pk: (r) => String(r.id),
+  },
+  {
+    cloudTable: "forecasts",
+    local: db.forecasts as unknown as Table<AnyRow, string>,
+    pk: (r) => String(r.id),
+  },
+  {
+    cloudTable: "purchase_requests",
+    local: db.purchaseRequests as unknown as Table<AnyRow, string>,
+    pk: (r) => String(r.id),
+  },
+  {
+    cloudTable: "audit_trail",
+    local: db.audit as unknown as Table<AnyRow, string>,
+    pk: (r) => String(r.id),
+  },
+  {
+    cloudTable: "gtin_catalogue",
+    local: db.gtinCatalogue as unknown as Table<AnyRow, string>,
+    pk: (r) => String(r.gtin),
+  },
+  {
+    cloudTable: "scan_history",
+    local: db.scanHistory as unknown as Table<AnyRow, string>,
+    pk: (r) => String(r.id),
+  },
 ];
 
 // Track keys we've just written to Cloud so the realtime echo doesn't loop.
@@ -114,7 +162,7 @@ async function pullAll(): Promise<void> {
         } catch (err) {
           console.warn(`[cloudSync] pull failed for ${m.cloudTable}:`, err);
         }
-      })
+      }),
     );
     dispatchChanged();
   } finally {
@@ -152,7 +200,7 @@ async function pushSeedIfEmpty(): Promise<void> {
       } catch (err) {
         console.warn(`[cloudSync] seed upload failed for ${m.cloudTable}:`, err);
       }
-    })
+    }),
   );
 }
 
@@ -214,7 +262,11 @@ function installRealtime(): void {
               if (!id) return;
               if (wasJustMirroredUp(m.cloudTable, id)) return;
               applyingRemote++;
-              try { await m.local.delete(id); } finally { applyingRemote--; }
+              try {
+                await m.local.delete(id);
+              } finally {
+                applyingRemote--;
+              }
               dispatchChanged();
               return;
             }
@@ -223,12 +275,16 @@ function installRealtime(): void {
             const id = String(rec.id ?? m.pk(rec.data));
             if (wasJustMirroredUp(m.cloudTable, id)) return;
             applyingRemote++;
-            try { await m.local.put(rec.data); } finally { applyingRemote--; }
+            try {
+              await m.local.put(rec.data);
+            } finally {
+              applyingRemote--;
+            }
             dispatchChanged();
           } catch (err) {
             console.warn(`[cloudSync] realtime apply failed for ${m.cloudTable}:`, err);
           }
-        }
+        },
       )
       .subscribe();
   }
