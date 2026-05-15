@@ -139,7 +139,7 @@ export function DashboardPage() {
             {AMCE_SECTIONS.map((s) => {
               const sectionSupplies = supplies.filter((x) => x.laboratorySection === s.id);
               const open = sectionSupplies.filter((x) => x.supplyStatus !== "Supplied" && x.supplyStatus !== "Cancelled").length;
-              const critical = sectionSupplies.filter((x) => x.criticality === "Critical").length;
+              const critical = sectionSupplies.filter(isCriticalRisk).length;
               const sectionItems = items.filter((i) => i.laboratorySection === s.id);
               const sectionLow = sectionItems.filter((i) => totalAvailableForItem(batches, i.id) <= i.reorderLevel).length;
               const sectionPendingAcc = batches.filter((b) => {
