@@ -497,3 +497,52 @@ export async function deleteDurable(id: string, reason: string): Promise<void> {
   });
   notifyDbChanged();
 }
+
+// ---------- Purchase requests ----------
+
+import type { PurchaseRequest, PurchaseRequestStatus, ProcurementStatus, Criticality } from "@/types";
+
+export type PurchaseRequestInput = Omit<PurchaseRequest, "id">;
+
+function summarisePR(p: PurchaseRequest): string {
+  return `${p.itemName} · qty ${p.quantityRequested} · ${p.urgency} · ${p.approvalStatus}`;
+}
+
+export async function createPurchaseRequest(input: PurchaseRequestInput): Promise<PurchaseRequest> {
+  const user = requireUser();
+  if (!input.itemName.trim()) throw new Error("Item name is required.");
+  const row: PurchaseRequest = { id: newId("pr"), ...input };
+  await db.purchaseRequests.add(row);
+  await appendAudit({
+    user, action: "Create purchase request", module: "Purchase Requests", entityId: row.id,
+    previousValue: null, newValue: summarisePR(row), reason: "", notes: "",
+  });
+  notifyDbChanged();
+  return row;
+}
+
+export async function updatePurchaseRequest(id: string, patch: Partial<PurchaseRequestInput>, reason = ""): Promise<void> {
+  const user = requireUser();
+  const existing = await db.purchaseRequests.get(id);
+  if (!existing) throw new Error("Purchase request not found.");
+  await db.purchaseRequests.update(id, patch);
+  const merged = { ...existing, ...patch } as PurchaseRequest;
+  await appendAudit({
+    user, action: "Update purchase request", module: "Purchase Requests", entityId: id,
+    previousValue: summarisePR(existing), newValue: summarisePR(merged), reason, notes: "",
+  });
+  notifyDbChanged();
+}
+
+export async function deletePurchaseRequest(id: string, reason: string): Promise<void> {
+  const user = requireUser();
+  if (!reason.trim()) throw new Error("Deletion requires a documented reason.");
+  const existing = await db.purchaseRequests.get(id);
+  if (!existing) throw new Error("Purchase request not found.");
+  await db.purchaseRequests.delete(id);
+  await appendAudit({
+    user, action: "Delete purchase request", module: "Purchase Requests", entityId: id,
+    previousValue: summarisePR(existing), newValue: null, reason, notes: "",
+  });
+  notifyDbChanged();
+}
