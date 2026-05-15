@@ -14,7 +14,6 @@ import type {
   EquipmentAsset,
   DurableAsset,
   AcceptanceStatus,
-  PurchaseRequest,
 } from "@/types";
 import { db, newId, appendAudit } from "@/lib/db";
 import { notifyDbChanged } from "@/lib/useLiveData";
@@ -496,39 +495,5 @@ export async function deleteDurable(id: string, reason: string): Promise<void> {
     user, action: "Delete durable", module: "Durables Register", entityId: id,
     previousValue: summariseDurable(existing), newValue: null, reason, notes: "",
   });
-  notifyDbChanged();
-}
-
-
-// ---------- Purchase Requests CRUD ----------
-
-export type PurchaseRequestInput = Omit<PurchaseRequest, "id" | "requestedBy" | "approvedBy">;
-
-export async function createPurchaseRequest(input: PurchaseRequestInput): Promise<PurchaseRequest> {
-  const user = requireUser();
-  const row: PurchaseRequest = {
-    id: newId("pr"),
-    ...input,
-    requestedBy: user,
-    approvedBy: null,
-  };
-  await db.purchaseRequests.add(row);
-  notifyDbChanged();
-  return row;
-}
-
-export async function updatePurchaseRequest(id: string, patch: Partial<PurchaseRequestInput>): Promise<void> {
-  await requireUser();
-  const existing = await db.purchaseRequests.get(id);
-  if (!existing) throw new Error("Purchase request not found.");
-  await db.purchaseRequests.update(id, patch);
-  notifyDbChanged();
-}
-
-export async function deletePurchaseRequest(id: string): Promise<void> {
-  await requireUser();
-  const existing = await db.purchaseRequests.get(id);
-  if (!existing) throw new Error("Purchase request not found.");
-  await db.purchaseRequests.delete(id);
   notifyDbChanged();
 }

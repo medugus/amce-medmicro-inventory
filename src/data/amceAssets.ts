@@ -28,14 +28,14 @@ const EQ_SEED: SeedEquipment[] = [
   { slug: "dry-heat-oven", name: "Dry heat oven / hot air oven", category: "Sterilisation equipment", section: "media-prep", notes: "For glassware/drying if used.", maintenanceRequired: true },
   { slug: "incubator-37", name: "Incubator, 35–37 °C", category: "Incubation equipment", section: "general-culture", notes: "Multiple incubators should be separate records.", maintenanceRequired: true },
   { slug: "co2-incubator", name: "CO₂ incubator", category: "Incubation equipment", section: "general-culture", notes: "For chocolate agar / fastidious organisms. Record CO₂ monitoring and maintenance.", maintenanceRequired: true },
-  // Anaerobic jar system / anaerobic workstation: not received — tracked in Purchase Requests only.
+  { slug: "anaerobic-workstation", name: "Anaerobic jar system / anaerobic workstation", category: "Culture equipment", section: "general-culture", notes: "If only jars are used, jars are durables; workstation is equipment." },
   { slug: "microaerophilic-system", name: "Microaerophilic jar/system", category: "Culture equipment", section: "general-culture", notes: "For Campylobacter / fastidious organisms, if used." },
   { slug: "fridge-2-8", name: "Refrigerator, 2–8 °C", category: "Cold-chain equipment", section: "stores", notes: "Reagents, discs, kits. Each refrigerator should have a unique asset record." },
   { slug: "freezer-20", name: "Freezer, −20 °C", category: "Cold-chain equipment", section: "isolate-storage", notes: "Reagents, isolate storage. Record temperature monitoring." },
   { slug: "freezer-80", name: "Freezer, −80 °C", category: "Cold-chain equipment", section: "isolate-storage", notes: "Critical for long-term isolate / molecular archive storage." },
   { slug: "temp-monitor-device", name: "Refrigerator/freezer temperature monitoring device", category: "Cold-chain equipment", section: "stores", notes: "Each logger can be tracked as equipment.", calibrationRequired: true },
   { slug: "temp-data-logger", name: "Temperature data logger", category: "Cold-chain equipment", section: "stores", notes: "Refrigerators / freezers / incubators. Include serial number and calibration date.", calibrationRequired: true },
-  // Digital / probe thermometer: not received — tracked in Purchase Requests only.
+  { slug: "digital-thermometer", name: "Digital / probe thermometer", category: "Monitoring equipment", section: "stores", notes: "Cold chain, incubators, water bath. Requires calibration / verification.", calibrationRequired: true },
   { slug: "maldi-tof", name: "MALDI-TOF mass spectrometer", category: "MALDI-TOF equipment", section: "maldi-tof", notes: "Major asset; track service contract, calibration, downtime.", calibrationRequired: true, maintenanceRequired: true },
   { slug: "maldi-workstation", name: "MALDI-TOF computer/workstation", category: "MALDI-TOF equipment", section: "maldi-tof", notes: "Include software / license status if needed." },
   { slug: "maldi-ups", name: "MALDI-TOF UPS", category: "Power support equipment", section: "maldi-tof", notes: "Track battery / service status.", maintenanceRequired: true },
@@ -81,8 +81,8 @@ const EQ_SEED: SeedEquipment[] = [
   { slug: "water-incubator", name: "Incubator for water microbiology", category: "Water surveillance equipment", section: "water", notes: "Separate from routine culture if dedicated.", maintenanceRequired: true },
   { slug: "conductivity-meter", name: "Conductivity / TDS meter", category: "Water surveillance equipment", section: "water", notes: "If microbiology monitors water quality jointly.", calibrationRequired: true },
   { slug: "portable-ph-conductivity", name: "Portable pH / conductivity meter", category: "Water surveillance equipment", section: "water", notes: "If used.", calibrationRequired: true },
-  // ATP luminometer: not received — tracked in Purchase Requests only.
-  // Air sampler: not received — tracked in Purchase Requests only.
+  { slug: "atp-luminometer", name: "ATP luminometer", category: "IPC screening consumables", section: "ipc", notes: "If ATP monitoring is used.", calibrationRequired: true },
+  { slug: "air-sampler", name: "Air sampler", category: "General laboratory equipment", section: "ipc", notes: "For theatre / high-risk unit air sampling, if used.", calibrationRequired: true, maintenanceRequired: true },
   { slug: "fridge-media", name: "Refrigerator for media storage", category: "Cold-chain equipment", section: "media-prep", notes: "Separate from reagent fridge if present." },
   { slug: "fridge-serology", name: "Refrigerator for serology kits", category: "Cold-chain equipment", section: "serology", notes: "Separate asset." },
   { slug: "freezer-isolate-archive", name: "Freezer for isolate archive", category: "Cold-chain equipment", section: "isolate-storage", notes: "May be −20 °C or −80 °C." },

@@ -39,12 +39,6 @@ const SECTION_EMOJI: Record<string, string> = {
   "stores": "📦",
 };
 
-const SECTION_IDS = new Set(AMCE_SECTIONS.map((section) => section.id));
-
-const toDashboardSection = (sectionId: string | null | undefined) => (
-  sectionId && SECTION_IDS.has(sectionId as (typeof AMCE_SECTIONS)[number]["id"]) ? sectionId : "general-culture"
-);
-
 export function DashboardPage() {
   const supplies = useSupplyStatus();
   const batches = useBatches();
@@ -126,16 +120,16 @@ export function DashboardPage() {
         <section>
           <h2 className="text-sm font-semibold text-foreground mb-2">Operational summaries</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
-          <DashboardCard label="Supply requests" value={supplies.length} tone="success" to="/supply-status" />
-            <DashboardCard label="Inventory items" value={items.length} tone="success" to="/inventory-master" />
-            <DashboardCard label="Low-stock items" value={lowStock} tone={lowStock > 0 ? "warning" : "success"} to="/low-stock-reorder" />
-            <DashboardCard label="Batch / lot records" value={batches.length} tone="success" to="/batch-register" />
-            <DashboardCard label="Stock movements" value={movements.length} tone="success" to="/stock-movements" />
-            <DashboardCard label="Purchase requests" value={purchaseRequests.length} tone="success" to="/purchase-requests" />
-            <DashboardCard label="Section forecasts" value={forecasts.length} tone="success" to="/section-forecasting" />
-            <DashboardCard label="Equipment assets" value={equipment.length} tone={equipment.length > 0 ? "success" : "default"} hint={equipment.length === 0 ? "Pending import" : undefined} to="/equipment-register" />
-            <DashboardCard label="Durable assets" value={durables.length} tone={durables.length > 0 ? "success" : "default"} hint={durables.length === 0 ? "Pending import" : undefined} to="/durables-register" />
-            <DashboardCard label="Expiring within 30 days" value={expBuckets["30"] ?? 0} tone={(expBuckets["30"] ?? 0) > 0 ? "warning" : "success"} to="/expiry-fefo" />
+            <DashboardCard label="Supply requests" value={supplies.length} to="/supply-status" />
+            <DashboardCard label="Inventory items" value={items.length} to="/inventory-master" />
+            <DashboardCard label="Low-stock items" value={lowStock} tone={lowStock ? "warning" : "default"} to="/low-stock-reorder" />
+            <DashboardCard label="Batch / lot records" value={batches.length} to="/batch-register" />
+            <DashboardCard label="Stock movements" value={movements.length} to="/stock-movements" />
+            <DashboardCard label="Purchase requests" value={purchaseRequests.length} to="/purchase-requests" />
+            <DashboardCard label="Section forecasts" value={forecasts.length} to="/section-forecasting" />
+            <DashboardCard label="Equipment assets" value={equipment.length} hint={equipment.length === 0 ? "Pending import" : undefined} to="/equipment-register" />
+            <DashboardCard label="Durable assets" value={durables.length} hint={durables.length === 0 ? "Pending import" : undefined} to="/durables-register" />
+            <DashboardCard label="Expiring within 30 days" value={expBuckets["30"] ?? 0} tone="warning" to="/expiry-fefo" />
           </div>
         </section>
 
@@ -143,22 +137,18 @@ export function DashboardPage() {
           <h2 className="text-sm font-semibold text-foreground mb-2">Section status</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             {AMCE_SECTIONS.map((s) => {
-              const sectionSupplies = supplies.filter((x) => toDashboardSection(x.laboratorySection) === s.id);
+              const sectionSupplies = supplies.filter((x) => x.laboratorySection === s.id);
               const open = sectionSupplies.filter((x) => x.supplyStatus !== "Supplied" && x.supplyStatus !== "Cancelled").length;
               const critical = sectionSupplies.filter((x) => x.criticality === "Critical").length;
-              const sectionPurchaseRequests = purchaseRequests.filter((p) =>
-                toDashboardSection(p.requestingSection) === s.id && p.approvalStatus !== "Rejected" && p.procurementStatus !== "Delivered"
-              ).length;
-              const sectionForecasts = forecasts.filter((f) => toDashboardSection(f.laboratorySection) === s.id).length;
-              const sectionItems = items.filter((i) => toDashboardSection(i.laboratorySection) === s.id);
+              const sectionItems = items.filter((i) => i.laboratorySection === s.id);
               const sectionLow = sectionItems.filter((i) => totalAvailableForItem(batches, i.id) <= i.reorderLevel).length;
               const sectionPendingAcc = batches.filter((b) => {
                 const it = items.find((i) => i.id === b.inventoryItemId);
-                return toDashboardSection(it?.laboratorySection) === s.id && b.batchStatus === "Pending acceptance";
+                return it?.laboratorySection === s.id && b.batchStatus === "Pending acceptance";
               }).length;
               const sectionExpired = batches.filter((b) => {
                 const it = items.find((i) => i.id === b.inventoryItemId);
-                return toDashboardSection(it?.laboratorySection) === s.id && (b.batchStatus === "Expired" || expiryBucket(b.expiryDate) === "expired");
+                return it?.laboratorySection === s.id && (b.batchStatus === "Expired" || expiryBucket(b.expiryDate) === "expired");
               }).length;
 
               const nextAction =
@@ -166,19 +156,11 @@ export function DashboardPage() {
                 sectionExpired > 0 ? "Quarantine and discard expired batches" :
                 sectionLow > 0 ? "Raise reorder for low-stock items" :
                 sectionPendingAcc > 0 ? "Complete acceptance testing" :
-                sectionPurchaseRequests > 0 ? "Follow up pending purchase requests" :
                 open > 0 ? "Follow up open supply records" :
                 "Bench head: review and clear any outstanding matters";
 
-              const sectionToneClass =
-                critical > 0
-                  ? "bg-red-100 border-red-300 dark:bg-red-500/15 dark:border-red-500/40"
-                  : sectionLow > 0
-                    ? "bg-orange-100 border-orange-300 dark:bg-orange-500/15 dark:border-orange-500/40"
-                    : "bg-green-100 border-green-300 dark:bg-green-500/15 dark:border-green-500/40";
-
               return (
-                <div key={s.id} className={`border rounded-md p-3 hover:shadow-md transition-shadow ${sectionToneClass}`}>
+                <div key={s.id} className="bg-card border border-border rounded-md p-3 hover:shadow-md transition-shadow">
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0 flex items-start gap-2">
                       <span className="text-2xl leading-none shrink-0" aria-hidden>{SECTION_EMOJI[s.id] ?? "🧪"}</span>
@@ -219,8 +201,6 @@ export function DashboardPage() {
                     <div className="flex justify-between"><span className="text-muted-foreground">Critical risks</span><span className="tabular-nums">{critical}</span></div>
                     <div className="flex justify-between"><span className="text-muted-foreground">Low stock</span><span className="tabular-nums">{sectionLow}</span></div>
                     <div className="flex justify-between"><span className="text-muted-foreground">Pending acceptance</span><span className="tabular-nums">{sectionPendingAcc}</span></div>
-                    <div className="flex justify-between"><span className="text-muted-foreground">Open purchase reqs</span><span className="tabular-nums">{sectionPurchaseRequests}</span></div>
-                    <div className="flex justify-between"><span className="text-muted-foreground">Section forecasts</span><span className="tabular-nums">{sectionForecasts}</span></div>
                     <div className="flex justify-between col-span-2"><span className="text-muted-foreground">Expired batches</span><span className="tabular-nums">{sectionExpired}</span></div>
                   </div>
                   <div className="mt-2 pt-2 border-t border-border text-xs">
