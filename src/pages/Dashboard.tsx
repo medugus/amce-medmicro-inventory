@@ -160,7 +160,13 @@ export function DashboardPage() {
                 "Bench head: review and clear any outstanding matters";
 
               return (
-                <div key={s.id} className="bg-card border border-border rounded-md p-3 hover:shadow-md transition-shadow">
+                <Link
+                  key={s.id}
+                  to="/section/$sectionId"
+                  params={{ sectionId: s.id }}
+                  className="bg-card border border-border rounded-md p-3 hover:shadow-md hover:bg-accent/30 transition-all block"
+                  aria-label={`Open ${s.name} attention list`}
+                >
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0 flex items-start gap-2">
                       <span className="text-2xl leading-none shrink-0" aria-hidden>{SECTION_EMOJI[s.id] ?? "🧪"}</span>
