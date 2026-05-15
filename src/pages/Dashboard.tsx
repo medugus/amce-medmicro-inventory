@@ -1,3 +1,4 @@
+import { useEffect, useReducer } from "react";
 import { Link } from "@tanstack/react-router";
 
 import { AMCE_SECTIONS } from "@/data/amceSections";
@@ -8,6 +9,7 @@ import { expiryBucket, isLowStock, totalAvailableForItem } from "@/logic/invento
 import { isCriticalRisk, supplyStatusFlags } from "@/logic/supplyStatus";
 import { isCalibrationDue, isMaintenanceDue } from "@/logic/equipment";
 import { buildCriticalActions } from "@/logic/criticalActions";
+import { refreshFromCloud } from "@/lib/cloudSync";
 import {
   useInventory,
   useBatches,
@@ -40,6 +42,24 @@ const SECTION_EMOJI: Record<string, string> = {
 };
 
 export function DashboardPage() {
+  // Belt-and-braces re-render: any local or cloud-driven write fires the
+  // `amce:db-changed` event. Forcing a tick guarantees the dashboard's derived
+  // numbers refresh even if a hook somewhere else is memoising results.
+  const [, tick] = useReducer((n: number) => n + 1, 0);
+  useEffect(() => {
+    // Pull the latest cloud state every time the dashboard mounts and whenever
+    // the tab regains focus, so cross-device updates show up immediately.
+    void refreshFromCloud();
+    const onFocus = () => void refreshFromCloud();
+    const onChanged = () => tick();
+    window.addEventListener("focus", onFocus);
+    window.addEventListener("amce:db-changed", onChanged);
+    return () => {
+      window.removeEventListener("focus", onFocus);
+      window.removeEventListener("amce:db-changed", onChanged);
+    };
+  }, []);
+
   const supplies = useSupplyStatus();
   const batches = useBatches();
   const items = useInventory();
