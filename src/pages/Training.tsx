@@ -111,7 +111,9 @@ export function TrainingPage() {
           <p className="text-sm mt-2 leading-relaxed">
             This guide walks you through every part of the system in plain language.
             Take 15 minutes to read it once and you'll know exactly what to do at the bench every day.
-            If you ever get stuck on a page, click the <span className="font-mono px-1 rounded bg-background border">?</span> icon at the top right — it has the same instructions for that screen.
+            The app is a <span className="font-medium">shared live document</span> — every phone and PC sees
+            the same data and updates within about a second of any change.
+            If you ever get stuck on a page, click the <span className="font-mono px-1 rounded bg-background border">?</span> icon at the top right, or hover over any tile or sidebar link to see a one-line explanation.
           </p>
         </div>
 
