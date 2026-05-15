@@ -102,6 +102,28 @@ class AMCEDatabase extends Dexie {
 
 export const db = new AMCEDatabase();
 
+const DELETED_META_PREFIX = "deleted";
+
+function deletedRecordKey(table: string, id: string): string {
+  return `${DELETED_META_PREFIX}:${table}:${id}`;
+}
+
+export async function rememberDeletedRecord(table: string, id: string): Promise<void> {
+  if (!table || !id || id === "undefined" || id === "null") return;
+  await db.meta.put({ key: deletedRecordKey(table, id), value: new Date().toISOString() });
+}
+
+export async function forgetDeletedRecord(table: string, id: string): Promise<void> {
+  if (!table || !id || id === "undefined" || id === "null") return;
+  await db.meta.delete(deletedRecordKey(table, id));
+}
+
+export async function deletedRecordIdsForTable(table: string): Promise<Set<string>> {
+  const prefix = `${DELETED_META_PREFIX}:${table}:`;
+  const rows = await db.meta.where("key").startsWith(prefix).toArray();
+  return new Set(rows.map((row) => row.key.slice(prefix.length)));
+}
+
 // Bump this string whenever the bundled seed data changes meaningfully and
 // you want each lab PC to re-seed missing rows from the new baseline. Seeded
 // durables are refreshed by stable ID; user-added rows use different IDs and
