@@ -137,7 +137,7 @@ const STEPS: Step[] = [
           that arrived first. This is FEFO: First Expiry, First Out.
         </p>
         <p>
-          On <span className="font-medium">Stock Movements</span>, the system shows batches in FEFO
+          On <span className="font-medium">Receive / Stock Movements</span>, the system shows batches in FEFO
           order and warns you if you skip ahead.
         </p>
         <p className="text-xs text-muted-foreground">

@@ -153,7 +153,7 @@ export function TrainingPage() {
               <li><span className="font-medium">Click Critical Actions</span> — the system tells you exactly what to do, in priority order.</li>
               <li><span className="font-medium">Receive any new deliveries</span> — register the batch on Batch Register.</li>
               <li><span className="font-medium">Send pending batches for QC</span> — mark accepted or rejected on Acceptance Testing.</li>
-              <li><span className="font-medium">Issue stock to benches</span> — record on Stock Movements (FEFO order).</li>
+              <li><span className="font-medium">Issue stock to benches</span> — record on Receive / Stock Movements (FEFO order).</li>
               <li><span className="font-medium">Raise reorders</span> — anything red on Low Stock & Reorder needs a Purchase Request.</li>
             </ol>
           </div>
