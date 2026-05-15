@@ -22,14 +22,15 @@ import type {
 let ready = false;
 const readyListeners = new Set<() => void>();
 if (typeof window !== "undefined" && typeof indexedDB !== "undefined") {
+  // Seed local Dexie first (so the device has the bundled baseline if cloud is
+  // empty), then start cloud sync (push seed up if cloud is empty, then pull
+  // cloud → local, then open realtime).
   ensureSeeded()
-    .then(() => {
-      ready = true;
-      readyListeners.forEach((l) => l());
-      readyListeners.clear();
-    })
+    .then(() => import("@/lib/cloudSync").then((m) => m.startCloudSync()))
     .catch((err) => {
-      console.error("Failed to seed local database:", err);
+      console.error("Failed to initialise data layer:", err);
+    })
+    .finally(() => {
       ready = true;
       readyListeners.forEach((l) => l());
       readyListeners.clear();
@@ -44,12 +45,11 @@ function useReady(): boolean {
     const fn = () => setR(true);
     readyListeners.add(fn);
     ensureSeeded()
-      .then(() => {
-        ready = true;
-        fn();
-      })
+      .then(() => import("@/lib/cloudSync").then((m) => m.startCloudSync()))
       .catch((err) => {
-        console.error("Failed to seed local database:", err);
+        console.error("Failed to initialise data layer:", err);
+      })
+      .finally(() => {
         ready = true;
         fn();
       });
