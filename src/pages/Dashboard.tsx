@@ -39,6 +39,12 @@ const SECTION_EMOJI: Record<string, string> = {
   "stores": "📦",
 };
 
+const SECTION_IDS = new Set(AMCE_SECTIONS.map((section) => section.id));
+
+const toDashboardSection = (sectionId: string | null | undefined) => (
+  sectionId && SECTION_IDS.has(sectionId as (typeof AMCE_SECTIONS)[number]["id"]) ? sectionId : "general-culture"
+);
+
 export function DashboardPage() {
   const supplies = useSupplyStatus();
   const batches = useBatches();
@@ -137,22 +143,22 @@ export function DashboardPage() {
           <h2 className="text-sm font-semibold text-foreground mb-2">Section status</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             {AMCE_SECTIONS.map((s) => {
-              const sectionSupplies = supplies.filter((x) => x.laboratorySection === s.id);
+              const sectionSupplies = supplies.filter((x) => toDashboardSection(x.laboratorySection) === s.id);
               const open = sectionSupplies.filter((x) => x.supplyStatus !== "Supplied" && x.supplyStatus !== "Cancelled").length;
               const critical = sectionSupplies.filter((x) => x.criticality === "Critical").length;
               const sectionPurchaseRequests = purchaseRequests.filter((p) =>
-                p.requestingSection === s.id && p.approvalStatus !== "Rejected" && p.procurementStatus !== "Received"
+                toDashboardSection(p.requestingSection) === s.id && p.approvalStatus !== "Rejected" && p.procurementStatus !== "Received"
               ).length;
-              const sectionForecasts = forecasts.filter((f) => f.laboratorySection === s.id).length;
-              const sectionItems = items.filter((i) => i.laboratorySection === s.id);
+              const sectionForecasts = forecasts.filter((f) => toDashboardSection(f.laboratorySection) === s.id).length;
+              const sectionItems = items.filter((i) => toDashboardSection(i.laboratorySection) === s.id);
               const sectionLow = sectionItems.filter((i) => totalAvailableForItem(batches, i.id) <= i.reorderLevel).length;
               const sectionPendingAcc = batches.filter((b) => {
                 const it = items.find((i) => i.id === b.inventoryItemId);
-                return it?.laboratorySection === s.id && b.batchStatus === "Pending acceptance";
+                return toDashboardSection(it?.laboratorySection) === s.id && b.batchStatus === "Pending acceptance";
               }).length;
               const sectionExpired = batches.filter((b) => {
                 const it = items.find((i) => i.id === b.inventoryItemId);
-                return it?.laboratorySection === s.id && (b.batchStatus === "Expired" || expiryBucket(b.expiryDate) === "expired");
+                return toDashboardSection(it?.laboratorySection) === s.id && (b.batchStatus === "Expired" || expiryBucket(b.expiryDate) === "expired");
               }).length;
 
               const nextAction =
