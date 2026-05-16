@@ -7,6 +7,7 @@ import { EmptyState } from "@/components/common/EmptyState";
 import { StatusBadge, toneForCriticality } from "@/components/common/StatusBadge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import { isLowStock, totalAvailableForItem } from "@/logic/inventory";
 import { NOT_DOCUMENTED } from "@/data/categories";
@@ -27,6 +28,7 @@ const ALL = "__all";
 export function InventoryMasterPage() {
   const [search, setSearch] = useState("");
   const [section, setSection] = useState(ALL);
+  const [noBatchesOnly, setNoBatchesOnly] = useState(false);
   const inventory = useInventory();
   const batches = useBatches();
 
@@ -35,11 +37,43 @@ export function InventoryMasterPage() {
   const [deleting, setDeleting] = useState<InventoryItem | null>(null);
   const [deleteReason, setDeleteReason] = useState("");
 
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkOpen, setBulkOpen] = useState(false);
+  const [bulkReason, setBulkReason] = useState("");
+  const [bulkBusy, setBulkBusy] = useState(false);
+
+  const batchCountByItem = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const b of batches) m.set(b.inventoryItemId, (m.get(b.inventoryItemId) ?? 0) + 1);
+    return m;
+  }, [batches]);
+
   const rows = useMemo(() => inventory.filter((i) => {
     if (search && !`${i.itemName} ${i.category} ${i.manufacturer ?? ""}`.toLowerCase().includes(search.toLowerCase())) return false;
     if (section !== ALL && i.laboratorySection !== section) return false;
+    if (noBatchesOnly && (batchCountByItem.get(i.id) ?? 0) > 0) return false;
     return true;
-  }), [search, section, inventory]);
+  }), [search, section, inventory, noBatchesOnly, batchCountByItem]);
+
+  const visibleIds = rows.map((r) => r.id);
+  const allVisibleSelected = visibleIds.length > 0 && visibleIds.every((id) => selectedIds.has(id));
+  const someVisibleSelected = visibleIds.some((id) => selectedIds.has(id));
+
+  function toggleAllVisible() {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (allVisibleSelected) visibleIds.forEach((id) => next.delete(id));
+      else visibleIds.forEach((id) => next.add(id));
+      return next;
+    });
+  }
+  function toggleOne(id: string) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }
 
   async function confirmDelete() {
     if (!deleting) return;
@@ -52,6 +86,44 @@ export function InventoryMasterPage() {
       toast.error(err instanceof Error ? err.message : "Failed.");
     }
   }
+
+  async function confirmBulkDelete() {
+    if (!bulkReason.trim()) {
+      toast.error("Reason is required for the audit trail.");
+      return;
+    }
+    setBulkBusy(true);
+    const ids = Array.from(selectedIds);
+    let ok = 0, skipped = 0, failed = 0;
+    const failures: string[] = [];
+    for (const id of ids) {
+      try {
+        await deleteInventoryItem(id, bulkReason);
+        ok++;
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : "Failed";
+        if (msg.includes("batches")) {
+          skipped++;
+        } else {
+          failed++;
+          const item = inventory.find((i) => i.id === id);
+          failures.push(`${item?.itemName ?? id}: ${msg}`);
+        }
+      }
+    }
+    setBulkBusy(false);
+    setBulkOpen(false);
+    setBulkReason("");
+    setSelectedIds(new Set());
+    const parts: string[] = [];
+    if (ok) parts.push(`${ok} deleted`);
+    if (skipped) parts.push(`${skipped} skipped (had batches)`);
+    if (failed) parts.push(`${failed} failed`);
+    toast.success(parts.join(" · ") || "No changes.");
+    if (failures.length) console.warn("Bulk delete failures:", failures);
+  }
+
+  const selectedCount = selectedIds.size;
 
   return (
     <div>
@@ -69,7 +141,7 @@ export function InventoryMasterPage() {
         }
       />
       <div className="p-6 space-y-4">
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <SearchInput value={search} onChange={setSearch} placeholder="Search item, manufacturer..." />
           <Select value={section} onValueChange={setSection}>
             <SelectTrigger className="w-48 h-9"><SelectValue /></SelectTrigger>
@@ -78,6 +150,19 @@ export function InventoryMasterPage() {
               {AMCE_SECTIONS.map((s) => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
             </SelectContent>
           </Select>
+          <label className="text-xs flex items-center gap-1.5 ml-2">
+            <input type="checkbox" checked={noBatchesOnly} onChange={(e) => setNoBatchesOnly(e.target.checked)} />
+            Only items with no batches ever received
+          </label>
+          {selectedCount > 0 && (
+            <div className="ml-auto flex items-center gap-2">
+              <span className="text-xs text-muted-foreground">{selectedCount} selected</span>
+              <Button size="sm" variant="outline" onClick={() => setSelectedIds(new Set())}>Clear</Button>
+              <Button size="sm" variant="destructive" onClick={() => setBulkOpen(true)}>
+                <Trash2 className="h-4 w-4 mr-1" /> Delete selected
+              </Button>
+            </div>
+          )}
         </div>
 
         {rows.length === 0 ? <EmptyState title="No inventory items match." description="Add items via &quot;Add inventory item&quot;. Each item must exist here before you can receive batches or record movements for it." /> : (
@@ -85,6 +170,13 @@ export function InventoryMasterPage() {
             <table className="w-full text-sm">
               <thead className="bg-muted/50 text-left text-[11px] uppercase tracking-wider text-muted-foreground">
                 <tr>
+                  <th className="p-2 w-8">
+                    <Checkbox
+                      checked={allVisibleSelected ? true : someVisibleSelected ? "indeterminate" : false}
+                      onCheckedChange={toggleAllVisible}
+                      aria-label="Select all visible"
+                    />
+                  </th>
                   <th className="p-2">Item</th>
                   <th className="p-2">Category</th>
                   <th className="p-2">Section</th>
@@ -92,6 +184,7 @@ export function InventoryMasterPage() {
                   <th className="p-2">Cat. No.</th>
                   <th className="p-2">Unit</th>
                   <th className="p-2 text-right">Available</th>
+                  <th className="p-2 text-right">Batches</th>
                   <th className="p-2 text-right">Reorder</th>
                   <th className="p-2">Storage</th>
                   <th className="p-2">Crit.</th>
@@ -103,8 +196,13 @@ export function InventoryMasterPage() {
                 {rows.map((i) => {
                   const avail = totalAvailableForItem(batches, i.id);
                   const low = isLowStock(i, batches);
+                  const bc = batchCountByItem.get(i.id) ?? 0;
+                  const checked = selectedIds.has(i.id);
                   return (
-                    <tr key={i.id} className="border-t border-border hover:bg-muted/30">
+                    <tr key={i.id} className={`border-t border-border hover:bg-muted/30 ${checked ? "bg-accent/30" : ""}`}>
+                      <td className="p-2">
+                        <Checkbox checked={checked} onCheckedChange={() => toggleOne(i.id)} aria-label={`Select ${i.itemName}`} />
+                      </td>
                       <td className="p-2 font-medium">{i.itemName}</td>
                       <td className="p-2 text-xs">{i.category}</td>
                       <td className="p-2 text-xs">{SECTION_NAME[i.laboratorySection]}</td>
@@ -112,6 +210,7 @@ export function InventoryMasterPage() {
                       <td className="p-2 text-xs">{i.catalogueNumber ?? <span className="text-muted-foreground">{NOT_DOCUMENTED}</span>}</td>
                       <td className="p-2 text-xs">{i.unitOfIssue}</td>
                       <td className="p-2 text-right tabular-nums">{avail}</td>
+                      <td className="p-2 text-right tabular-nums text-xs">{bc}</td>
                       <td className="p-2 text-right tabular-nums">{i.reorderLevel}</td>
                       <td className="p-2 text-xs">{i.storageCondition}</td>
                       <td className="p-2"><StatusBadge label={i.criticality} tone={toneForCriticality(i.criticality)} /></td>
@@ -153,6 +252,33 @@ export function InventoryMasterPage() {
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={confirmDelete}>Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={bulkOpen} onOpenChange={(o) => { if (!o && !bulkBusy) { setBulkOpen(false); setBulkReason(""); } }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete {selectedCount} selected items?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Items with any batch recorded against them will be skipped automatically (the system
+              protects stock history). One reason will be written to the audit trail for every deleted item.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div>
+            <Label>Reason (audit trail)</Label>
+            <Input
+              value={bulkReason}
+              onChange={(e) => setBulkReason(e.target.value)}
+              placeholder="e.g. Never used at AMCE — clean-up of legacy catalogue"
+              autoFocus
+            />
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={bulkBusy}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmBulkDelete} disabled={bulkBusy}>
+              {bulkBusy ? "Deleting..." : `Delete ${selectedCount}`}
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
