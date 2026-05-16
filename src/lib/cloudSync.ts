@@ -374,7 +374,11 @@ function installRealtime(): void {
           }
         },
       )
-      .subscribe();
+      .subscribe((status: string) => {
+        if (status !== "SUBSCRIBED") {
+          console.warn(`[cloudSync] realtime ${m.cloudTable} status:`, status);
+        }
+      });
   }
 }
 
