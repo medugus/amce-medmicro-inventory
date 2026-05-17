@@ -1,4 +1,7 @@
 import { useMemo, useState } from "react";
+import { Link } from "@tanstack/react-router";
+import { ScanLine } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { useSupplyStatus, useInventory } from "@/lib/useLiveData";
 import { AMCE_SECTIONS } from "@/data/amceSections";
 import { Header } from "@/components/layout/Header";
