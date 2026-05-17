@@ -357,7 +357,6 @@ export interface PurchaseRequest {
   urgency: Criticality;
   currentStock: number;
   averageMonthlyUsage: number;
-  supplierPreference: string | null;
   preferredManufacturer: string | null;
   alternateManufacturer: string | null;
   approvalStatus: PurchaseRequestStatus;
