@@ -519,7 +519,7 @@ import type { PurchaseRequest, PurchaseRequestStatus, ProcurementStatus, Critica
 export type PurchaseRequestInput = Omit<PurchaseRequest, "id">;
 
 function summarisePR(p: PurchaseRequest): string {
-  return `${p.itemName} · qty ${p.quantityRequested} · ${p.urgency} · ${p.approvalStatus}`;
+  return `${p.itemName} · ${p.unitsRequired} units × ${p.quantityPerUnit} · ${p.urgency} · ${p.approvalStatus}`;
 }
 
 export async function createPurchaseRequest(input: PurchaseRequestInput): Promise<PurchaseRequest> {

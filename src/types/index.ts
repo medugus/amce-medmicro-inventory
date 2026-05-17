@@ -350,7 +350,8 @@ export interface PurchaseRequest {
   requestingSection: LaboratorySectionId;
   requestedBy: string;
   itemName: string;
-  quantityRequested: number;
+  quantityPerUnit: number;
+  unitsRequired: number;
   justification: string;
   urgency: Criticality;
   currentStock: number;
