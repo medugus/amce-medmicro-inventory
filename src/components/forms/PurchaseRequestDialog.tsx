@@ -47,6 +47,8 @@ function emptyInput(defaultUser: string | null): PurchaseRequestInput {
     currentStock: 0,
     averageMonthlyUsage: 0,
     supplierPreference: null,
+    preferredManufacturer: null,
+    alternateManufacturer: null,
     estimatedCost: null,
     approvalStatus: "Draft",
     approvedBy: null,
@@ -176,6 +178,16 @@ export function PurchaseRequestDialog({
             <Label>Supplier preference</Label>
             <Input value={form.supplierPreference ?? ""}
               onChange={(e) => set("supplierPreference", e.target.value || null)} />
+          </div>
+          <div>
+            <Label>Preferred manufacturer</Label>
+            <Input value={form.preferredManufacturer ?? ""}
+              onChange={(e) => set("preferredManufacturer", e.target.value || null)} />
+          </div>
+          <div>
+            <Label>Alternate manufacturer</Label>
+            <Input value={form.alternateManufacturer ?? ""}
+              onChange={(e) => set("alternateManufacturer", e.target.value || null)} />
           </div>
           <div>
             <Label>Approval status</Label>
