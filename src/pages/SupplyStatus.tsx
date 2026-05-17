@@ -28,6 +28,46 @@ const STATUS_GROUPS: SupplyStatus[] = [
 
 export function SupplyStatusPage() {
   const supply = useSupplyStatus();
+  const inventory = useInventory();
+  const [receiveItemId, setReceiveItemId] = useState<string | null>(null);
+  const [promoting, setPromoting] = useState(false);
+
+  async function handlePromote(r: SupplyStatusRecord) {
+    if (promoting) return;
+    setPromoting(true);
+    try {
+      const match = inventory.find(
+        (i) => i.itemName.trim().toLowerCase() === r.itemName.trim().toLowerCase(),
+      );
+      let itemId = match?.id;
+      if (!itemId) {
+        const created = await createInventoryItem({
+          itemName: r.itemName,
+          category: r.category,
+          laboratorySection: r.laboratorySection,
+          unitOfIssue: r.unitOfIssue,
+          manufacturer: null,
+          supplier: r.supplier,
+          catalogueNumber: null,
+          reorderLevel: 0,
+          minimumStock: 0,
+          maximumStock: 0,
+          storageCondition: "",
+          criticality: r.criticality,
+          active: true,
+          notes: `Promoted from supply request on ${new Date().toISOString().slice(0, 10)}`,
+        });
+        itemId = created.id;
+        toast.success(`Added "${r.itemName}" to Inventory Master.`);
+      }
+      setReceiveItemId(itemId);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Could not promote to inventory.");
+    } finally {
+      setPromoting(false);
+    }
+  }
+
   const [search, setSearch] = useState("");
   const [section, setSection] = useState(ALL);
   const [responsible, setResponsible] = useState(ALL);
