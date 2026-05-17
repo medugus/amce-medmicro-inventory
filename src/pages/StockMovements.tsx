@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
-import { Plus, PackagePlus } from "lucide-react";
+import { Link } from "@tanstack/react-router";
+import { Plus, PackagePlus, ScanLine } from "lucide-react";
 import { Header } from "@/components/layout/Header";
 import { SearchInput } from "@/components/common/SearchInput";
 import { ExportButton } from "@/components/common/ExportButton";
@@ -103,6 +104,12 @@ export function StockMovementsPage() {
         actions={
           <div className="flex items-center gap-2">
             <ExportButton />
+            <Button size="sm" variant="outline" asChild>
+              <Link to="/scan">
+                <ScanLine className="h-4 w-4 mr-1" />
+                Scan barcode
+              </Link>
+            </Button>
             <Button size="sm" variant="outline" onClick={() => setReceiveOpen(true)}>
               <PackagePlus className="h-4 w-4 mr-1" />
               Receive new batch

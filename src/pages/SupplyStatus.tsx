@@ -1,4 +1,7 @@
 import { useMemo, useState } from "react";
+import { Link } from "@tanstack/react-router";
+import { ScanLine } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { useSupplyStatus, useInventory } from "@/lib/useLiveData";
 import { AMCE_SECTIONS } from "@/data/amceSections";
 import { Header } from "@/components/layout/Header";
@@ -112,7 +115,17 @@ export function SupplyStatusPage() {
         helpTopic="supplyStatus"
         title="AMCE Supply Status"
         description="Tracks requested, pending, ordered, and supplied items, grouped by supply status. These are not usable inventory until received and accepted."
-        actions={<ExportButton />}
+        actions={
+          <div className="flex items-center gap-2">
+            <Button size="sm" variant="outline" asChild>
+              <Link to="/scan">
+                <ScanLine className="h-4 w-4 mr-1" />
+                Scan barcode
+              </Link>
+            </Button>
+            <ExportButton />
+          </div>
+        }
       />
       <div className="p-6 space-y-4">
         <div className="flex flex-wrap items-center gap-2">
