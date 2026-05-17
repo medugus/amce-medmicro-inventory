@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
-import { Plus, PackagePlus } from "lucide-react";
+import { Link } from "@tanstack/react-router";
+import { Plus, PackagePlus, ScanLine } from "lucide-react";
 import { Header } from "@/components/layout/Header";
 import { SearchInput } from "@/components/common/SearchInput";
 import { ExportButton } from "@/components/common/ExportButton";
