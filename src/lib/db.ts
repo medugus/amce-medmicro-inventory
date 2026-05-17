@@ -139,9 +139,13 @@ export function ensureSeeded(): Promise<void> {
     if (meta?.value === SEED_VERSION) {
       const durableKeys = new Set((await db.durables.toCollection().primaryKeys()) as string[]);
       const equipmentKeys = new Set((await db.equipment.toCollection().primaryKeys()) as string[]);
+      const forecastKeys = new Set((await db.forecasts.toCollection().primaryKeys()) as string[]);
+      const purchaseRequestKeys = new Set((await db.purchaseRequests.toCollection().primaryKeys()) as string[]);
       const hasAllSeedDurables = AMCE_DURABLES.every((d) => durableKeys.has(d.id));
       const hasAllSeedEquipment = AMCE_EQUIPMENT.every((e) => equipmentKeys.has(e.id));
-      if (hasAllSeedDurables && hasAllSeedEquipment) return;
+      const hasAllSeedForecasts = AMCE_FORECASTS.every((f) => forecastKeys.has(f.id));
+      const hasAllSeedPurchaseRequests = AMCE_PURCHASE_REQUESTS.every((r) => purchaseRequestKeys.has(r.id));
+      if (hasAllSeedDurables && hasAllSeedEquipment && hasAllSeedForecasts && hasAllSeedPurchaseRequests) return;
     }
 
     // Use bulkPut only for the catalogue + bundled batches (these are baseline
