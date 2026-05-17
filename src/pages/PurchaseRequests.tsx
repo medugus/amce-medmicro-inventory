@@ -56,6 +56,8 @@ export function PurchaseRequestsPage() {
                   <th className="p-2">Section</th>
                   <th className="p-2">Requested by</th>
                   <th className="p-2">Item</th>
+                  <th className="p-2">Preferred mfr.</th>
+                  <th className="p-2">Alternate mfr.</th>
                   <th className="p-2 text-right">Qty/unit</th>
                   <th className="p-2 text-right">Units required</th>
                   <th className="p-2 text-right">Current</th>
@@ -74,6 +76,8 @@ export function PurchaseRequestsPage() {
                     <td className="p-2 text-xs">{SECTION_NAME[r.requestingSection]}</td>
                     <td className="p-2 text-xs">{r.requestedBy}</td>
                     <td className="p-2 font-medium">{r.itemName}</td>
+                    <td className="p-2 text-xs">{r.preferredManufacturer || NOT_DOCUMENTED}</td>
+                    <td className="p-2 text-xs">{r.alternateManufacturer || NOT_DOCUMENTED}</td>
                     <td className="p-2 text-right tabular-nums">{r.quantityPerUnit}</td>
                     <td className="p-2 text-right tabular-nums">{r.unitsRequired}</td>
                     <td className="p-2 text-right tabular-nums">{r.currentStock}</td>

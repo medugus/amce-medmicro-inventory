@@ -358,6 +358,8 @@ export interface PurchaseRequest {
   currentStock: number;
   averageMonthlyUsage: number;
   supplierPreference: string | null;
+  preferredManufacturer: string | null;
+  alternateManufacturer: string | null;
   estimatedCost: number | null;
   approvalStatus: PurchaseRequestStatus;
   approvedBy: string | null;
