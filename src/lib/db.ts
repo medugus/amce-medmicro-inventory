@@ -139,9 +139,13 @@ export function ensureSeeded(): Promise<void> {
     if (meta?.value === SEED_VERSION) {
       const durableKeys = new Set((await db.durables.toCollection().primaryKeys()) as string[]);
       const equipmentKeys = new Set((await db.equipment.toCollection().primaryKeys()) as string[]);
+      const forecastKeys = new Set((await db.forecasts.toCollection().primaryKeys()) as string[]);
+      const purchaseRequestKeys = new Set((await db.purchaseRequests.toCollection().primaryKeys()) as string[]);
       const hasAllSeedDurables = AMCE_DURABLES.every((d) => durableKeys.has(d.id));
       const hasAllSeedEquipment = AMCE_EQUIPMENT.every((e) => equipmentKeys.has(e.id));
-      if (hasAllSeedDurables && hasAllSeedEquipment) return;
+      const hasAllSeedForecasts = AMCE_FORECASTS.every((f) => forecastKeys.has(f.id));
+      const hasAllSeedPurchaseRequests = AMCE_PURCHASE_REQUESTS.every((r) => purchaseRequestKeys.has(r.id));
+      if (hasAllSeedDurables && hasAllSeedEquipment && hasAllSeedForecasts && hasAllSeedPurchaseRequests) return;
     }
 
     // Use bulkPut only for the catalogue + bundled batches (these are baseline
@@ -186,10 +190,10 @@ export function ensureSeeded(): Promise<void> {
         const newFc = AMCE_FORECASTS.filter((f) => !existingFc.has(f.id));
         if (newFc.length) await db.forecasts.bulkAdd(newFc);
 
-        // Purchase requests: seed only if empty (currently no baseline rows).
-        if ((await db.purchaseRequests.count()) === 0 && AMCE_PURCHASE_REQUESTS.length) {
-          await db.purchaseRequests.bulkAdd(AMCE_PURCHASE_REQUESTS);
-        }
+        // Purchase requests: fill in missing seed rows by stable ID; never overwrite edits.
+        const existingPr = new Set((await db.purchaseRequests.toCollection().primaryKeys()) as string[]);
+        const newPr = AMCE_PURCHASE_REQUESTS.filter((r) => !existingPr.has(r.id));
+        if (newPr.length) await db.purchaseRequests.bulkAdd(newPr);
 
         await db.meta.put({ key: "seedVersion", value: SEED_VERSION });
       }
