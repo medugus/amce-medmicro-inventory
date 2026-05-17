@@ -87,12 +87,16 @@ export function PurchaseRequestDialog({
     if (!user) { toast.error("Select a user in the top bar first."); return; }
     if (!form.itemName.trim()) { toast.error("Item name is required."); return; }
     setBusy(true);
+    const normalizedForm: PurchaseRequestInput = {
+      ...form,
+      quantityRequested: form.quantityPerUnit * form.unitsRequired,
+    };
     try {
       if (request) {
-        await updatePurchaseRequest(request.id, form, reason);
+        await updatePurchaseRequest(request.id, normalizedForm, reason);
         toast.success("Purchase request updated.");
       } else {
-        await createPurchaseRequest(form);
+        await createPurchaseRequest(normalizedForm);
         toast.success("Purchase request added.");
       }
       onOpenChange(false);
@@ -142,11 +146,6 @@ export function PurchaseRequestDialog({
                 {CRITS.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
               </SelectContent>
             </Select>
-          </div>
-          <div>
-            <Label>Quantity requested</Label>
-            <Input type="number" value={form.quantityRequested}
-              onChange={(e) => set("quantityRequested", Number(e.target.value) || 0)} />
           </div>
           <div>
             <Label>Quantity per unit</Label>
