@@ -74,4 +74,25 @@ export const AMCE_FORECASTS: SectionForecast[] = [
   { id: "FC-152", laboratorySection: "stores", responsiblePerson: "Felicita", itemName: "70% isopropyl alcohol (5 L)", category: "Disinfectants", currentStock: 6, averageMonthlyUsage: 8, quantityNeededForThreeMonths: 24, requestedQuantity: 18, justification: "Bench and equipment disinfection.", priority: "Medium", estimatedCost: null, comments: "", forecastDate: today },
 ];
 
-export const AMCE_PURCHASE_REQUESTS: PurchaseRequest[] = [];
+export const AMCE_PURCHASE_REQUESTS: PurchaseRequest[] = [
+  {
+    id: "PR-001",
+    requestDate: "2026-05-15",
+    requestingSection: "parasitology",
+    requestedBy: "Chidi",
+    itemName: "Cary-Blair transport swab",
+    quantityRequested: 4,
+    quantityPerUnit: 20,
+    unitsRequired: 2,
+    justification: "Required for parasitology specimen processing, concentration, staining or microscopy workflow. Not yet received. Added to procurement tracker as approved request awaiting supply.",
+    urgency: "High",
+    currentStock: 0,
+    averageMonthlyUsage: 2,
+    preferredManufacturer: "Copan Transystem™",
+    alternateManufacturer: "BD CultureSwab™",
+    approvalStatus: "Approved",
+    approvedBy: "Procurement",
+    procurementStatus: "Delivery pending",
+    dateSupplied: null,
+  },
+];
