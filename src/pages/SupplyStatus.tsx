@@ -168,7 +168,7 @@ export function SupplyStatusPage() {
                   <h2 className="text-sm font-semibold">{g.status}</h2>
                   <span className="text-xs text-muted-foreground">({g.rows.length})</span>
                 </div>
-                <SupplyTable rows={g.rows} onEdit={setEditing} />
+                <SupplyTable rows={g.rows} onEdit={setEditing} onPromote={handlePromote} />
               </section>
             ))}
           </div>
@@ -176,6 +176,11 @@ export function SupplyStatusPage() {
       </div>
 
       <SupplyEditDialog record={editing} onClose={() => setEditing(null)} />
+      <ReceiveBatchDialog
+        open={receiveItemId !== null}
+        onOpenChange={(o) => { if (!o) setReceiveItemId(null); }}
+        defaultInventoryItemId={receiveItemId ?? ""}
+      />
     </div>
   );
 }
