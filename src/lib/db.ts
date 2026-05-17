@@ -128,7 +128,7 @@ export async function deletedRecordIdsForTable(table: string): Promise<Set<strin
 // you want each lab PC to re-seed missing rows from the new baseline. Seeded
 // durables are refreshed by stable ID; user-added rows use different IDs and
 // are never overwritten.
-const SEED_VERSION = "2026-05-06.9-forecasts-prs";
+const SEED_VERSION = "2026-05-17.10-purchase-request-refresh";
 
 let seedPromise: Promise<void> | null = null;
 
@@ -190,10 +190,9 @@ export function ensureSeeded(): Promise<void> {
         const newFc = AMCE_FORECASTS.filter((f) => !existingFc.has(f.id));
         if (newFc.length) await db.forecasts.bulkAdd(newFc);
 
-        // Purchase requests: fill in missing seed rows by stable ID; never overwrite edits.
-        const existingPr = new Set((await db.purchaseRequests.toCollection().primaryKeys()) as string[]);
-        const newPr = AMCE_PURCHASE_REQUESTS.filter((r) => !existingPr.has(r.id));
-        if (newPr.length) await db.purchaseRequests.bulkAdd(newPr);
+        // Purchase requests: refresh bundled seed rows by stable ID so seed corrections are applied.
+        // User-created purchase requests use runtime-generated ids (\`pr-*\`) and are unaffected.
+        if (AMCE_PURCHASE_REQUESTS.length) await db.purchaseRequests.bulkPut(AMCE_PURCHASE_REQUESTS);
 
         await db.meta.put({ key: "seedVersion", value: SEED_VERSION });
       }
