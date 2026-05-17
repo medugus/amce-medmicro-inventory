@@ -13,9 +13,11 @@ import type { SupplyStatusRecord } from "@/types";
 export function SupplyTable({
   rows,
   onEdit,
+  onPromote,
 }: {
   rows: SupplyStatusRecord[];
   onEdit: (r: SupplyStatusRecord) => void;
+  onPromote?: (r: SupplyStatusRecord) => void;
 }) {
   return (
     <div className="border border-border rounded-md overflow-x-auto bg-card">
@@ -64,7 +66,12 @@ export function SupplyTable({
                 </td>
                 <td className="p-2 text-xs">{actionRequired(r)}</td>
                 <td className="p-2 print:hidden">
-                  <Button size="sm" variant="outline" onClick={() => onEdit(r)}>Update</Button>
+                  <div className="flex flex-col gap-1">
+                    <Button size="sm" variant="outline" onClick={() => onEdit(r)}>Update</Button>
+                    {onPromote && (
+                      <Button size="sm" variant="secondary" onClick={() => onPromote(r)}>Receive</Button>
+                    )}
+                  </div>
                 </td>
               </tr>
             );
