@@ -5,7 +5,7 @@ import { Header } from "@/components/layout/Header";
 import { Button } from "@/components/ui/button";
 import { ExportButton } from "@/components/common/ExportButton";
 import { EmptyState } from "@/components/common/EmptyState";
-import { StatusBadge, toneForCriticality, toneForProcurementStatus } from "@/components/common/StatusBadge";
+import { StatusBadge, toneForCriticality } from "@/components/common/StatusBadge";
 import { SECTION_NAME } from "@/data/amceSections";
 import { NOT_DOCUMENTED } from "@/data/categories";
 import { PurchaseRequestDialog } from "@/components/forms/PurchaseRequestDialog";
@@ -64,7 +64,6 @@ export function PurchaseRequestsPage() {
                   <th className="p-2 text-right">Avg/mo</th>
                   <th className="p-2">Urgency</th>
                   <th className="p-2">Approval</th>
-                  <th className="p-2">Procurement</th>
                   <th className="p-2">Justification</th>
                   <th className="p-2 text-right">Actions</th>
                 </tr>
@@ -84,7 +83,6 @@ export function PurchaseRequestsPage() {
                     <td className="p-2 text-right tabular-nums">{r.averageMonthlyUsage}</td>
                     <td className="p-2"><StatusBadge label={r.urgency} tone={toneForCriticality(r.urgency)} /></td>
                     <td className="p-2"><StatusBadge label={r.approvalStatus} tone={r.approvalStatus === "Approved" ? "success" : r.approvalStatus === "Rejected" ? "destructive" : "info"} /></td>
-                    <td className="p-2"><StatusBadge label={r.procurementStatus} tone={toneForProcurementStatus(r.procurementStatus)} /></td>
                     <td className="p-2 text-xs">{r.justification || NOT_DOCUMENTED}</td>
                     <td className="p-2 text-right whitespace-nowrap">
                       <Button size="icon" variant="ghost" onClick={() => openEdit(r)} aria-label="Edit">
