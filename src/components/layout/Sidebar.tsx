@@ -35,7 +35,6 @@ import { AiSparkle } from "@/components/icons/AiSparkle";
 const NAV: { to: string; label: string; group: string; icon: React.ComponentType<{ className?: string }>; explain: string }[] = [
   { to: "/", label: "Dashboard", group: "AMCE Microbiology", icon: LayoutDashboard, explain: "Live operational view across supply, inventory, quality and equipment." },
   { to: "/critical-actions", label: "Critical Actions", group: "AMCE Microbiology", icon: AlertTriangle, explain: "One triage list of everything across the system that needs attention now." },
-  { to: "/scan", label: "Scan QR / Barcode", group: "AMCE Microbiology", icon: ScanLine, explain: "Scan an item, batch or asset QR/barcode to jump straight to its record." },
   { to: "/qr-labels", label: "QR Labels (Print)", group: "AMCE Microbiology", icon: QrCode, explain: "Print QR labels for items, batches and equipment for shelf and bench tagging." },
 
   { to: "/supply-status", label: "Supply Status", group: "Supply and Procurement", icon: PackageSearch, explain: "Track open supply requests from sections to stores / procurement." },
