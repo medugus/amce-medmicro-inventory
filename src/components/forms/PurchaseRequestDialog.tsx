@@ -40,6 +40,8 @@ function emptyInput(defaultUser: string | null): PurchaseRequestInput {
     requestedBy: defaultUser ?? "",
     itemName: "",
     quantityRequested: 0,
+    quantityPerUnit: 1,
+    unitsRequired: 0,
     justification: "",
     urgency: "Medium",
     currentStock: 0,
@@ -145,6 +147,16 @@ export function PurchaseRequestDialog({
             <Label>Quantity requested</Label>
             <Input type="number" value={form.quantityRequested}
               onChange={(e) => set("quantityRequested", Number(e.target.value) || 0)} />
+          </div>
+          <div>
+            <Label>Quantity per unit</Label>
+            <Input type="number" value={form.quantityPerUnit}
+              onChange={(e) => set("quantityPerUnit", Number(e.target.value) || 0)} />
+          </div>
+          <div>
+            <Label>Units required</Label>
+            <Input type="number" value={form.unitsRequired}
+              onChange={(e) => set("unitsRequired", Number(e.target.value) || 0)} />
           </div>
           <div>
             <Label>Current stock</Label>

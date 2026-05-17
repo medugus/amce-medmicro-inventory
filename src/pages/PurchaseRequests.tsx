@@ -57,6 +57,8 @@ export function PurchaseRequestsPage() {
                   <th className="p-2">Requested by</th>
                   <th className="p-2">Item</th>
                   <th className="p-2 text-right">Qty</th>
+                  <th className="p-2 text-right">Qty/unit</th>
+                  <th className="p-2 text-right">Units required</th>
                   <th className="p-2 text-right">Current</th>
                   <th className="p-2 text-right">Avg/mo</th>
                   <th className="p-2">Urgency</th>
@@ -74,6 +76,8 @@ export function PurchaseRequestsPage() {
                     <td className="p-2 text-xs">{r.requestedBy}</td>
                     <td className="p-2 font-medium">{r.itemName}</td>
                     <td className="p-2 text-right tabular-nums">{r.quantityRequested}</td>
+                    <td className="p-2 text-right tabular-nums">{r.quantityPerUnit}</td>
+                    <td className="p-2 text-right tabular-nums">{r.unitsRequired}</td>
                     <td className="p-2 text-right tabular-nums">{r.currentStock}</td>
                     <td className="p-2 text-right tabular-nums">{r.averageMonthlyUsage}</td>
                     <td className="p-2"><StatusBadge label={r.urgency} tone={toneForCriticality(r.urgency)} /></td>
