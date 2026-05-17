@@ -360,7 +360,6 @@ export interface PurchaseRequest {
   supplierPreference: string | null;
   preferredManufacturer: string | null;
   alternateManufacturer: string | null;
-  estimatedCost: number | null;
   approvalStatus: PurchaseRequestStatus;
   approvedBy: string | null;
   procurementStatus: ProcurementStatus;
