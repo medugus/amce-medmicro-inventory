@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { Plus, Pencil, Trash2, Mail } from "lucide-react";
 import { usePurchaseRequests } from "@/lib/useLiveData";
 import { Header } from "@/components/layout/Header";
 import { Button } from "@/components/ui/button";
@@ -31,6 +31,36 @@ export function PurchaseRequestsPage() {
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed.");
     }
+  }
+
+  function onEmail(r: PurchaseRequest) {
+    const subject = `Purchase request: ${r.itemName} (${r.requestingSection})`;
+    const lines = [
+      "Dear Procurement Team,",
+      "",
+      "Please find the purchase request details below:",
+      "",
+      `Date: ${r.requestDate}`,
+      `Section: ${SECTION_NAME[r.requestingSection]}`,
+      `Requested by: ${r.requestedBy}`,
+      `Item: ${r.itemName}`,
+      `Preferred manufacturer: ${r.preferredManufacturer || NOT_DOCUMENTED}`,
+      `Alternate manufacturer: ${r.alternateManufacturer || NOT_DOCUMENTED}`,
+      `Quantity per unit: ${r.quantityPerUnit}`,
+      `Units required: ${r.unitsRequired}`,
+      `Total quantity requested: ${r.quantityRequested}`,
+      `Current stock: ${r.currentStock}`,
+      `Average monthly usage: ${r.averageMonthlyUsage}`,
+      `Urgency: ${r.urgency}`,
+      `Approval status: ${r.approvalStatus}`,
+      `Procurement status: ${r.procurementStatus}`,
+      `Justification: ${r.justification || NOT_DOCUMENTED}`,
+      "",
+      "Kind regards,",
+      r.requestedBy,
+    ];
+    const body = lines.join("\n");
+    window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   }
 
   return (
@@ -87,6 +117,9 @@ export function PurchaseRequestsPage() {
                     <td className="p-2 text-right whitespace-nowrap">
                       <Button size="icon" variant="ghost" onClick={() => openEdit(r)} aria-label="Edit">
                         <Pencil className="w-4 h-4" />
+                      </Button>
+                      <Button size="icon" variant="ghost" onClick={() => onEmail(r)} aria-label="Email request">
+                        <Mail className="w-4 h-4" />
                       </Button>
                       <Button size="icon" variant="ghost" onClick={() => onDelete(r)} aria-label="Delete">
                         <Trash2 className="w-4 h-4" />
