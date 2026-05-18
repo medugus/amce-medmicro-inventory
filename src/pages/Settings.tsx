@@ -2,10 +2,11 @@ import { Header } from "@/components/layout/Header";
 import { AMCE_SECTIONS } from "@/data/amceSections";
 import { AMCE_USERS } from "@/data/amceUsers";
 import { StatusBadge } from "@/components/common/StatusBadge";
-import { useMaintWindowDays, setMaintWindowDays } from "@/lib/settings";
+import { useMaintWindowDays, setMaintWindowDays, useProcurementEmail, setProcurementEmail } from "@/lib/settings";
 
 export function SettingsPage() {
   const maintDays = useMaintWindowDays();
+  const procurementEmail = useProcurementEmail();
   return (
     <div>
       <Header helpTopic="settings" title="Settings" description="Sections, leads and user roles for AMCE Microbiology." />
@@ -26,6 +27,23 @@ export function SettingsPage() {
             <span className="text-xs text-muted-foreground">days before due date — equipment is flagged on the dashboard within this window.</span>
           </div>
         </section>
+
+        <section className="lg:col-span-2">
+          <h2 className="text-sm font-semibold mb-2">Communication</h2>
+          <div className="border border-border rounded-md bg-card px-3 py-3 flex flex-wrap items-center gap-3">
+            <label htmlFor="procurement-email" className="text-sm font-medium">Default procurement email</label>
+            <input
+              id="procurement-email"
+              type="email"
+              placeholder="procurement@example.org"
+              value={procurementEmail}
+              onChange={(e) => setProcurementEmail(e.target.value)}
+              className="w-72 rounded-md border border-input bg-background px-2 py-1 text-sm"
+            />
+            <span className="text-xs text-muted-foreground">Used as the default recipient when emailing a purchase request.</span>
+          </div>
+        </section>
+
         <section>
           <h2 className="text-sm font-semibold mb-2">Laboratory sections</h2>
           <div className="border border-border rounded-md bg-card divide-y divide-border">

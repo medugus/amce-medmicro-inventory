@@ -12,6 +12,7 @@ import { PurchaseRequestDialog } from "@/components/forms/PurchaseRequestDialog"
 import { deletePurchaseRequest } from "@/lib/actions";
 import { toast } from "sonner";
 import type { PurchaseRequest } from "@/types";
+import { getProcurementEmail } from "@/lib/settings";
 
 export function PurchaseRequestsPage() {
   const rows = usePurchaseRequests();
@@ -60,7 +61,11 @@ export function PurchaseRequestsPage() {
       r.requestedBy,
     ];
     const body = lines.join("\n");
-    window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    const to = getProcurementEmail();
+    if (!to) {
+      toast.info("Tip: set a default procurement email in Settings → Communication.");
+    }
+    window.location.href = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   }
 
   return (
