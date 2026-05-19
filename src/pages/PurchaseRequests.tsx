@@ -18,6 +18,41 @@ export function PurchaseRequestsPage() {
   const rows = usePurchaseRequests();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<PurchaseRequest | null>(null);
+  const { labManager, headOfUnit } = useProcurementRecipients();
+
+  function onEmailDigest() {
+    if (rows.length === 0) { toast.error("No requests to email."); return; }
+    const to = [labManager, headOfUnit].filter(Boolean).join(",");
+    if (!to) { toast.error("Set recipient emails in Settings first."); return; }
+    const subject = `Purchase requests digest — ${rows.length} item${rows.length === 1 ? "" : "s"} (${new Date().toLocaleDateString()})`;
+    const header = ["Date", "Section", "Requested by", "Item", "Preferred mfr.", "Qty/unit", "Units", "Total", "Current", "Avg/mo", "Urgency", "Approval"].join(" | ");
+    const sep = header.replace(/[^|]/g, "-");
+    const body = [
+      "Dear Lab Manager and Head of Unit,",
+      "",
+      `Please find below ${rows.length} current purchase request${rows.length === 1 ? "" : "s"} for your review and approval.`,
+      "",
+      header,
+      sep,
+      ...rows.map((r) => [
+        r.requestDate,
+        SECTION_NAME[r.requestingSection],
+        r.requestedBy,
+        r.itemName,
+        r.preferredManufacturer || NOT_DOCUMENTED,
+        r.quantityPerUnit,
+        r.unitsRequired,
+        r.quantityRequested,
+        r.currentStock,
+        r.averageMonthlyUsage,
+        r.urgency,
+        r.approvalStatus,
+      ].join(" | ")),
+      "",
+      "Kind regards,",
+    ].join("\n");
+    window.location.href = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  }
 
   function openNew() { setEditing(null); setOpen(true); }
   function openEdit(r: PurchaseRequest) { setEditing(r); setOpen(true); }
