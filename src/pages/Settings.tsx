@@ -12,6 +12,7 @@ import {
 
 export function SettingsPage() {
   const maintDays = useMaintWindowDays();
+  const { labManager, headOfUnit } = useProcurementRecipients();
   return (
     <div>
       <Header helpTopic="settings" title="Settings" description="Sections, leads and user roles for AMCE Microbiology." />
