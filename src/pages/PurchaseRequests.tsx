@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Pencil, Trash2, Mail } from "lucide-react";
+import { Plus, Pencil, Trash2, Mail, Send } from "lucide-react";
 import { usePurchaseRequests } from "@/lib/useLiveData";
 import { Header } from "@/components/layout/Header";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,7 @@ import { SECTION_NAME } from "@/data/amceSections";
 import { NOT_DOCUMENTED } from "@/data/categories";
 import { PurchaseRequestDialog } from "@/components/forms/PurchaseRequestDialog";
 import { deletePurchaseRequest } from "@/lib/actions";
+import { useProcurementRecipients } from "@/lib/settings";
 import { toast } from "sonner";
 import type { PurchaseRequest } from "@/types";
 
