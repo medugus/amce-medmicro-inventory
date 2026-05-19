@@ -2,10 +2,17 @@ import { Header } from "@/components/layout/Header";
 import { AMCE_SECTIONS } from "@/data/amceSections";
 import { AMCE_USERS } from "@/data/amceUsers";
 import { StatusBadge } from "@/components/common/StatusBadge";
-import { useMaintWindowDays, setMaintWindowDays } from "@/lib/settings";
+import {
+  useMaintWindowDays,
+  setMaintWindowDays,
+  useProcurementRecipients,
+  setLabManagerEmail,
+  setHeadOfUnitEmail,
+} from "@/lib/settings";
 
 export function SettingsPage() {
   const maintDays = useMaintWindowDays();
+  const { labManager, headOfUnit } = useProcurementRecipients();
   return (
     <div>
       <Header helpTopic="settings" title="Settings" description="Sections, leads and user roles for AMCE Microbiology." />
@@ -24,6 +31,34 @@ export function SettingsPage() {
               className="w-24 rounded-md border border-input bg-background px-2 py-1 text-sm"
             />
             <span className="text-xs text-muted-foreground">days before due date — equipment is flagged on the dashboard within this window.</span>
+          </div>
+        </section>
+        <section className="lg:col-span-2">
+          <h2 className="text-sm font-semibold mb-2">Procurement digest recipients</h2>
+          <div className="border border-border rounded-md bg-card px-3 py-3 grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="flex flex-col gap-1">
+              <label htmlFor="lab-mgr-email" className="text-xs font-medium text-muted-foreground">Lab Manager email</label>
+              <input
+                id="lab-mgr-email"
+                type="email"
+                value={labManager}
+                onChange={(e) => setLabManagerEmail(e.target.value)}
+                className="rounded-md border border-input bg-background px-2 py-1 text-sm"
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <label htmlFor="head-email" className="text-xs font-medium text-muted-foreground">Head of Unit email</label>
+              <input
+                id="head-email"
+                type="email"
+                value={headOfUnit}
+                onChange={(e) => setHeadOfUnitEmail(e.target.value)}
+                className="rounded-md border border-input bg-background px-2 py-1 text-sm"
+              />
+            </div>
+            <p className="md:col-span-2 text-xs text-muted-foreground">
+              Used by the "Email digest" button on Purchase Requests. Opens your default email client (Outlook, Gmail, Mail) with the recipients, subject and request list pre-filled — you click Send so the message comes from your own account.
+            </p>
           </div>
         </section>
         <section>
