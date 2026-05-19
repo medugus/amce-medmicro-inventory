@@ -108,6 +108,7 @@ export function PurchaseRequestsPage() {
         actions={
           <div className="flex items-center gap-2">
             <Button size="sm" onClick={openNew}><Plus className="w-4 h-4 mr-1" />Add request</Button>
+            <Button size="sm" variant="outline" onClick={onEmailDigest}><Send className="w-4 h-4 mr-1" />Email digest</Button>
             <ExportButton />
           </div>
         }
