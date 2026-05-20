@@ -560,3 +560,17 @@ export async function deletePurchaseRequest(id: string, reason: string): Promise
   });
   notifyDbChanged();
 }
+
+export async function markPurchaseRequestsEmailed(ids: string[]): Promise<void> {
+  const user = requireUser();
+  if (!ids.length) return;
+  const at = nowISODateTime();
+  for (const id of ids) {
+    await db.purchaseRequests.update(id, { emailedAt: at } as Partial<PurchaseRequest>);
+  }
+  await appendAudit({
+    user, action: "Email purchase requests", module: "Purchase Requests", entityId: ids.join(","),
+    previousValue: null, newValue: `Emailed ${ids.length} request(s) to managers`, reason: "", notes: "",
+  });
+  notifyDbChanged();
+}

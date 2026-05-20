@@ -363,4 +363,5 @@ export interface PurchaseRequest {
   approvedBy: string | null;
   procurementStatus: ProcurementStatus;
   dateSupplied: string | null;
+  emailedAt?: string | null;
 }
