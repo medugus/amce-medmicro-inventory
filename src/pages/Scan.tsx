@@ -19,11 +19,23 @@ import { AMCE_INVENTORY_MASTER } from "@/data/amceInventoryMaster";
 import { AMCE_DURABLES, AMCE_EQUIPMENT } from "@/data/amceAssets";
 import { AMCE_SECTIONS } from "@/data/amceSections";
 import { ReceiveBatchDialog } from "@/components/forms/ReceiveBatchDialog";
+import { InventoryItemPicker } from "@/components/forms/InventoryItemPicker";
+import { Switch } from "@/components/ui/switch";
 import { recordAcceptance } from "@/lib/actions";
 import { getCurrentUser } from "@/lib/currentUser";
 import { parseGs1, plainGtin, formatExpiryForDisplay, type Gs1Parsed } from "@/lib/gs1";
 import { getGtinEntry, upsertGtinEntry, touchGtinSeen, recordScan } from "@/lib/gtinActions";
 import type { GtinCatalogueEntry, GtinCategory, LaboratorySectionId } from "@/types";
+
+const AUTO_RECEIVE_KEY = "amce.scan.autoReceive";
+function getAutoReceive(): boolean {
+  if (typeof window === "undefined") return true;
+  return window.localStorage.getItem(AUTO_RECEIVE_KEY) !== "0";
+}
+function setAutoReceivePref(v: boolean) {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(AUTO_RECEIVE_KEY, v ? "1" : "0");
+}
 
 type ScannerTarget =
   | { kind: "record"; type: QrEntityType; id: string }
@@ -94,8 +106,10 @@ export function ScanPage() {
   const [serialNumber, setSerialNumber] = useState("");
   const [unit, setUnit] = useState("");
   const [category, setCategory] = useState<GtinCategory>("reagent");
+  const [linkedItemId, setLinkedItemId] = useState<string>("");
   const [quantity, setQuantity] = useState("1");
   const [section, setSection] = useState<LaboratorySectionId>("stores");
+  const [autoReceive, setAutoReceive] = useState<boolean>(() => getAutoReceive());
 
   const [receiveOpen, setReceiveOpen] = useState(false);
   const [receiveItemId, setReceiveItemId] = useState("");
@@ -239,13 +253,35 @@ export function ScanPage() {
     setSerialNumber(gs1.serialNumber ?? "");
     setUnit(catalogue?.unit ?? "");
     setCategory((catalogue?.category as GtinCategory | undefined) ?? "reagent");
+    setLinkedItemId(catalogue?.inventoryItemId ?? matches.matchedItemId ?? "");
     setQuantity("1");
+
+    // Auto-jump when recognised: catalogue links to an inventory item AND we
+    // have a lot from GS1 → go straight to the Receive dialog, pre-filled.
+    // Zero taps from the second scan onwards.
+    const targetItemId = catalogue?.inventoryItemId ?? matches.matchedItemId;
+    if (autoReceive && gtin && catalogue && targetItemId && gs1.lotNumber) {
+      void touchGtinSeen(gtin);
+      void recordScan({
+        gtin, lotNumber: gs1.lotNumber, expiryDate: gs1.expiryDate ?? null,
+        productName: catalogue.productName, rawCode: raw,
+        action: "Auto-receive (recognised)",
+      });
+      toast.success(`Recognised: ${catalogue.productName} — opening receive`);
+      stopScanner();
+      openReceipt(raw, targetItemId);
+      return;
+    }
 
     if (gtin && catalogue) {
       void touchGtinSeen(gtin);
-      toast.success(`Recognised: ${catalogue.productName}`);
+      toast.success(
+        targetItemId
+          ? `Recognised: ${catalogue.productName}`
+          : `Recognised GTIN — link it to an inventory item below so next time is one tap.`
+      );
     } else if (gtin) {
-      toast.message("New product — please name it below to save it to the catalogue.");
+      toast.message("New product — name it and link an inventory item to teach the app.");
     } else if (matches.matchedBatchId || matches.matchedItemId) {
       toast.success("Matched an existing record.");
     } else {
@@ -269,7 +305,7 @@ export function ScanPage() {
       manufacturer: manufacturer.trim() || null,
       unit: unit.trim() || null,
       category,
-      inventoryItemId: parsed.catalogue?.inventoryItemId ?? null,
+      inventoryItemId: linkedItemId || parsed.catalogue?.inventoryItemId || null,
     });
     return parsed.gtin;
   }
@@ -441,6 +477,18 @@ export function ScanPage() {
               </Button>
             </div>
           </div>
+          <div className="flex items-center justify-between rounded-md border border-border bg-muted/30 px-3 py-2">
+            <div className="text-xs">
+              <div className="font-medium text-foreground">Auto-receive recognised scans</div>
+              <div className="text-muted-foreground">
+                Skip the form when GTIN + lot are known. Zero taps after the first scan.
+              </div>
+            </div>
+            <Switch
+              checked={autoReceive}
+              onCheckedChange={(v) => { setAutoReceive(v); setAutoReceivePref(v); }}
+            />
+          </div>
           <p className="text-xs text-muted-foreground">
             Use Chrome or Safari on a phone for best results. The browser will prompt for camera permission once.
           </p>
@@ -536,6 +584,22 @@ export function ScanPage() {
                   </SelectContent>
                 </Select>
               </div>
+              {parsed.gtin && (
+                <div className="sm:col-span-2">
+                  <Label className="text-xs">
+                    Linked inventory item{" "}
+                    <span className="text-muted-foreground">
+                      (teaches the app — next scan of this GTIN jumps straight to Receive)
+                    </span>
+                  </Label>
+                  <InventoryItemPicker
+                    items={scanItems}
+                    value={linkedItemId}
+                    onChange={setLinkedItemId}
+                    groupBy="category"
+                  />
+                </div>
+              )}
             </div>
 
             {parsed.matchedBatchId && (
