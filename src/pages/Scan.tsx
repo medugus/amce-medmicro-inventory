@@ -477,6 +477,18 @@ export function ScanPage() {
               </Button>
             </div>
           </div>
+          <div className="flex items-center justify-between rounded-md border border-border bg-muted/30 px-3 py-2">
+            <div className="text-xs">
+              <div className="font-medium text-foreground">Auto-receive recognised scans</div>
+              <div className="text-muted-foreground">
+                Skip the form when GTIN + lot are known. Zero taps after the first scan.
+              </div>
+            </div>
+            <Switch
+              checked={autoReceive}
+              onCheckedChange={(v) => { setAutoReceive(v); setAutoReceivePref(v); }}
+            />
+          </div>
           <p className="text-xs text-muted-foreground">
             Use Chrome or Safari on a phone for best results. The browser will prompt for camera permission once.
           </p>
