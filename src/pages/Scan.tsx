@@ -106,8 +106,10 @@ export function ScanPage() {
   const [serialNumber, setSerialNumber] = useState("");
   const [unit, setUnit] = useState("");
   const [category, setCategory] = useState<GtinCategory>("reagent");
+  const [linkedItemId, setLinkedItemId] = useState<string>("");
   const [quantity, setQuantity] = useState("1");
   const [section, setSection] = useState<LaboratorySectionId>("stores");
+  const [autoReceive, setAutoReceive] = useState<boolean>(() => getAutoReceive());
 
   const [receiveOpen, setReceiveOpen] = useState(false);
   const [receiveItemId, setReceiveItemId] = useState("");
