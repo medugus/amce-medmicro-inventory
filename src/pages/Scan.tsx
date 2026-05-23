@@ -584,6 +584,22 @@ export function ScanPage() {
                   </SelectContent>
                 </Select>
               </div>
+              {parsed.gtin && (
+                <div className="sm:col-span-2">
+                  <Label className="text-xs">
+                    Linked inventory item{" "}
+                    <span className="text-muted-foreground">
+                      (teaches the app — next scan of this GTIN jumps straight to Receive)
+                    </span>
+                  </Label>
+                  <InventoryItemPicker
+                    items={scanItems}
+                    value={linkedItemId}
+                    onChange={setLinkedItemId}
+                    groupBy="category"
+                  />
+                </div>
+              )}
             </div>
 
             {parsed.matchedBatchId && (
