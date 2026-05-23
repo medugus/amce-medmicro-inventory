@@ -253,13 +253,35 @@ export function ScanPage() {
     setSerialNumber(gs1.serialNumber ?? "");
     setUnit(catalogue?.unit ?? "");
     setCategory((catalogue?.category as GtinCategory | undefined) ?? "reagent");
+    setLinkedItemId(catalogue?.inventoryItemId ?? matches.matchedItemId ?? "");
     setQuantity("1");
+
+    // Auto-jump when recognised: catalogue links to an inventory item AND we
+    // have a lot from GS1 → go straight to the Receive dialog, pre-filled.
+    // Zero taps from the second scan onwards.
+    const targetItemId = catalogue?.inventoryItemId ?? matches.matchedItemId;
+    if (autoReceive && gtin && catalogue && targetItemId && gs1.lotNumber) {
+      void touchGtinSeen(gtin);
+      void recordScan({
+        gtin, lotNumber: gs1.lotNumber, expiryDate: gs1.expiryDate ?? null,
+        productName: catalogue.productName, rawCode: raw,
+        action: "Auto-receive (recognised)",
+      });
+      toast.success(`Recognised: ${catalogue.productName} — opening receive`);
+      stopScanner();
+      openReceipt(raw, targetItemId);
+      return;
+    }
 
     if (gtin && catalogue) {
       void touchGtinSeen(gtin);
-      toast.success(`Recognised: ${catalogue.productName}`);
+      toast.success(
+        targetItemId
+          ? `Recognised: ${catalogue.productName}`
+          : `Recognised GTIN — link it to an inventory item below so next time is one tap.`
+      );
     } else if (gtin) {
-      toast.message("New product — please name it below to save it to the catalogue.");
+      toast.message("New product — name it and link an inventory item to teach the app.");
     } else if (matches.matchedBatchId || matches.matchedItemId) {
       toast.success("Matched an existing record.");
     } else {
@@ -283,7 +305,7 @@ export function ScanPage() {
       manufacturer: manufacturer.trim() || null,
       unit: unit.trim() || null,
       category,
-      inventoryItemId: parsed.catalogue?.inventoryItemId ?? null,
+      inventoryItemId: linkedItemId || parsed.catalogue?.inventoryItemId || null,
     });
     return parsed.gtin;
   }
