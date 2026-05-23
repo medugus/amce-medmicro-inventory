@@ -19,11 +19,23 @@ import { AMCE_INVENTORY_MASTER } from "@/data/amceInventoryMaster";
 import { AMCE_DURABLES, AMCE_EQUIPMENT } from "@/data/amceAssets";
 import { AMCE_SECTIONS } from "@/data/amceSections";
 import { ReceiveBatchDialog } from "@/components/forms/ReceiveBatchDialog";
+import { InventoryItemPicker } from "@/components/forms/InventoryItemPicker";
+import { Switch } from "@/components/ui/switch";
 import { recordAcceptance } from "@/lib/actions";
 import { getCurrentUser } from "@/lib/currentUser";
 import { parseGs1, plainGtin, formatExpiryForDisplay, type Gs1Parsed } from "@/lib/gs1";
 import { getGtinEntry, upsertGtinEntry, touchGtinSeen, recordScan } from "@/lib/gtinActions";
 import type { GtinCatalogueEntry, GtinCategory, LaboratorySectionId } from "@/types";
+
+const AUTO_RECEIVE_KEY = "amce.scan.autoReceive";
+function getAutoReceive(): boolean {
+  if (typeof window === "undefined") return true;
+  return window.localStorage.getItem(AUTO_RECEIVE_KEY) !== "0";
+}
+function setAutoReceivePref(v: boolean) {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(AUTO_RECEIVE_KEY, v ? "1" : "0");
+}
 
 type ScannerTarget =
   | { kind: "record"; type: QrEntityType; id: string }
